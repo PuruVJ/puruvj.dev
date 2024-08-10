@@ -25,5 +25,10 @@
 	"devDependencies": {
 		"lightningcss": "^1.26.0",
 		"sharp": "^0.33.4"
+	},
+	"pnpm": {
+		"overrides": {
+			"sharp": "^0.33.4"
+		}
 	}
 }

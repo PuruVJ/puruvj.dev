@@ -1,17 +1,17 @@
 ---
 import type { ImageMetadata } from 'astro';
 import { getImage } from 'astro:assets';
-import ImageObserver from './ImageObserver.svelte';
 
 interface Props {
 	src: ImageMetadata;
 	alt: string;
+	lazy?: boolean;
 }
 
 const is_gif = Astro.props.src.format === 'gif';
 
 // AVIFs screw up gifs
-const avif_img = is_gif
+const avif = is_gif
 	? null
 	: await getImage({
 			src: Astro.props.src,
@@ -19,17 +19,122 @@ const avif_img = is_gif
 			widths: [1800, 1200, 600],
 		});
 
-const webp_img = await getImage({
+const webp = await getImage({
 	src: Astro.props.src,
 	format: 'webp',
 	widths: [1800, 1200, 600],
 });
 ---
 
-<ImageObserver
-	client:visible
-	webp={webp_img}
-	avif={avif_img}
-	src={Astro.props.src.src}
-	alt={Astro.props.alt}
-/>
+<div class="lazy-image-container">
+	<figure
+		class:list={{
+			gif: is_gif,
+		}}
+		style={`--aspect: ${Astro.props.src.width}/${Astro.props.src.height}`}
+	>
+		<picture>
+			{avif && <source type="image/avif" srcset={avif.srcSet.attribute} />}
+
+			<source type="image/webp" srcset={webp.srcSet.attribute} />
+			<img
+				class:list={{
+					loaded: !Astro.props.lazy,
+					gif: is_gif,
+				}}
+				src={Astro.props.src.src}
+				alt={Astro.props.alt}
+				{...webp.attributes}
+				loading={Astro.props.lazy ? 'lazy' : 'eager'}
+			/>
+		</picture>
+	</figure>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const imgs = document.querySelectorAll<HTMLImageElement>('.lazy-image-container img')!;
+
+		for (const img of imgs) {
+			img.addEventListener('load', function () {
+				img.parentElement?.parentElement?.classList.add('loaded');
+			});
+		}
+	});
+</script>
+
+<style>
+	.lazy-image-container {
+		display: flex;
+		justify-content: center;
+
+		width: 100%;
+	}
+	figure {
+		position: relative;
+
+		display: flex;
+		justify-content: center;
+
+		margin: 0;
+		padding: 0;
+		aspect-ratio: var(--aspect);
+
+		border-radius: 0.5rem;
+
+		width: 100%;
+		height: max-content;
+
+		max-width: 100%;
+		min-width: 0;
+
+		&.gif {
+			width: unset;
+		}
+
+		&::after {
+			display: block;
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background-color: var(--app-color-primary);
+			border-radius: inherit;
+			opacity: 1;
+			transition: opacity 200ms ease-in;
+
+			z-index: 200;
+		}
+
+		&.loaded::after {
+			opacity: 0;
+		}
+	}
+
+	picture {
+		border-radius: inherit;
+		display: contents;
+	}
+
+	img {
+		display: block;
+		width: 100%;
+		height: 100%;
+
+		position: relative;
+
+		aspect-ratio: var(--aspect);
+
+		height: auto;
+		opacity: 1;
+		border-radius: inherit;
+
+		&.gif {
+			width: auto;
+			max-width: 100%;
+			min-width: 20rem;
+		}
+	}
+</style>
