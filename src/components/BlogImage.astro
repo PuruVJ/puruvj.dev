@@ -8,22 +8,26 @@ interface Props {
 	lazy?: boolean;
 }
 
-const is_gif = Astro.props.src.format === 'gif';
+const { alt, lazy, src } = Astro.props;
+
+const is_gif = src.format === 'gif';
 
 // AVIFs screw up gifs
 const avif = is_gif
 	? null
 	: await getImage({
-			src: Astro.props.src,
+			src,
 			format: 'avif',
 			widths: [1800, 1200, 600],
 		});
 
 const webp = await getImage({
-	src: Astro.props.src,
+	src,
 	format: 'webp',
 	widths: [1800, 1200, 600],
 });
+
+const { loading: _, decoding, ...attrs } = webp.attributes;
 ---
 
 <div class="lazy-image-container">
@@ -31,38 +35,28 @@ const webp = await getImage({
 		class:list={{
 			gif: is_gif,
 		}}
-		style={`--aspect: ${Astro.props.src.width}/${Astro.props.src.height}`}
+		style={`--aspect: ${src.width}/${src.height}`}
 	>
 		<picture>
-			{avif && <source type="image/avif" srcset={avif.srcSet.attribute} />}
+			{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
 
-			<source type="image/webp" srcset={webp.srcSet.attribute} />
+			<source type="image/webp" data-srcset={webp.srcSet.attribute} />
 			<img
-				class:list={{
-					loaded: !Astro.props.lazy,
-					gif: is_gif,
-				}}
-				src={Astro.props.src.src}
-				alt={Astro.props.alt}
-				{...webp.attributes}
-				loading={Astro.props.lazy ? 'lazy' : 'eager'}
+				class="lazyload"
+				data-src={!lazy ? null : src.src}
+				src={lazy ? null : src.src}
+				alt={alt}
+				decoding={!lazy ? 'sync' : 'async'}
+				{...attrs}
 			/>
+
+			<div class="overlay"></div>
 		</picture>
 	</figure>
 </div>
 
 <script>
-	document.addEventListener('load', function () {
-		setTimeout(() => {
-			const imgs = document.querySelectorAll<HTMLImageElement>('.lazy-image-container img')!;
-
-			for (const img of imgs) {
-				img.addEventListener('load', function () {
-					img.parentElement?.parentElement?.classList.add('loaded');
-				});
-			}
-		}, 200);
-	});
+	import 'lazysizes';
 </script>
 
 <style>
@@ -94,7 +88,16 @@ const webp = await getImage({
 			width: unset;
 		}
 
-		&::after {
+		&.loaded::after {
+			opacity: 0;
+		}
+	}
+
+	picture {
+		border-radius: inherit;
+		display: contents;
+
+		.overlay {
 			display: block;
 			content: '';
 			position: absolute;
@@ -110,14 +113,9 @@ const webp = await getImage({
 			z-index: 200;
 		}
 
-		&.loaded::after {
+		&.no_overlay .overlay {
 			opacity: 0;
 		}
-	}
-
-	picture {
-		border-radius: inherit;
-		display: contents;
 	}
 
 	img {
@@ -132,6 +130,10 @@ const webp = await getImage({
 		height: auto;
 		opacity: 1;
 		border-radius: inherit;
+
+		&.lazyloaded + .overlay {
+			opacity: 0;
+		}
 
 		&.gif {
 			width: auto;
