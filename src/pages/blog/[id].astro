@@ -1,6 +1,7 @@
 ---
 import BlogImage from '@components/BlogImage.astro';
 import ReadingProgress from '@components/ReadingProgress.svelte';
+import TOC from '@components/TOC.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { get_post, get_slug } from '@utils/blog';
 import type { GetStaticPaths } from 'astro';
@@ -51,6 +52,7 @@ export const getStaticPaths = (async () => {
 ---
 
 <BaseLayout title={`${title} | Puru`} background={false}>
+	<TOC headings={headings} />
 	<ReadingProgress client:load />
 	<main>
 		<!-- <Toc {toc} /> -->
