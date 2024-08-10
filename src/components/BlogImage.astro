@@ -52,14 +52,16 @@ const webp = await getImage({
 </div>
 
 <script>
-	document.addEventListener('DOMContentLoaded', function () {
-		const imgs = document.querySelectorAll<HTMLImageElement>('.lazy-image-container img')!;
+	document.addEventListener('load', function () {
+		setTimeout(() => {
+			const imgs = document.querySelectorAll<HTMLImageElement>('.lazy-image-container img')!;
 
-		for (const img of imgs) {
-			img.addEventListener('load', function () {
-				img.parentElement?.parentElement?.classList.add('loaded');
-			});
-		}
+			for (const img of imgs) {
+				img.addEventListener('load', function () {
+					img.parentElement?.parentElement?.classList.add('loaded');
+				});
+			}
+		}, 200);
 	});
 </script>
 
