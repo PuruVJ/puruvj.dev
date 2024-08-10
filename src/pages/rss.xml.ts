@@ -13,7 +13,7 @@ export const GET = (async () => {
 		items: (await get_list()).map((post) => ({
 			title: post.title,
 			description: post.description,
-			pubDate: post.date,
+			pubDate: new Date(post.date!) ?? new Date(),
 			link: `/blog/${post.slug}`,
 		})),
 	});
