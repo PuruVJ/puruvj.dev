@@ -1,5 +1,5 @@
 body {
-	--transition-duration: 0ms;
+	--transition-duration: 200ms;
 }
 
 @media (prefers-color-scheme: dark) {
