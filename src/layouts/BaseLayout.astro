@@ -4,25 +4,59 @@ import '@fontsource-variable/jetbrains-mono';
 import '@fontsource/atkinson-hyperlegible';
 import '@css/global.css';
 
+// Font preloads
+import comfortaa_url from '@fontsource-variable/comfortaa/files/comfortaa-latin-wght-normal.woff2';
+import jetbrains_mono_url from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2';
+import atkinson_hyperlegible_url from '@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-ext-400-normal.woff2';
+
+import Nav from '@components/Nav.astro';
+
 type Props = {
 	title: string;
+	background?: boolean;
 };
 
-const { title } = Astro.props;
+const { title, background = true } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
+		<script>
+			const browserPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+			const localStorageTheme = localStorage.getItem('theme');
+			document.body.classList.add(localStorageTheme ?? (browserPrefersDark ? 'dark' : 'light'));
+		</script>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
 		{title ? <meta name="title" content={title} /> : <slot name="head" />}
+
+		<link rel="preload" as="font" href={comfortaa_url} type="font/woff2" crossorigin="anonymous" />
+
+		<link
+			rel="preload"
+			as="font"
+			href={jetbrains_mono_url}
+			type="font/woff2"
+			crossorigin="anonymous"
+		/>
+
+		<link
+			rel="preload"
+			as="font"
+			href={atkinson_hyperlegible_url}
+			type="font/woff2"
+			crossorigin="anonymous"
+		/>
 	</head>
-	<body>
+	<body class:list={{ background }}>
 		<div id="root">
-			<slot />
+			<Nav />
+			<main style="margin-top: 3.75rem">
+				<slot />
+			</main>
 		</div>
 	</body>
 </html>

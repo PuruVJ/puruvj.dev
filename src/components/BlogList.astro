@@ -14,7 +14,11 @@ const { blogs_list, see_more = true } = Astro.props;
 		<>
 			<a class="blog-link" href={`../blog/${slug}`} aria-label={title}>
 				<span class="series">
-					{series && <mark>SERIES</mark>} {series}
+					{series && (
+						<>
+							<mark>SERIES</mark>&nbsp;{series}
+						</>
+					)}
 				</span>
 				<h2 class="title">{title}</h2>
 				<p class="description">{description}</p>
