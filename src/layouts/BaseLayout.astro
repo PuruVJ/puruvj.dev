@@ -10,6 +10,7 @@ import jetbrains_mono_url from '@fontsource-variable/jetbrains-mono/files/jetbra
 import atkinson_hyperlegible_url from '@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-ext-400-normal.woff2';
 
 import Nav from '@components/Nav.astro';
+import { ViewTransitions } from 'astro:transitions';
 
 type Props = {
 	title: string;
@@ -22,16 +23,13 @@ const { title, background = true } = Astro.props;
 <!doctype html>
 <html lang="en">
 	<head>
-		<script>
-			const browserPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-			const localStorageTheme = localStorage.getItem('theme');
-			document.body.classList.add(localStorageTheme ?? (browserPrefersDark ? 'dark' : 'light'));
-		</script>
+		{title ? <meta name="title" content={title} /> : <slot name="head" />}
+
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		{title ? <meta name="title" content={title} /> : <slot name="head" />}
+		<ViewTransitions />
 
 		<link rel="preload" as="font" href={comfortaa_url} type="font/woff2" crossorigin="anonymous" />
 
@@ -51,12 +49,25 @@ const { title, background = true } = Astro.props;
 			crossorigin="anonymous"
 		/>
 	</head>
-	<body class:list={{ background }}>
+	<body transition:persist class:list={{ background }}>
 		<div id="root">
 			<Nav />
 			<main style="margin-top: 3.75rem">
 				<slot />
 			</main>
 		</div>
+
+		<script is:inline data-astro-rerun>
+			function swap_theme() {
+				const browserPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const localStorageTheme = localStorage.getItem('theme');
+				document.body?.classList?.add(localStorageTheme ?? (browserPrefersDark ? 'dark' : 'light'));
+			}
+			swap_theme();
+
+			document.addEventListener('astro:before-swap', () => {
+				swap_theme();
+			});
+		</script>
 	</body>
 </html>

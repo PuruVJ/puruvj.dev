@@ -30,6 +30,7 @@ const webp = await getImage({
 const { loading: _, decoding, ...attrs } = webp.attributes;
 ---
 
+Hello
 <div class="lazy-image-container">
 	<figure
 		class:list={{
@@ -43,8 +44,8 @@ const { loading: _, decoding, ...attrs } = webp.attributes;
 			<source type="image/webp" data-srcset={webp.srcSet.attribute} />
 			<img
 				class="lazyload"
-				data-src={!lazy ? null : src.src}
-				src={lazy ? null : src.src}
+				data-src={!lazy ? null : webp.src}
+				src={lazy ? null : webp.src}
 				alt={alt}
 				decoding={!lazy ? 'sync' : 'async'}
 				{...attrs}
