@@ -1,0 +1,209 @@
+---
+title: 'perf: private count vs #count'
+description: What are the performance differences between private and public count in JavaScript?
+cover_image: ./cover.jpg
+---
+
+import BlogImage from '@components/BlogImage.astro';
+export const components = { img: BlogImage };
+
+Which one is faster: `private count` or `#count`?
+
+If you are a JavaScript developer, you might have heard about the concept of private and public properties in JavaScript. JavaScript only had public properties until 2019, until Chrome shipped the [Private Class Fields](https://v8.dev/features/class-fields#private-class-fields) feature.
+
+```ts
+class Person {
+  #name: string;
+  age: number;
+}
+```
+
+TypeScript has had public and private properties since forever:
+
+```ts
+class Person {
+  private name: string;
+  public age: number;
+}
+```
+
+As you can see, it's not as compact as JS version, but it works well. But what are the differences between the two? How do TypeScript's private properties work?
+
+## TypeScript lies
+
+TypeScript lies to you. The private property is not actually private. **It's invisible, not inaccessible**. TypeScript will mark the property as private, but it can not prevent you from accessing it.
+
+Input:
+
+```ts
+class Person {
+  private name: string;
+  public age: number;
+
+  constructor() {
+    this.name = 'Harry';
+    this.age = 17;
+  }
+}
+```
+
+JS Output:
+
+```js
+'use strict';
+class Person {
+  constructor() {
+    this.name = 'Harry';
+    this.age = 17;
+  }
+}
+```
+
+Declaration(d.ts) output:
+
+```ts
+declare class Person {
+  private name;
+  age: number;
+  constructor();
+}
+```
+
+There is nothing stopping anyone from accessing `person.name`. Sure there will be red squiggles in the editor, but it can be bypassed.
+
+An excerpt from Harry Potter to understand it better:
+
+> Snape’s eyes were fixed upon the door. His nostrils flared. He was walking slowly toward it, his wand held out in front of him like a weapon.
+>
+> “Potter,” he breathed, his eyes narrowing, “I know you’re here. You can’t hide forever.”
+>
+> Snape took another step forward, his free hand outstretched, fingers splayed, as though he could almost sense Harry’s presence through the cloak. Harry held his breath, trying to remain as silent and still as possible while Snape’s hand moved closer and closer, searching the air just inches from his face.
+
+## What is the actual performance difference?
+
+We know TypeScript lies. So what? There is no performance difference. Right? Right???
+
+TLDR: There is no performance difference for ~~most~~ any practical use case. Literally none. Go use JS private properties(#count) over `private count` in TypeScript, it's more robust.
+
+However if you wanna hang around to see how I reached that conclusion and when there **actually is** a performance difference, then you can read on.
+
+### Setting up benchmark
+
+We'll use an extremely simple benchmark to see the performance difference. Plain vanilla JS.
+
+> How are you going to emulate TypeScript private properties in JS?
+>
+> Easy: TypeScript private properties are just JS public properties. In fact, I also lied to you. This post isn't a difference between `private count vs #count` in JS. It is a difference between public and private properties in JS. Plain and simple.
+
+```ts
+class Something {
+  #a = 1;
+  #b = 2;
+
+  a = 4;
+  b = 2;
+
+  constructor() {
+    const start_time = performance.now();
+    for (let i = 0; i < 1_000_000; i++) {
+      this.#a + this.#b;
+    }
+    console.log('Private:', performance.now() - start_time);
+
+    {
+      const start_time = performance.now();
+      for (let i = 0; i < 1_000_000; i++) {
+        this.a + this.b;
+      }
+      console.log('Public:', performance.now() - start_time);
+    }
+  }
+}
+```
+
+Pretty simple, right? We're just creating a class with two public and two private properties, and then we're timing how long it takes to access them a million times.
+
+Executing this is one line:
+
+```ts
+new Something();
+```
+
+And this is it. I pasted this directly into Chrome Devtools console, and it gives me this:
+
+```txt
+Private: 3.4000000059604645
+Public: 2.300000011920929
+```
+
+So private property access is 1.47x slower than public property access. That's it. It may seem a lot but don't forget, we're accessing them a million times. If I run it for only 1000 times, then the output is this, most of the time:
+
+```txt
+Private: 0
+Public: 0
+```
+
+It's so fast there's no difference calling it a thousand times, and in most prod apps it will be called just a few times.
+
+#### There's more: Caching
+
+The above is the result on first run, means the class instance is created for the first time and Browser hasn't cached the class yet. But what if we run it a few more times and see how cache affects the result?
+
+```ts
+new Something(); // Repeat this line 10 times
+new Something();
+new Something();
+new Something();
+new Something();
+new Something();
+new Something();
+new Something();
+new Something();
+new Something();
+```
+
+And this is the result:
+
+```txt
+Private: 3.7000000029802322
+Public: 0.6000000089406967
+
+Private: 0.7000000029802322
+Public: 0.699999988079071
+
+Private: 0.800000011920929
+Public: 0.5
+
+Private: 0.8999999910593033
+Public: 0.5
+
+Private: 0.7999999970197678
+Public: 0.5999999940395355
+
+Private: 0.7000000029802322
+Public: 0.5999999940395355
+
+Private: 0.7000000029802322
+Public: 0.6000000089406967
+
+Private: 0.5999999940395355
+Public: 0.6000000089406967
+
+Private: 0.7000000029802322
+Public: 0.5
+
+Private: 0.7000000029802322
+Public: 0.5
+```
+
+The very first time, the browser cached public property access, making it almost 6.2x faster than (correspondingly) private property access. But the rest of the time, public properties are cached well enough such that there are multiple instances of `0.5`.
+
+Private properties are always a bit slower even when cached, in fact most of the time its 1.4-1.5x slower, in line with uncached benchmark above.
+
+I bet this is because browser has to keep track of checks for private properties to deny any external access to them. It's like building a backend. A backend may be cached really really well in Redis, but every request requires checking authentication adds some overhead.
+
+## Conclusion
+
+There is no performance difference for ~~most~~ any practical use case. Literally none. Go use JS private properties(#count) over `private count` in TypeScript, it's more robust.
+
+Peace ☮️

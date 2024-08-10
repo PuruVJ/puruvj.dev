@@ -1,0 +1,63 @@
+---
+import BlogImage from '@components/BlogImage.astro';
+import { get_slug } from '@utils/mardown';
+import type { GetStaticPaths } from 'astro';
+import { getCollection } from 'astro:content';
+
+const arr = await getCollection('blog');
+
+const id = Astro.params.id;
+const post = arr.find((post) => post.slug.includes(id))!;
+const { title, cover_image, render_cover } = post.data;
+
+const { Content, headings } = await post.render();
+
+function validate_headings() {
+	// VALIDATE HEADINGS, make sure no H1 is present
+	const heading_levels = new Set<number>();
+	for (const heading of headings) {
+		if (heading.depth === 1) {
+			throw new Error(`Heading with depth 1 is not allowed. Heading: ${heading.text}`);
+		}
+
+		heading_levels.add(heading.depth);
+	}
+	// Make sure we're not skipping any levels in between
+	const sorted_levels = [...heading_levels].sort((a, b) => a - b);
+	if (sorted_levels.length > 1)
+		for (let i = 2; i <= Math.min(6, sorted_levels.length); i++) {
+			const current_level = sorted_levels[i - 2];
+			const next_level = sorted_levels[i - 1];
+			if (next_level - current_level !== 1) {
+				throw new Error(
+					`Heading level ${current_level} is not followed by a level ${current_level + 1}`,
+				);
+			}
+		}
+}
+
+validate_headings();
+
+export const getStaticPaths = (async () => {
+	const arr = await getCollection('blog');
+
+	return arr.map((post) => ({
+		params: { id: get_slug(post.slug) },
+	}));
+}) satisfies GetStaticPaths;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>{title}</h1>
+		{render_cover && cover_image && <BlogImage src={cover_image} alt={title} />}
+		<Content />
+	</body>
+</html>

@@ -1,0 +1,35 @@
+---
+import type { ImageMetadata } from 'astro';
+import { getImage } from 'astro:assets';
+import ImageObserver from './ImageObserver.svelte';
+
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+}
+
+const is_gif = Astro.props.src.format === 'gif';
+
+// AVIFs screw up gifs
+const avif_img = is_gif
+	? null
+	: await getImage({
+			src: Astro.props.src,
+			format: 'avif',
+			widths: [1800, 1200, 600],
+		});
+
+const webp_img = await getImage({
+	src: Astro.props.src,
+	format: 'webp',
+	widths: [1800, 1200, 600],
+});
+---
+
+<ImageObserver
+	client:visible
+	webp={webp_img}
+	avif={avif_img}
+	src={Astro.props.src.src}
+	alt={Astro.props.alt}
+/>

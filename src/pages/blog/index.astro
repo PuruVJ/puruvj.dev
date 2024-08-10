@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+
+const arr = await getCollection('blog');
+
+const SLUG_REGEX = /^\d{4}-\d{2}-\d{2}-(.+)\/post/;
+const DATE_REGEX = /^(\d{4})-(\d{2})-(\d{2})-/;
+
+function get_date(slug: string) {
+	const match = DATE_REGEX.exec(slug);
+	if (!match) return null;
+	const [yyyy, mm, dd] = match.slice(1);
+	return Intl.DateTimeFormat('en-US', {
+		year: 'numeric',
+		month: 'long',
+		day: 'numeric',
+	}).format(new Date(+yyyy, +mm - 1, +dd));
+}
+
+const listing = arr
+	.map((post) => ({
+		slug: post.slug.replace(SLUG_REGEX, '$1'),
+		...post.data,
+		date: get_date(post.slug),
+	}))
+	.toReversed();
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		{
+			listing.map((post) => (
+				<a href={`../blog/${post.slug}`}>
+					<h2>{post.title}</h2>
+					<p>{post.description}</p>
+					<p>{post.date}</p>
+				</a>
+			))
+		}
+	</body>
+</html>
