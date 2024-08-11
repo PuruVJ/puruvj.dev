@@ -6,9 +6,10 @@ interface Props {
 	src: ImageMetadata;
 	alt: string;
 	lazy?: boolean;
+	widths?: number[];
 }
 
-const { alt, lazy, src } = Astro.props;
+const { alt, lazy, src, widths } = Astro.props;
 
 const is_gif = src.format === 'gif';
 
@@ -18,13 +19,13 @@ const avif = is_gif
 	: await getImage({
 			src,
 			format: 'avif',
-			widths: [1800, 1200, 600],
+			widths: widths ?? [1800, 1200, 600],
 		});
 
 const webp = await getImage({
 	src,
 	format: 'webp',
-	widths: [1800, 1200, 600],
+	widths: widths ?? [1800, 1200, 600],
 });
 
 const { loading: _, decoding: _1, ...attrs } = webp.attributes;
