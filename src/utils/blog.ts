@@ -11,7 +11,7 @@ export function get_date(slug: string) {
 	const [yyyy, mm, dd] = match.slice(1);
 	return Intl.DateTimeFormat('en-US', {
 		year: 'numeric',
-		month: 'long',
+		month: 'short',
 		day: 'numeric',
 	}).format(new Date(+yyyy, +mm - 1, +dd));
 }

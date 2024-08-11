@@ -25,26 +25,46 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 	<span class="flex"></span>
 	<span class="theme-switcher">
 		<RSSLink />
-		<ThemeSwitcher client:load initialTheme={'light'} />
+		<ThemeSwitcher client:load />
 	</span>
 </nav>
 
-<div id="smigget"></div>
+<inview-element>
+	<div id="smigget"></div>
+</inview-element>
 
 <script>
-	const nav = document.getElementById('main-nav');
-	// Set up intersection observer, trigger when smigget goes out of view, and comes into view
-	const observer = new IntersectionObserver((entries) => {
-		entries.forEach((entry) => {
-			if (entry.isIntersecting) {
-				nav?.classList.remove('shadow');
-			} else {
-				nav?.classList.add('shadow');
-			}
-		});
-	});
+	// This hack is needed to rerun the custom element logic twice whenever page changes
+	class InviewElement extends HTMLElement {
+		observer: IntersectionObserver;
 
-	observer.observe(document.getElementById('smigget')!);
+		constructor() {
+			super();
+
+			const main_nav = document.getElementById('main-nav');
+			this.observer = new IntersectionObserver((entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						main_nav?.classList.remove('shadow');
+					} else {
+						main_nav?.classList.add('shadow');
+					}
+				});
+			});
+		}
+
+		connectedCallback() {
+			this.observer.observe(document.getElementById('smigget')!);
+		}
+
+		disconnectedCallback() {
+			this.observer.unobserve(this);
+
+			this.observer.disconnect();
+		}
+	}
+
+	customElements.define('inview-element', InviewElement);
 </script>
 
 <style>
