@@ -29,6 +29,14 @@ export default defineConfig({
 		contentCollectionCache: true,
 	},
 	markdown: {
+		shikiConfig: {
+			themes: {
+				light: 'one-light',
+				midday: 'everforest-light',
+				dark: 'catppuccin-macchiato',
+				radioactive: 'houston',
+			},
+		},
 		rehypePlugins: [
 			rehype_slug,
 			[

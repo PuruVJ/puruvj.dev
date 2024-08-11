@@ -167,6 +167,42 @@ export const getStaticPaths = (async () => {
 		}
 	}
 
+	body.midday {
+		pre.astro-code,
+		pre.astro-code span {
+			color: var(--shiki-midday) !important;
+			background-color: var(--shiki-midday-bg) !important;
+			/* Optional, if you also want font styles */
+			font-style: var(--shiki-midday-font-style) !important;
+			font-weight: var(--shiki-midday-font-weight) !important;
+			text-decoration: var(--shiki-midday-text-decoration) !important;
+		}
+	}
+
+	body.dark {
+		pre.astro-code,
+		pre.astro-code span {
+			color: var(--shiki-dark) !important;
+			background-color: var(--shiki-dark-bg) !important;
+			/* Optional, if you also want font styles */
+			font-style: var(--shiki-dark-font-style) !important;
+			font-weight: var(--shiki-dark-font-weight) !important;
+			text-decoration: var(--shiki-dark-text-decoration) !important;
+		}
+	}
+
+	body.radioactive {
+		pre.astro-code,
+		pre.astro-code span {
+			color: var(--shiki-radioactive) !important;
+			background-color: var(--shiki-radioactive-bg) !important;
+			/* Optional, if you also want font styles */
+			font-style: var(--shiki-radioactive-font-style) !important;
+			font-weight: var(--shiki-radioactive-font-weight) !important;
+			text-decoration: var(--shiki-radioactive-text-decoration) !important;
+		}
+	}
+
 	code {
 		background-color: rgba(var(--app-color-dark-rgb), 0.1);
 		padding: 4px 4px;
