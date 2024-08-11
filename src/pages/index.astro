@@ -11,7 +11,7 @@ import { getImage } from 'astro:assets';
 const img = await getImage({
 	src: profile_pic,
 	format: 'webp',
-	width: [1200, 600],
+	width: 600,
 });
 
 const list = await get_list();
@@ -24,17 +24,7 @@ list.length = 6;
 		<br /><br />
 		<section class="puru-intro">
 			<!-- svelte-ignore a11y-img-redundant-alt -->
-			<div class="photo-area">
-				<figure>
-					<img
-						srcset={img.srcSet.attribute}
-						src={img.src}
-						alt="Puru Vijay Profile Photo"
-						width={img.attributes.width}
-						height={img.attributes.height}
-					/>
-				</figure>
-			</div>
+			<div class="photo-area" style={`background-image: url(${img.src})`}></div>
 
 			<div id="written">
 				<h1>Hi, I'm <mark>Puru</mark></h1>
@@ -80,29 +70,23 @@ list.length = 6;
 </BaseLayout>
 <style>
 	img,
-	figure {
-		border-radius: 50%;
+	.photo-area {
+		all: unset;
 
 		margin: 0;
 	}
 
-	.photo-area,
-	figure {
+	.photo-area {
 		display: flex;
 		justify-content: center;
 		flex-direction: row;
 		align-items: flex-start;
-	}
-
-	img {
-		width: 25vmax;
-		height: 25vmax;
-		min-height: 0;
-		min-width: 0;
-
+		border-radius: 50%;
 		box-shadow: 0 0 0 1rem var(--app-color-primary);
+		height: 25vmax;
+		width: 25vmax;
 
-		transition: box-shadow 200ms ease-out;
+		background-size: cover;
 	}
 
 	.puru-intro {
@@ -187,14 +171,16 @@ list.length = 6;
 			flex-direction: column;
 		}
 
-		figure {
-			width: 90%;
-			height: 20rem;
+		.photo-area {
+			width: 80vw;
+			height: 80vw;
+
+			margin: 0 auto;
 		}
 
 		img {
-			width: 90vw;
-			height: 90vw;
+			width: inherit;
+			height: inherit;
 		}
 
 		#written {

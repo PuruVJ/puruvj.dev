@@ -7,15 +7,20 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 <nav id="main-nav">
 	<ul>
 		<li>
-			<a aria-current={Astro.url.pathname === '/' ? 'page' : 'false'} href="/"> HOME </a>
+			<a aria-current={Astro.url.pathname === '/' ? 'page' : 'false'} href="/">HOME</a>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname?.startsWith('/blog') ? 'page' : 'false'} href="/blog">
-				BLOG
-			</a>
+			<a aria-current={Astro.url.pathname?.startsWith('/blog') ? 'page' : 'false'} href="/blog"
+				>BLOG</a
+			>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname === '/works' ? 'page' : 'false'} href="/works"> WORKS </a>
+			<a aria-current={Astro.url.pathname === '/works' ? 'page' : 'false'} href="/works">WORKS</a>
+		</li>
+		<li>
+			<a aria-current={Astro.url.pathname === '/speaking' ? 'page' : 'false'} href="/speaking"
+				>SPEAKING</a
+			>
 		</li>
 	</ul>
 	<div class="brand">
@@ -227,6 +232,13 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 	@media screen and (max-width: 600px) {
 		.brand {
 			display: none !important;
+		}
+
+		a {
+			padding-block: 0.3rem;
+			margin: 0.2rem 0.2rem !important;
+
+			font-size: 1rem;
 		}
 
 		nav {
