@@ -1,10 +1,18 @@
 ---
+import profile_pic from '@assets/puru-pic.jpg';
 import BlogList from '@components/BlogList.astro';
-import WavyDivider from '@components/WavyDivider.astro';
-import ContactMeSVG from '@components/ContactMeSVG.astro';
 import ContactMeLink from '@components/ContactMeLink.astro';
+import ContactMeSVG from '@components/ContactMeSVG.astro';
+import WavyDivider from '@components/WavyDivider.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { get_list } from '@utils/blog';
+import { getImage } from 'astro:assets';
+
+const img = await getImage({
+	src: profile_pic,
+	format: 'webp',
+	width: [1200, 600],
+});
 
 const list = await get_list();
 list.length = 6;
@@ -19,7 +27,8 @@ list.length = 6;
 			<div class="photo-area">
 				<figure>
 					<img
-						src="/photos/puru-profile.jpg"
+						srcset={img.srcSet.attribute}
+						src={img.src}
 						alt="Puru Vijay Profile Photo"
 						width="100"
 						height="100"
