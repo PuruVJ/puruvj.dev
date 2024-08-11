@@ -253,7 +253,7 @@ export const getStaticPaths = (async () => {
 			margin: auto auto;
 		}
 
-		& :where(:not(.astro-tweet-theme)) a[href] {
+		& :not(.astro-tweet-theme) a[href] {
 			--distance: calc(50% - 0.375rem);
 			--opacity: 0.35;
 			--duration: 100ms;
@@ -290,6 +290,11 @@ export const getStaticPaths = (async () => {
 
 				--opacity: 1;
 			}
+		}
+
+		.astro-tweet-theme a[href] {
+			color: unset;
+			background-image: unset;
 		}
 	}
 </style>
