@@ -4,6 +4,7 @@ import { defineConfig } from 'astro/config';
 import { h } from 'hastscript';
 import rehype_autolink_headings from 'rehype-autolink-headings';
 import rehype_slug from 'rehype-slug';
+import rehype_external_links from 'rehype-external-links';
 
 // https://astro.build/config
 export default defineConfig({
@@ -42,6 +43,7 @@ export default defineConfig({
 					},
 				},
 			],
+			[rehype_external_links, { rel: ['nofollow', 'noopener', 'noreferrer'], target: '_blank' }],
 		],
 	},
 });
