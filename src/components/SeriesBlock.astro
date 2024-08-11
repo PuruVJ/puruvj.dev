@@ -1,24 +1,35 @@
 ---
 import { get_post } from '@utils/blog';
 import { get_series } from '@utils/blog';
+import { SERIES } from 'src/content/series';
 
 type Props = {
-	series_name: string;
+	series_name: keyof typeof SERIES;
+	transition_name?: string;
 };
 
-const { series_name } = Astro.props;
+const { series_name, transition_name = 'series-block' } = Astro.props;
 
 const list = await Promise.all(get_series(series_name).map(get_post));
 ---
 
-<section transition:name="series-block">
-	<h2>Series</h2>
+<section transition:name={transition_name}>
+	<h2>{SERIES[series_name]}</h2>
 	<ol>
 		{
-			list.map(({ title, slug }) => (
+			list.map(({ title, slug }, i) => (
 				<li class:list={{ active: slug === Astro.url.pathname.replace('/blog/', '') }}>
-					<a href={`../blog/${slug}`}>{title}</a>
-					&nbsp;{slug === Astro.url.pathname.replace('/blog/', '') ? '(👈 You are here)' : ''}
+					<span class="count">{i + 1}</span>
+					<span>
+						<a href={`../blog/${slug}`}>{title}</a>
+						&nbsp;
+						{slug === Astro.url.pathname.replace('/blog/', '') && (
+							<span class="pill">
+								<span class="lg">YOU ARE HERE</span>
+								<span class="sm">👈</span>
+							</span>
+						)}
+					</span>
 				</li>
 			))
 		}
@@ -34,6 +45,7 @@ const list = await Promise.all(get_series(series_name).map(get_post));
 		padding: 1.25rem 1.5rem;
 
 		font-size: 1.414rem;
+		letter-spacing: 0.1px;
 		box-shadow: 0 0 0 3px var(--app-color-primary);
 		border-radius: 0.5rem;
 
@@ -54,9 +66,11 @@ const list = await Promise.all(get_series(series_name).map(get_post));
 	li {
 		counter-increment: item;
 		padding: 0.5rem 0;
+
+		display: flex;
 	}
 
-	li:before {
+	.count {
 		margin-right: 10px;
 		content: counter(item);
 		background: rgba(var(--app-color-dark-rgb), 0.8);
@@ -70,6 +84,29 @@ const list = await Promise.all(get_series(series_name).map(get_post));
 
 	li.active:before {
 		background: rgba(var(--app-color-primary-rgb), 0.8);
+	}
+
+	.pill {
+		color: var(--app-color-primary);
+		font-weight: 700;
+		font-family: 'JetBrains Mono Variable', monospace;
+		font-size: 0.9rem;
+		letter-spacing: 0.6px;
+		padding: 0.3rem 0.8rem;
+		border-radius: 24px;
+		background-color: rgba(var(--app-color-primary-rgb), 0.2);
+
+		.sm {
+			display: none;
+		}
+		@media (max-width: 600px) {
+			.lg {
+				display: none;
+			}
+			.sm {
+				display: inline;
+			}
+		}
 	}
 
 	a[href] {

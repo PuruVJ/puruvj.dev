@@ -82,6 +82,7 @@ export const getStaticPaths = (async () => {
 		<article id="blog-content">
 			<Content />
 		</article>
+		{series && <SeriesBlock series_name={series} transition_name="series-block-end" />}
 	</main>
 </BaseLayout>
 
