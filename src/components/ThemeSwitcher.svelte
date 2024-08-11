@@ -8,8 +8,6 @@
 
 	type Theme = 'light' | 'midday' | 'dark' | 'radioactive';
 
-	export let initialTheme: Theme | undefined;
-
 	const theme = writable<Theme>('light');
 
 	let init = false;
@@ -32,7 +30,7 @@
 
 	// List of themes
 	const themes: Theme[] = ['light', 'midday', 'dark', 'radioactive'];
-	let currentThemeIndex = initialTheme ? themes.indexOf(initialTheme) : 0;
+	let current_theme_index = 0;
 
 	function nextTheme(currentThemeIndex: number) {
 		const { length } = themes;
@@ -42,30 +40,35 @@
 
 	onMount(() => {
 		// Initialize with localstorage
-		const browserPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		const local_theme = localStorage.getItem('theme');
+		const browser_prefers_dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
-		currentThemeIndex = initialTheme ? themes.indexOf(initialTheme) : browserPrefersDark ? 2 : 0;
+		current_theme_index = !local_theme
+			? browser_prefers_dark
+				? 2
+				: 0
+			: themes.indexOf(local_theme as any);
 	});
 
-	$: $theme = themes[currentThemeIndex];
+	$: $theme = themes[current_theme_index];
 </script>
 
 <svelte:head>
 	<meta
 		name="theme-color"
-		content={['white', '#f9dec9', '#222428', '#13132a'][currentThemeIndex]}
+		content={['white', '#f9dec9', '#222428', '#13132a'][current_theme_index]}
 	/>
 </svelte:head>
 
 <button
-	on:click={() => (currentThemeIndex = nextTheme(currentThemeIndex))}
-	aria-label={themes[currentThemeIndex]}
+	on:click={() => (current_theme_index = nextTheme(current_theme_index))}
+	aria-label={themes[current_theme_index]}
 >
-	{#if currentThemeIndex === 0}
+	{#if current_theme_index === 0}
 		<Icon path={mdiWhiteBalanceSunny} />
-	{:else if currentThemeIndex === 1}
+	{:else if current_theme_index === 1}
 		<Icon path={mdiMoonFull} />
-	{:else if currentThemeIndex === 2}
+	{:else if current_theme_index === 2}
 		<Moon />
 	{:else}
 		<RadioactiveSvg />
