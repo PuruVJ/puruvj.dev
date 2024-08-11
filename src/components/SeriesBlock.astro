@@ -1,0 +1,139 @@
+---
+import { get_post } from '@utils/blog';
+import { get_series } from '@utils/blog';
+
+type Props = {
+	series_name: string;
+};
+
+const { series_name } = Astro.props;
+
+const list = await Promise.all(get_series(series_name).map(get_post));
+---
+
+<section transition:name="series-block">
+	<h2>Series</h2>
+	<ol>
+		{
+			list.map(({ title, slug }) => (
+				<li class:list={{ active: slug === Astro.url.pathname.replace('/blog/', '') }}>
+					<a href={`../blog/${slug}`}>{title}</a>
+					&nbsp;{slug === Astro.url.pathname.replace('/blog/', '') ? '(👈 You are here)' : ''}
+				</li>
+			))
+		}
+	</ol>
+</section>
+
+<style>
+	section {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 2rem 0;
+		padding: 1.25rem 1.5rem;
+
+		font-size: 1.414rem;
+		box-shadow: 0 0 0 3px var(--app-color-primary);
+		border-radius: 0.5rem;
+
+		background-color: rgba(var(--app-color-primary-rgb), 0.1);
+	}
+
+	h2 {
+		font-family: 'JetBrains Mono Variable', monospace;
+	}
+
+	ol {
+		list-style: none;
+		counter-reset: item;
+		padding: 0;
+		margin: 0;
+	}
+
+	li {
+		counter-increment: item;
+		padding: 0.5rem 0;
+	}
+
+	li:before {
+		margin-right: 10px;
+		content: counter(item);
+		background: rgba(var(--app-color-dark-rgb), 0.8);
+		border-radius: 100%;
+		color: var(--app-color-primary-contrast);
+		width: 1.5em;
+		height: 1.5em;
+		text-align: center;
+		display: inline-block;
+	}
+
+	li.active:before {
+		background: rgba(var(--app-color-primary-rgb), 0.8);
+	}
+
+	a[href] {
+		--distance: calc(50% - 0.35rem);
+		--opacity: 0.35;
+		--duration: 100ms;
+		--easing: ease-in-out;
+		--color: var(--app-color-dark);
+		--color-rgb: var(--app-color-dark-rgb);
+		--color-contrast: var(--app-color-dark-contrast);
+
+		color: var(--color);
+
+		font-weight: 600 !important;
+
+		padding: 0 0.25rem;
+
+		background-image: linear-gradient(
+			transparent 0%,
+			transparent var(--distance),
+			rgba(var(--color-rgb), var(--opacity)) var(--distance),
+			rgba(var(--color-rgb), var(--opacity)) 100%
+		);
+		background-size: 100% 200%;
+		background-position: 0 0;
+
+		transition:
+			color var(--duration) var(--easing),
+			background-position var(--duration) var(--easing),
+			background-image var(--duration) var(--easing),
+			border-radius var(--duration) var(--easing),
+			--opacity var(--duration) var(--easing);
+
+		&:hover,
+		&:focus-visible {
+			background-position: 0 100%;
+
+			color: var(--color-contrast);
+			font-weight: 600 !important;
+
+			border-radius: 0.25rem;
+
+			--opacity: 1;
+		}
+	}
+
+	li.active a[href] {
+		--color: var(--app-color-primary);
+		--color-rgb: var(--app-color-primary-rgb);
+		--color-contrast: var(--app-color-primary-contrast);
+	}
+
+	@media screen and (max-width: 768px) {
+		h2 {
+			font-size: 1.25rem;
+		}
+		section {
+			font-size: 1rem;
+
+			padding: 0.5rem 0.75rem;
+		}
+
+		li::before {
+			margin-right: 5px;
+		}
+	}
+</style>

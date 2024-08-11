@@ -25,11 +25,22 @@ export function get_slug(slug: string) {
 	return slug.replace(SLUG_REGEX, '$1');
 }
 
+export function get_series(series_name: string | undefined) {
+	if (!series_name) return [];
+
+	// Now find all the posts with the same series
+	const posts_with_series = blog_collection.filter((post) => post.data.series === series_name);
+
+	return posts_with_series;
+}
+
 export async function get_list() {
 	return blog_collection
 		.map((post) => ({
 			slug: get_slug(post.slug),
 			...post.data,
+			series: get_series(post.data.series),
+			series_name: post.data.series,
 			date: get_date(post.slug),
 			reading_time: get_reading_time(post.body),
 		}))
@@ -42,6 +53,7 @@ export async function get_post(post: (typeof blog_collection)[number]) {
 	const date = get_date(post.slug);
 
 	return {
+		slug: get_slug(post.slug),
 		title,
 		cover_image,
 		render_cover,

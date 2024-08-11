@@ -1,6 +1,6 @@
 ---
 import { mdiChevronRight } from '@mdi/js';
-import type { get_list } from '@utils/blog';
+import { type get_list } from '@utils/blog';
 import { SERIES } from 'src/content/series';
 import Icon from './Icon.svelte';
 
@@ -13,13 +13,13 @@ const { blogs_list, see_more = false } = Astro.props;
 ---
 
 {
-	blogs_list.map(({ date, description, slug, title, series }) => (
+	blogs_list.map(({ date, description, slug, title, series, series_name }) => (
 		<>
 			<a class="blog-link" href={`../blog/${slug}`} aria-label={title}>
 				<span class="series">
-					{series && (
+					{series_name && series.length > 1 && (
 						<>
-							<mark>SERIES</mark>&nbsp;{SERIES[series]}
+							<mark>SERIES</mark>&nbsp;{SERIES[series_name]}
 						</>
 					)}
 				</span>
