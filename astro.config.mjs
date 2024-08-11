@@ -1,10 +1,9 @@
 import mdx from '@astrojs/mdx';
 import svelte from '@astrojs/svelte';
 import { defineConfig } from 'astro/config';
+import { h } from 'hastscript';
 import rehype_autolink_headings from 'rehype-autolink-headings';
 import rehype_slug from 'rehype-slug';
-import { h } from 'hastscript';
-import { toString } from 'hast-util-to-string';
 
 // https://astro.build/config
 export default defineConfig({

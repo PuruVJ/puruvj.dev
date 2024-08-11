@@ -1,14 +1,15 @@
 ---
+import '@css/global.css';
 import '@fontsource-variable/comfortaa';
 import '@fontsource-variable/jetbrains-mono';
 import '@fontsource/atkinson-hyperlegible';
-import '@css/global.css';
 
 // Font preloads
 import comfortaa_url from '@fontsource-variable/comfortaa/files/comfortaa-latin-wght-normal.woff2';
 import jetbrains_mono_url from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2';
 import atkinson_hyperlegible_url from '@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-ext-400-normal.woff2';
 
+import Footer from '@components/Footer.astro';
 import Nav from '@components/Nav.astro';
 import { ViewTransitions } from 'astro:transitions';
 
@@ -55,6 +56,8 @@ const { title, background = true } = Astro.props;
 			<main style="margin-top: 3.75rem">
 				<slot />
 			</main>
+
+			<Footer />
 		</div>
 
 		<script is:inline data-astro-rerun>

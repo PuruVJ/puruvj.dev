@@ -45,9 +45,6 @@ importers:
       astro:
         specifier: ^4.13.3
         version: 4.13.3(lightningcss@1.26.0)(typescript@5.5.4)
-      hast-util-to-string:
-        specifier: ^3.0.0
-        version: 3.0.0
       hastscript:
         specifier: ^9.0.0
         version: 9.0.0

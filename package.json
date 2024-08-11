@@ -23,7 +23,6 @@
 		"@astrojs/rss": "^4.0.7",
 		"@astrojs/svelte": "^5.7.0",
 		"astro": "^4.13.3",
-		"hast-util-to-string": "^3.0.0",
 		"hastscript": "^9.0.0",
 		"lightningcss": "^1.26.0",
 		"rehype-autolink-headings": "^7.1.0",

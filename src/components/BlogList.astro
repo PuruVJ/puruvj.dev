@@ -1,12 +1,15 @@
 ---
+import { mdiChevronRight } from '@mdi/js';
 import type { get_list } from '@utils/blog';
+import { SERIES } from 'src/content/series';
+import Icon from './Icon.svelte';
 
 type Props = {
 	blogs_list: Awaited<ReturnType<typeof get_list>>;
 	see_more?: boolean;
 };
 
-const { blogs_list, see_more = true } = Astro.props;
+const { blogs_list, see_more = false } = Astro.props;
 ---
 
 {
@@ -16,7 +19,7 @@ const { blogs_list, see_more = true } = Astro.props;
 				<span class="series">
 					{series && (
 						<>
-							<mark>SERIES</mark>&nbsp;{series}
+							<mark>SERIES</mark>&nbsp;{SERIES[series]}
 						</>
 					)}
 				</span>
@@ -38,7 +41,7 @@ const { blogs_list, see_more = true } = Astro.props;
 			<br />
 			<a aria-label="See More Blog Posts" class="blog-link show-more" rel="prefetch" href="blog">
 				<p aria-hidden="true" class="title end">
-					{/* See more <Icon size={40} path={mdiChevronRight} /> */}
+					See more <Icon size={40} path={mdiChevronRight} />
 				</p>
 			</a>
 		</>

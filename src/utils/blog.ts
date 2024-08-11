@@ -16,6 +16,11 @@ export function get_date(slug: string) {
 	}).format(new Date(+yyyy, +mm - 1, +dd));
 }
 
+function get_reading_time(body: string) {
+	const words = body.split(/\s+/).length;
+	return Math.ceil(words / 220);
+}
+
 export function get_slug(slug: string) {
 	return slug.replace(SLUG_REGEX, '$1');
 }
@@ -26,12 +31,12 @@ export async function get_list() {
 			slug: get_slug(post.slug),
 			...post.data,
 			date: get_date(post.slug),
+			reading_time: get_reading_time(post.body),
 		}))
 		.toReversed();
 }
 
 export async function get_post(post: (typeof blog_collection)[number]) {
-	const { Content, headings } = await post.render();
 	const { title, cover_image, render_cover, series } = post.data;
 
 	const date = get_date(post.slug);
@@ -41,8 +46,7 @@ export async function get_post(post: (typeof blog_collection)[number]) {
 		cover_image,
 		render_cover,
 		series,
-		body: Content,
-		toc: headings,
 		date,
+		reading_time: get_reading_time(post.body),
 	};
 }
