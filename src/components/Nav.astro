@@ -79,18 +79,6 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			0 27px 50px rgba(0, 0, 0, 0.1);
 	}
 
-	:global(body.dark #main-nav.shadow) {
-		background-color: #383a3e;
-	}
-
-	:global(body.radioactive #main-nav.shadow) {
-		background-color: #202046;
-	}
-
-	:global(body.dark #main-nav.shadow) {
-		background-color: #383a3e;
-	}
-
 	.smigget {
 		position: absolute;
 		top: 0;
@@ -231,5 +219,19 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			padding-block: 0.3rem;
 			margin: 0.2rem 0.2rem !important;
 		}
+	}
+</style>
+
+<style is:global>
+	body.dark #main-nav.shadow {
+		background-color: #383a3e;
+	}
+
+	body.radioactive #main-nav.shadow {
+		background-color: #202046;
+	}
+
+	body.dark #main-nav.shadow {
+		background-color: #383a3e;
 	}
 </style>
