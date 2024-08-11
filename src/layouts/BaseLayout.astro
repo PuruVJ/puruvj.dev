@@ -60,15 +60,6 @@ const { title, background = true } = Astro.props;
 		/>
 	</head>
 	<body transition:persist class:list={{ background }}>
-		<div id="root">
-			<Nav />
-			<main style="margin-top: 3.75rem">
-				<slot />
-			</main>
-
-			<Footer />
-		</div>
-
 		<script is:inline data-astro-rerun>
 			function swap_theme() {
 				const browserPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -79,5 +70,14 @@ const { title, background = true } = Astro.props;
 
 			document.addEventListener('astro:after-swap', swap_theme);
 		</script>
+
+		<div id="root">
+			<Nav />
+			<main style="margin-top: 3.75rem">
+				<slot />
+			</main>
+
+			<Footer />
+		</div>
 	</body>
 </html>
