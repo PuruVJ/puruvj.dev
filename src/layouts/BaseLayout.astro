@@ -77,9 +77,7 @@ const { title, background = true } = Astro.props;
 			}
 			swap_theme();
 
-			document.addEventListener('astro:before-swap', () => {
-				swap_theme();
-			});
+			document.addEventListener('astro:after-swap', swap_theme);
 		</script>
 	</body>
 </html>
