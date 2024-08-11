@@ -30,8 +30,8 @@ list.length = 6;
 						srcset={img.srcSet.attribute}
 						src={img.src}
 						alt="Puru Vijay Profile Photo"
-						width="100"
-						height="100"
+						width={img.attributes.width}
+						height={img.attributes.height}
 					/>
 				</figure>
 			</div>
@@ -46,6 +46,10 @@ list.length = 6;
 					<mark>blazing fast and performant</mark>
 					web apps.
 				</h2>
+
+				<p style="color: rgba(var(--app-color-dark-rgb),0.8)">
+					*Yes, I go by an inverted black&white scared cat photo. <br /> *No, the site is not hacked.
+				</p>
 			</div>
 		</section>
 
@@ -189,8 +193,8 @@ list.length = 6;
 		}
 
 		img {
-			width: 90%;
-			height: auto;
+			width: 90vw;
+			height: 90vw;
 		}
 
 		#written {
