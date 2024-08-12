@@ -12,7 +12,15 @@ const works = await Promise.all(
 );
 ---
 
-<BaseLayout title="Works">
+<BaseLayout title="work">
+	<Fragment slot="head">
+		<meta name="description" content="All of Puru's projects and work" />
+
+		<meta property="og:description" content="All of Puru's projects and work" />
+		<meta property="og:image" content={`https://puruvj.dev/og/work.png`} />
+		<meta property="og:url" content={`https://puruvj.dev/work`} />
+	</Fragment>
+
 	<main>
 		{
 			works.map(({ title, url, repo, Content, cover_image }) => (

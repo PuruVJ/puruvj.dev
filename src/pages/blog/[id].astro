@@ -13,7 +13,8 @@ const arr = await getCollection('blog');
 
 const id = Astro.params.id;
 const post = arr.find((post) => post.slug.includes(id))!;
-const { title, cover_image, render_cover, series, date, reading_time } = await get_post(post);
+const { title, cover_image, render_cover, series, date, reading_time, description } =
+	await get_post(post);
 
 const { Content, headings } = await post.render();
 
@@ -52,7 +53,17 @@ export const getStaticPaths = (async () => {
 }) satisfies GetStaticPaths;
 ---
 
-<BaseLayout title={`${title} | Puru`} background={false}>
+<BaseLayout title=`${title} | blog` background={false}>
+	<Fragment slot="head">
+		<meta name="description" content={description} />
+
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={`https://puruvj.dev/og/blog/${id}.png`} />
+		<meta property="og:url" content={`https://puruvj.dev/blog/${id}`} />
+
+		<link rel="canonical" href={`https://puruvj.dev/blog/${id}`} />
+	</Fragment>
+
 	<TOC headings={headings} />
 	<ReadingProgress client:load />
 

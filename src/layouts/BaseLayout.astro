@@ -24,16 +24,11 @@ const { title, background = true } = Astro.props;
 <!doctype html>
 <html lang="en">
 	<head>
-		{
-			title ? (
-				<>
-					<title>{title}</title>
-					<meta name="title" content={title} />
-				</>
-			) : (
-				<slot name="head" />
-			)
-		}
+		<title>{title}</title>
+		<meta property="og:title" content=`${title} | puruvj.dev` />
+
+		<slot name="head" />
+		<meta name="twitter:card" content="summary_large_image" />
 
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width" />

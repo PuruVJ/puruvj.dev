@@ -11,6 +11,14 @@ const podcasts = speaking.filter(({ id }) => id.startsWith('podcast/'));
 ---
 
 <BaseLayout title="Speaking">
+	<Fragment slot="head">
+		<meta name="description" content="Puru's speaking engagements" />
+
+		<meta property="og:description" content="Puru's speaking engagements" />
+		<meta property="og:image" content={`https://puruvj.dev/og/speaking.png`} />
+		<meta property="og:url" content={`https://puruvj.dev/speaking`} />
+	</Fragment>
+
 	<main>
 		<h1>talks</h1>
 
