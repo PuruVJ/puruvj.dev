@@ -9,7 +9,7 @@ interface Props {
 	widths?: number[];
 }
 
-const { alt, lazy, src, widths } = Astro.props;
+const { alt, src, widths } = Astro.props;
 
 const is_gif = src.format === 'gif';
 
@@ -32,32 +32,85 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 ---
 
 <div class="lazy-image-container">
-	<figure
-		class:list={{
-			gif: is_gif,
-		}}
-		style={`--aspect: ${src.width}/${src.height}`}
-	>
-		<picture>
-			{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
+	<!-- For some reason, putting lazy-load-image at top level just puts it out entirely and wraps it in a <p> tag -->
+	<lazy-load-image>
+		<figure
+			class:list={{
+				gif: is_gif,
+			}}
+			style={`--aspect: ${src.width}/${src.height};--width: ${webp.attributes.width}px;--height: ${webp.attributes.height}px`}
+		>
+			<picture>
+				{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
 
-			<source type="image/webp" data-srcset={webp.srcSet.attribute} />
-			<img
-				class="lazyload"
-				data-src={!lazy ? null : webp.src}
-				src={lazy ? null : webp.src}
-				alt={alt}
-				decoding={!lazy ? 'sync' : 'async'}
-				{...attrs}
-			/>
+				<source type="image/webp" data-srcset={webp.srcSet.attribute} />
+				<img class:list={{ gif: is_gif }} data-src={webp.src} alt={alt} {...attrs} />
 
-			<div class="overlay"></div>
-		</picture>
-	</figure>
+				<div aria-hidden="true" class="overlay"></div>
+			</picture>
+		</figure>
+	</lazy-load-image>
 </div>
 
 <script>
-	import 'lazysizes';
+	const targets = new Set<LazyLoadImage>();
+
+	let observer = new IntersectionObserver(
+		(entries) => {
+			entries.forEach((entry) => {
+				if (!entry.isIntersecting) return;
+
+				const target = entry.target as LazyLoadImage;
+				console.log(target);
+
+				const sources = Array.from(target.querySelectorAll('source'));
+
+				if (!sources.length) return;
+
+				const sources_remaining = sources.some((source) => source.hasAttribute('data-srcset'));
+				if (!sources_remaining) {
+					observer.unobserve(target);
+					targets.delete(target);
+					return;
+				}
+
+				for (const source of sources) {
+					if (source.dataset.srcset) {
+						source.setAttribute('srcset', source.dataset.srcset);
+						source.removeAttribute('data-srcset');
+					}
+				}
+
+				const img = target.querySelector('img');
+				if (img) {
+					console.log(img.getAttribute('data-src'));
+					img.setAttribute('src', img.dataset.src!);
+					img.removeAttribute('data-src');
+
+					img.addEventListener('load', () => {
+						img.classList.add('lazyloaded');
+					});
+				}
+			});
+		},
+		{
+			// We want to preload, so we'll load the image before it comes into viewport
+			rootMargin: '400px',
+			threshold: 0.01,
+		},
+	);
+
+	class LazyLoadImage extends HTMLElement {
+		connectedCallback() {
+			observer.observe(this);
+		}
+
+		disconnectedCallback() {
+			observer.unobserve(this);
+		}
+	}
+
+	customElements.define('lazy-load-image', LazyLoadImage);
 </script>
 
 <style>
@@ -86,11 +139,7 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 		min-width: 0;
 
 		&.gif {
-			width: unset;
-		}
-
-		&.loaded::after {
-			opacity: 0;
+			width: var(--width);
 		}
 	}
 
@@ -140,6 +189,13 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 			width: auto;
 			max-width: 100%;
 			min-width: 20rem;
+		}
+	}
+
+	@media screen and (max-width: 600px) {
+		.gif {
+			max-width: 100% !important;
+			width: 100% !important;
 		}
 	}
 </style>

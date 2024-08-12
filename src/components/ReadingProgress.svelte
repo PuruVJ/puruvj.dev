@@ -47,8 +47,6 @@
 	}
 
 	onMount(() => {
-		import('lazysizes');
-
 		const abort_controller = new AbortController();
 
 		document.addEventListener('scroll', throttle(handle_progress_bar, 50), {
