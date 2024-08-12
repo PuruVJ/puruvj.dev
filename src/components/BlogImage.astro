@@ -31,37 +31,35 @@ const webp = await getImage({
 const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 ---
 
-<div class="lazy-image-container">
-	<!-- For some reason, putting lazy-load-image at top level just puts it out entirely and wraps it in a <p> tag -->
+<!-- For some reason, putting lazy-load-image at top level just puts it out entirely and wraps it in a <p> tag -->
+<div style="display: contents;">
 	<lazy-load-image>
-		<figure
-			class:list={{
-				gif: is_gif,
-			}}
-			style={`--aspect: ${src.width}/${src.height};--width: ${webp.attributes.width}px;--height: ${webp.attributes.height}px`}
-		>
-			<picture>
-				{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
+		<div class="lazy-image-container">
+			<figure
+				class:list={{
+					gif: is_gif,
+				}}
+				style={`--aspect: ${src.width} / ${src.height};`}
+			>
+				<picture>
+					{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
 
-				<source type="image/webp" data-srcset={webp.srcSet.attribute} />
-				<img class:list={{ gif: is_gif }} data-src={webp.src} alt={alt} {...attrs} />
+					<source type="image/webp" data-srcset={webp.srcSet.attribute} />
 
-				<div aria-hidden="true" class="overlay"></div>
-			</picture>
-		</figure>
+					<img class:list={{ gif: is_gif }} data-src={webp.src} alt={alt} {...attrs} />
+				</picture>
+			</figure>
+		</div>
 	</lazy-load-image>
 </div>
 
 <script>
-	const targets = new Set<LazyLoadImage>();
-
 	let observer = new IntersectionObserver(
 		(entries) => {
 			entries.forEach((entry) => {
 				if (!entry.isIntersecting) return;
 
-				const target = entry.target as LazyLoadImage;
-				console.log(target);
+				const target = entry.target as HTMLElement;
 
 				const sources = Array.from(target.querySelectorAll('source'));
 
@@ -70,7 +68,6 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 				const sources_remaining = sources.some((source) => source.hasAttribute('data-srcset'));
 				if (!sources_remaining) {
 					observer.unobserve(target);
-					targets.delete(target);
 					return;
 				}
 
@@ -83,12 +80,11 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 
 				const img = target.querySelector('img');
 				if (img) {
-					console.log(img.getAttribute('data-src'));
 					img.setAttribute('src', img.dataset.src!);
 					img.removeAttribute('data-src');
 
 					img.addEventListener('load', () => {
-						img.classList.add('lazyloaded');
+						target.classList.add('loaded');
 					});
 				}
 			});
@@ -102,15 +98,17 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 
 	class LazyLoadImage extends HTMLElement {
 		connectedCallback() {
-			observer.observe(this);
+			observer.observe(this.querySelector('figure')!);
 		}
 
 		disconnectedCallback() {
-			observer.unobserve(this);
+			observer.unobserve(this.querySelector('figure')!);
 		}
 	}
 
-	customElements.define('lazy-load-image', LazyLoadImage);
+	if (!customElements.get('lazy-load-image')) {
+		customElements.define('lazy-load-image', LazyLoadImage);
+	}
 </script>
 
 <style>
@@ -120,35 +118,35 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 
 		width: 100%;
 	}
-	figure {
-		position: relative;
 
+	lazy-load-image {
+		display: contents;
+	}
+
+	figure {
 		display: flex;
-		justify-content: center;
+		position: relative;
+		/* width: 100%; */
+		aspect-ratio: var(--aspect, 16 / 9);
+
+		border-radius: 0.75rem;
 
 		margin: 0;
-		padding: 0;
-		aspect-ratio: var(--aspect);
-
-		border-radius: 0.5rem;
 
 		width: 100%;
-		height: max-content;
-
+		height: auto;
 		max-width: 100%;
 		min-width: 0;
 
 		&.gif {
-			width: var(--width);
+			width: 33vw;
 		}
-	}
 
-	picture {
-		border-radius: inherit;
-		display: contents;
+		&.loaded::after {
+			opacity: 0;
+		}
 
-		.overlay {
-			display: block;
+		&::after {
 			content: '';
 			position: absolute;
 			top: 0;
@@ -163,39 +161,18 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 			z-index: 200;
 		}
 
-		&.no_overlay .overlay {
-			opacity: 0;
+		@media screen and (max-width: 768px) {
+			width: 100% !important;
 		}
+	}
+
+	picture {
+		display: contents;
 	}
 
 	img {
-		display: block;
 		width: 100%;
-		height: 100%;
-
-		position: relative;
-
-		aspect-ratio: var(--aspect);
-
 		height: auto;
-		opacity: 1;
-		border-radius: inherit;
-
-		&.lazyloaded + .overlay {
-			opacity: 0;
-		}
-
-		&.gif {
-			width: auto;
-			max-width: 100%;
-			min-width: 20rem;
-		}
-	}
-
-	@media screen and (max-width: 600px) {
-		.gif {
-			max-width: 100% !important;
-			width: 100% !important;
-		}
+		border-radius: 0.75rem;
 	}
 </style>
