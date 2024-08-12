@@ -50,6 +50,9 @@
 			: themes.indexOf(local_theme as any);
 	});
 
+	// @ts-ignore
+	const dev = import.meta.env.DEV;
+
 	$: $theme = themes[current_theme_index];
 </script>
 
@@ -58,6 +61,8 @@
 		name="theme-color"
 		content={['white', '#f9dec9', '#222428', '#13132a'][current_theme_index]}
 	/>
+
+	<link rel="icon" href="/icons/favicon-{dev ? 'dev' : $theme}.{dev ? 'svg' : 'png'}" />
 </svelte:head>
 
 <button
