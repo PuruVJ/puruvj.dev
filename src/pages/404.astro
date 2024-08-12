@@ -1,0 +1,45 @@
+---
+import NotFoundSVG from '@components/NotFoundSVG.astro';
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Not Found">
+	<main>
+		<br /><br />
+		<h1>
+			<span style="color: var(--app-color-primary)">404</span> - Not Found
+		</h1>
+		<br />
+		<NotFoundSVG />
+	</main>
+</BaseLayout>
+
+<style>
+	main {
+		flex: 1 1 auto;
+
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+
+		width: 100%;
+		height: 100%;
+	}
+
+	main :global(svg) {
+		width: 100%;
+		max-width: 40rem;
+		height: auto;
+	}
+
+	main :global(path) {
+		transition: fill var(--transition-duration) ease-in;
+	}
+
+	@media screen and (min-width: 600px) {
+		h1 {
+			font-size: calc(2.618rem * 1.618);
+		}
+	}
+</style>
