@@ -34,6 +34,19 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 	</span>
 </nav>
 
+<div class="mobile-nav" class:list={{ home: Astro.url.pathname === '/' }}>
+	<a href="/" class="brand">
+		<SiteLogo />
+		<span>puruvj.dev</span>
+	</a>
+	<div class="divider"></div>
+	<span class="page-name">{Astro.url.pathname.replace('/', '').split('/')[0]}</span>
+	<span class="spacer"></span>
+	<span>
+		<RSSLink />
+	</span>
+</div>
+
 <inview-element>
 	<div id="smigget"></div>
 </inview-element>
@@ -104,6 +117,50 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			0 27px 50px rgba(0, 0, 0, 0.1);
 	}
 
+	.mobile-nav {
+		display: flex;
+		gap: 0.75rem;
+		align-items: center;
+		padding: 1rem 0.5rem;
+
+		&.home {
+			.divider,
+			.page-name {
+				display: none;
+			}
+		}
+
+		.brand {
+			display: flex !important;
+
+			&:hover {
+				color: var(--app-color-primary);
+			}
+		}
+
+		.divider {
+			width: 1px;
+			height: 1.6rem;
+			background-color: rgba(var(--app-color-dark-rgb), 0.4);
+		}
+
+		.page-name {
+			font-family: 'JetBrains Mono Variable', monospace;
+			letter-spacing: 0.05rem;
+			font-weight: 600;
+			color: rgba(var(--app-color-dark-rgb), 0.8);
+			font-size: 1.1rem;
+		}
+
+		.spacer {
+			flex: 1 1 auto;
+		}
+
+		@media screen and (min-width: 1100px) {
+			display: none;
+		}
+	}
+
 	.smigget {
 		position: absolute;
 		top: 0;
@@ -125,7 +182,7 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 		text-transform: lowercase;
 	}
 
-	a {
+	a:not(.brand) {
 		--color: var(--app-color-primary);
 		--color-rgb: var(--app-color-primary-rgb);
 		--marker-height: 6px;
@@ -229,21 +286,22 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 
 	@media screen and (max-width: 1100px) {
 		nav {
-			width: 95%;
+			width: 100%;
 
 			top: unset;
+			left: 0;
 			bottom: 0;
 
-			border-radius: 1rem 1rem 0 0;
-			padding-block: 0.3rem;
+			border-radius: 0;
+			padding: 0.5rem 1.5rem;
 
 			box-shadow: 0px 0px 63px rgba(0, 0, 0, 0.32) !important;
 
 			.theme-switcher {
 				gap: 1rem;
 
-				&:first-child :global(svg) {
-					scale: 0.8;
+				> :global(:first-child) {
+					display: none;
 				}
 			}
 		}
@@ -258,7 +316,7 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			padding-block: 0.3rem;
 			margin: 0.2rem 0.2rem !important;
 
-			font-size: 1rem;
+			font-size: 1.2rem;
 		}
 
 		nav {
