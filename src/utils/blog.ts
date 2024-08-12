@@ -48,7 +48,9 @@ export async function get_list() {
 }
 
 export async function get_post(post: (typeof blog_collection)[number]) {
-	const { title, cover_image, render_cover, series, description } = post.data;
+	const { title, cover_image, render_cover, series: series_name, description } = post.data;
+
+	const series = get_series(series_name);
 
 	const date = get_date(post.slug);
 
@@ -57,6 +59,7 @@ export async function get_post(post: (typeof blog_collection)[number]) {
 		title,
 		cover_image,
 		render_cover,
+		series_name: series_name,
 		series,
 		date,
 		description,

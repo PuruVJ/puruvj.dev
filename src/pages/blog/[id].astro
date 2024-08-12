@@ -13,7 +13,7 @@ const arr = await getCollection('blog');
 
 const id = Astro.params.id;
 const post = arr.find((post) => post.slug.includes(id))!;
-const { title, cover_image, render_cover, series, date, reading_time, description } =
+const { title, cover_image, render_cover, series, series_name, date, reading_time, description } =
 	await get_post(post);
 
 const { Content, headings } = await post.render();
@@ -74,9 +74,9 @@ export const getStaticPaths = (async () => {
 		<section class="heading-area">
 			<span class="series">
 				{
-					series && (
+					series_name && series.length > 1 && (
 						<>
-							<mark>SERIES</mark> {SERIES[series]}
+							<mark>SERIES</mark> {SERIES[series_name]}
 						</>
 					)
 				}
@@ -89,11 +89,15 @@ export const getStaticPaths = (async () => {
 			</p>
 		</section>
 		{cover_image && render_cover && <BlogImage src={cover_image} alt={title} lazy={false} />}
-		{series && <SeriesBlock series_name={series} />}
+		{series_name && series.length > 1 && <SeriesBlock series_name={series_name} />}
 		<article id="blog-content">
 			<Content />
 		</article>
-		{series && <SeriesBlock series_name={series} transition_name="series-block-end" />}
+		{
+			series_name && series.length > 1 && (
+				<SeriesBlock series_name={series_name} transition_name="series-block-end" />
+			)
+		}
 	</main>
 </BaseLayout>
 
@@ -109,7 +113,7 @@ export const getStaticPaths = (async () => {
 		font-size: 1.2rem;
 		color: var(--app-color-primary);
 
-		text-align: center;
+		text-align: start;
 	}
 
 	#blog-content {
@@ -135,7 +139,7 @@ export const getStaticPaths = (async () => {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		margin: 1rem 0;
+		margin: 1rem 0 2rem 0;
 	}
 </style>
 
