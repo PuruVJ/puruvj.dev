@@ -15,7 +15,7 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname === '/work' ? 'page' : 'false'} href="/work">WORKS</a>
+			<a aria-current={Astro.url.pathname === '/work' ? 'page' : 'false'} href="/work">WORK</a>
 		</li>
 		<li>
 			<a aria-current={Astro.url.pathname === '/speaking' ? 'page' : 'false'} href="/speaking"
@@ -229,6 +229,22 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 	@media screen and (max-width: 1100px) {
 		nav {
 			width: 95%;
+
+			top: unset;
+			bottom: 0;
+
+			border-radius: 1rem 1rem 0 0;
+			padding-block: 0.5rem;
+
+			box-shadow: 0px 0px 63px rgba(0, 0, 0, 0.32) !important;
+
+			.theme-switcher {
+				gap: 1rem;
+
+				&:first-child :global(svg) {
+					scale: 0.8;
+				}
+			}
 		}
 	}
 
@@ -245,6 +261,7 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 		}
 
 		nav {
+			top: unset;
 			grid-template-columns: auto 0 1fr auto;
 		}
 	}
@@ -268,5 +285,19 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 
 	body.dark #main-nav.shadow {
 		background-color: #383a3e;
+	}
+
+	@media screen and (max-width: 1100px) {
+		body.dark #main-nav {
+			background-color: #383a3e;
+		}
+
+		body.radioactive #main-nav {
+			background-color: #202046;
+		}
+
+		body.dark #main-nav {
+			background-color: #383a3e;
+		}
 	}
 </style>
