@@ -14,7 +14,7 @@ import Nav from '@components/Nav.astro';
 import { ViewTransitions } from 'astro:transitions';
 
 type Props = {
-	title: string;
+	title?: string;
 	background?: boolean;
 };
 
@@ -24,7 +24,7 @@ const { title, background = true } = Astro.props;
 <!doctype html>
 <html lang="en">
 	<head>
-		<title>{title} | puruvj.dev</title>
+		<title>{title ? `${title} | puruvj.dev` : 'puruvj.dev'}</title>
 		<meta property="og:title" content=`${title} | puruvj.dev` />
 
 		<slot name="head" />
@@ -53,6 +53,7 @@ const { title, background = true } = Astro.props;
 			crossorigin="anonymous"
 		/>
 	</head>
+
 	<body transition:persist class:list={{ background }}>
 		<script is:inline data-astro-rerun>
 			function swap_theme() {
