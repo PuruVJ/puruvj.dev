@@ -34,6 +34,7 @@ const speaking = defineCollection({
 	schema: ({ image }) =>
 		z.object({
 			title: z.string(),
+			event: z.string(),
 			url: z.string(),
 			cover_image: image(),
 		}),

@@ -15,7 +15,7 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname === '/works' ? 'page' : 'false'} href="/works">WORKS</a>
+			<a aria-current={Astro.url.pathname === '/work' ? 'page' : 'false'} href="/work">WORKS</a>
 		</li>
 		<li>
 			<a aria-current={Astro.url.pathname === '/speaking' ? 'page' : 'false'} href="/speaking"
@@ -121,6 +121,8 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 
 		padding: 0;
 		margin: 0;
+
+		text-transform: lowercase;
 	}
 
 	a {

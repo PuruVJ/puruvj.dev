@@ -1,14 +1,58 @@
 ---
+import BlogImage from '@components/BlogImage.astro';
 import WavyDivider from '@components/WavyDivider.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const speaking = await getCollection('speaking');
+
+const talks = speaking.filter(({ id }) => id.startsWith('talk/'));
+const podcasts = speaking.filter(({ id }) => id.startsWith('podcast/'));
 ---
 
 <BaseLayout title="Speaking">
-	<h1>Talks</h1>
+	<main>
+		<h1>talks</h1>
 
-	<div class="hr"><WavyDivider style="fill: transparent" /></div>
+		<section class="container">
+			{
+				talks.map(({ data: { cover_image, title, url, event } }) => (
+					<a href={url} target="_blank" rel="noopener noreferrer nofollow" class="card">
+						<div class="img-preview">
+							<BlogImage src={cover_image} alt={title} widths={[600, 1000]} />
+						</div>
 
-	<h1>Podcasts</h1>
+						<div class="info-section">
+							<div class="title">{title}</div>
+							<span class="sub">{event}</span>
+						</div>
+					</a>
+				))
+			}
+		</section>
+
+		<br />
+
+		<div class="hr"><WavyDivider style="fill: transparent" /></div>
+
+		<h1>podcasts</h1>
+
+		<section class="container">
+			{
+				podcasts.map(({ data: { cover_image, title, url, event } }) => (
+					<a href={url} target="_blank" rel="noopener noreferrer nofollow" class="card">
+						<div class="img-preview">
+							<BlogImage src={cover_image} alt={title} widths={[600, 1000]} />
+						</div>
+						<div class="info-section">
+							<div class="title">{title}</div>
+							<span class="sub">{event}</span>
+						</div>
+					</a>
+				))
+			}
+		</section>
+	</main>
 </BaseLayout>
 
 <style>
@@ -17,5 +61,102 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 
 		display: flex;
 		justify-content: center;
+	}
+
+	main {
+		margin-top: 1rem;
+
+		display: grid;
+		grid-template-rows: repeat(auto, 1fr);
+		gap: 3rem;
+	}
+
+	.container {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+		gap: 1rem;
+
+		border-radius: 1rem;
+	}
+
+	.card {
+		position: relative;
+		overflow: hidden;
+
+		display: grid;
+		grid-template-rows: auto 1fr;
+		gap: 1rem;
+
+		padding: 1rem;
+		border-radius: 0.5rem;
+
+		transition: box-shadow var(--transition-duration) ease;
+
+		background-color: rgba(var(--app-color-dark-rgb), 0.1);
+		backdrop-filter: blur(20px);
+		box-shadow:
+			0px 1.5px 1.8px rgba(0, 0, 0, 0.028),
+			0px 5.1px 6px rgba(0, 0, 0, 0.042),
+			0px 23px 27px rgba(0, 0, 0, 0.07);
+
+		transition: box-shadow var(--transition-duration) ease;
+
+		&,
+		* {
+			color: var(--app-color-dark);
+		}
+
+		&:hover {
+			box-shadow:
+				0px 1.7px 5.3px rgba(0, 0, 0, 0.053),
+				0px 5.6px 17.6px rgba(0, 0, 0, 0.077),
+				0px 25px 79px rgba(0, 0, 0, 0.13);
+		}
+
+		&:focus-visible {
+			box-shadow: 0 0 0 0.25rem var(--app-color-primary);
+		}
+	}
+
+	.img-preview {
+		max-width: 100%;
+
+		/* object-fit: contain; */
+	}
+
+	.info-section {
+		/* padding-top: 1rem; */
+	}
+
+	.title {
+		font-family: 'JetBrains Mono', monospace;
+		font-weight: 400;
+		font-size: 1.4rem;
+		line-height: 1.414;
+		text-transform: lowercase;
+	}
+
+	.sub {
+		font-size: 1rem;
+		color: rgba(var(--app-color-dark-rgb), 0.7);
+	}
+
+	.links {
+		font-size: 1.5rem;
+	}
+
+	@media screen and (max-width: 1000px) {
+		.container {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+
+		.info-section {
+			padding: 0;
+		}
+
+		.title {
+			line-height: 1.618;
+		}
 	}
 </style>
