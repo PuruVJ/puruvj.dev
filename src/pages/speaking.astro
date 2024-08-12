@@ -1,0 +1,21 @@
+---
+import WavyDivider from '@components/WavyDivider.astro';
+import BaseLayout from '@layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Speaking">
+	<h1>Talks</h1>
+
+	<div class="hr"><WavyDivider style="fill: transparent" /></div>
+
+	<h1>Podcasts</h1>
+</BaseLayout>
+
+<style>
+	.hr {
+		width: 100%;
+
+		display: flex;
+		justify-content: center;
+	}
+</style>

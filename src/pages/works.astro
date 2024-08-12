@@ -4,7 +4,7 @@ import BaseLayout from '@layouts/BaseLayout.astro';
 import { getCollection } from 'astro:content';
 
 const works = await Promise.all(
-	(await getCollection('work')).map(async ({ data, render, slug }) => {
+	(await getCollection('work')).map(async ({ data, render }) => {
 		const { Content } = await render();
 
 		return { Content, ...data };
