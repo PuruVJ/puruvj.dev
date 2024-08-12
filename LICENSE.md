@@ -1,4 +1,4 @@
-# Custom Blog License
+Copyright 2020-present Puru Vijay puruvj.dev
 
 ## Attribution-NonCommercial-NoDerivs 4.0 International (CC BY-NC-ND 4.0)
 
