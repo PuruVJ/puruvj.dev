@@ -39,8 +39,9 @@ const { loading: _, decoding: _1, ...attrs } = webp.attributes;
 		style={`--aspect: ${src.width}/${src.height}`}
 	>
 		<picture>
-			<source type="image/webp" data-srcset={webp.srcSet.attribute} />
 			{avif && <source type="image/avif" data-srcset={avif.srcSet.attribute} />}
+
+			<source type="image/webp" data-srcset={webp.srcSet.attribute} />
 			<img
 				class="lazyload"
 				data-src={!lazy ? null : webp.src}
