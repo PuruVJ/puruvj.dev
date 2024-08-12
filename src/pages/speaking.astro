@@ -82,7 +82,7 @@ const podcasts = speaking.filter(({ id }) => id.startsWith('podcast/'));
 	.container {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-		gap: 1rem;
+		gap: 1.5rem;
 
 		border-radius: 1rem;
 	}
@@ -107,7 +107,8 @@ const podcasts = speaking.filter(({ id }) => id.startsWith('podcast/'));
 			0px 5.1px 6px rgba(0, 0, 0, 0.042),
 			0px 23px 27px rgba(0, 0, 0, 0.07);
 
-		transition: box-shadow var(--transition-duration) ease;
+		transition: var(--transition-duration) ease-in;
+		transition-property: box-shadow, background-color;
 
 		&,
 		* {
@@ -119,6 +120,7 @@ const podcasts = speaking.filter(({ id }) => id.startsWith('podcast/'));
 				0px 1.7px 5.3px rgba(0, 0, 0, 0.053),
 				0px 5.6px 17.6px rgba(0, 0, 0, 0.077),
 				0px 25px 79px rgba(0, 0, 0, 0.13);
+			background-color: rgba(var(--app-color-dark-rgb), 0.3);
 		}
 
 		&:focus-visible {
