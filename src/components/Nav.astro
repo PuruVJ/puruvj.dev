@@ -15,11 +15,14 @@ import ThemeSwitcher from './ThemeSwitcher.svelte';
 			>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname === '/work' ? 'page' : 'false'} href="/work">WORK</a>
+			<a aria-current={Astro.url.pathname.startsWith('/work') ? 'page' : 'false'} href="/work"
+				>WORK</a
+			>
 		</li>
 		<li>
-			<a aria-current={Astro.url.pathname === '/speaking' ? 'page' : 'false'} href="/speaking"
-				>SPEAKING</a
+			<a
+				aria-current={Astro.url.pathname.startsWith('/speaking') ? 'page' : 'false'}
+				href="/speaking">SPEAKING</a
 			>
 		</li>
 	</ul>
