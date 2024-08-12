@@ -119,6 +119,8 @@ const { blogs_list, see_more = false } = Astro.props;
 		&.show-more {
 			--bgc-opacity: 0.15;
 
+			backdrop-filter: blur(0.5rem);
+
 			&:hover,
 			&:focus-visible {
 				--bgc-opacity: 0.3;
