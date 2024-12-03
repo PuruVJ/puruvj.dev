@@ -10,27 +10,11 @@
 
 	const theme = writable<Theme>('light');
 
-	let init = false;
-	$: {
-		// @ts-ignore
-		if (import.meta.env.SSR) break $;
-
-		if (!init) {
-			init = true;
-			break $;
-		}
-
-		themes.forEach((theme) => {
-			document.body.classList.remove(theme);
-		});
-		document.body.classList.add($theme);
-
-		localStorage.setItem('theme', $theme);
-	}
+	let init = $state(false);
 
 	// List of themes
 	const themes: Theme[] = ['light', 'midday', 'dark', 'radioactive'];
-	let current_theme_index = 0;
+	let current_theme_index = $state(0);
 
 	function nextTheme(currentThemeIndex: number) {
 		const { length } = themes;
@@ -53,7 +37,26 @@
 	// @ts-ignore
 	const dev = import.meta.env.DEV;
 
-	$: $theme = themes[current_theme_index];
+	$effect(() => {
+		$theme = themes[current_theme_index];
+	});
+
+	$effect(() => {
+		// @ts-ignore
+		if (import.meta.env.SSR) return;
+
+		if (!init) {
+			init = true;
+			return;
+		}
+
+		themes.forEach((theme) => {
+			document.body.classList.remove(theme);
+		});
+		document.body.classList.add($theme);
+
+		localStorage.setItem('theme', $theme);
+	});
 </script>
 
 <svelte:head>
@@ -66,7 +69,7 @@
 </svelte:head>
 
 <button
-	on:click={() => (current_theme_index = nextTheme(current_theme_index))}
+	onclick={() => (current_theme_index = nextTheme(current_theme_index))}
 	aria-label={themes[current_theme_index]}
 >
 	{#if current_theme_index === 0}

@@ -24,9 +24,7 @@ export default defineConfig({
 			cssMinify: 'lightningcss',
 		},
 	},
-	experimental: {
-		contentCollectionCache: true,
-	},
+	experimental: { contentIntellisense: true },
 	markdown: {
 		shikiConfig: {
 			themes: {

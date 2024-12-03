@@ -60,7 +60,7 @@
 </script>
 
 <div class="progress" aria-roledescription="progress">
-	<div class="indicator" style="scale: {$reading_progress} 1" />
+	<div class="indicator" style="scale: {$reading_progress} 1"></div>
 </div>
 
 <style>
