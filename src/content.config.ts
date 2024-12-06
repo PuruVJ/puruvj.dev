@@ -1,10 +1,11 @@
 import { defineCollection, z } from 'astro:content';
-import { SERIES } from './series.ts';
+import { SERIES } from './content/series.ts';
+import { glob } from 'astro/loaders';
 
 const [first_key, ...rest] = Object.keys(SERIES) as (keyof typeof SERIES)[];
 
 const blog = defineCollection({
-	type: 'content',
+	loader: glob({ pattern: '*/*.mdx', base: './src/content/blog' }),
 	schema: ({ image }) =>
 		z.object({
 			title: z.string(),
@@ -16,7 +17,7 @@ const blog = defineCollection({
 });
 
 const work = defineCollection({
-	type: 'content',
+	loader: glob({ pattern: '**/*.md', base: './src/content/work' }),
 	schema: ({ image }) =>
 		z.object({
 			title: z.string(),
@@ -30,7 +31,7 @@ const work = defineCollection({
 });
 
 const speaking = defineCollection({
-	type: 'data',
+	loader: glob({ pattern: '**/*.json', base: './src/content/speaking' }),
 	schema: ({ image }) =>
 		z.object({
 			title: z.string(),

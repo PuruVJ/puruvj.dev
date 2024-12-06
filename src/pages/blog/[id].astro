@@ -6,17 +6,17 @@ import TOC from '@components/TOC.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
 import { get_post, get_slug } from '@utils/blog';
 import type { GetStaticPaths } from 'astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import { SERIES } from 'src/content/series';
 
 const arr = await getCollection('blog');
 
 const id = Astro.params.id;
-const post = arr.find((post) => post.slug.includes(id))!;
+const post = arr.find((post) => post.id.includes(id))!;
 const { title, cover_image, render_cover, series, series_name, date, reading_time, description } =
 	await get_post(post);
 
-const { Content, headings } = await post.render();
+const { Content, headings } = await render(post);
 
 function validate_headings() {
 	// VALIDATE HEADINGS, make sure no H1 is present
@@ -48,7 +48,7 @@ export const getStaticPaths = (async () => {
 	const arr = await getCollection('blog');
 
 	return arr.map((post) => ({
-		params: { id: get_slug(post.slug) },
+		params: { id: get_slug(post.id) },
 	}));
 }) satisfies GetStaticPaths;
 ---

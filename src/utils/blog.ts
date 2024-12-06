@@ -36,14 +36,16 @@ export function get_series(series_name: string | undefined) {
 
 export async function get_list() {
 	return blog_collection
-		.map((post) => ({
-			slug: get_slug(post.slug),
-			...post.data,
-			series: get_series(post.data.series),
-			series_name: post.data.series,
-			date: get_date(post.slug),
-			reading_time: get_reading_time(post.body),
-		}))
+		.map((post) => {
+			return {
+				slug: get_slug(post.id),
+				...post.data,
+				series: get_series(post.data.series),
+				series_name: post.data.series,
+				date: get_date(post.id),
+				reading_time: get_reading_time(post.body!),
+			};
+		})
 		.toReversed();
 }
 
@@ -52,10 +54,10 @@ export async function get_post(post: (typeof blog_collection)[number]) {
 
 	const series = get_series(series_name);
 
-	const date = get_date(post.slug);
+	const date = get_date(post.id);
 
 	return {
-		slug: get_slug(post.slug),
+		slug: get_slug(post.id),
 		title,
 		cover_image,
 		render_cover,
@@ -63,6 +65,6 @@ export async function get_post(post: (typeof blog_collection)[number]) {
 		series,
 		date,
 		description,
-		reading_time: get_reading_time(post.body),
+		reading_time: get_reading_time(post.body!),
 	};
 }

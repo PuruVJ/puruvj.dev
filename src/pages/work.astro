@@ -1,13 +1,13 @@
 ---
 import BlogImage from '@components/BlogImage.astro';
 import BaseLayout from '@layouts/BaseLayout.astro';
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
 const works = await Promise.all(
-	(await getCollection('work')).map(async ({ data, render }) => {
-		const { Content } = await render();
+	(await getCollection('work')).map(async (entry) => {
+		const { Content } = await render(entry);
 
-		return { Content, ...data };
+		return { Content, ...entry.data };
 	}),
 );
 ---
