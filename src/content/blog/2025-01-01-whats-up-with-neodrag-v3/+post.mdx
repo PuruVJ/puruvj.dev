@@ -176,7 +176,7 @@ In Neodrag v2, the users only using the basic library have to pay for `grid`, `b
 
 With this new architecture, you import the plugins. Hence you pay for what you actually use, not for the entire library and all its mighty features.
 
-### BYODraggble
+### BYODraggable
 
 **B**ring **Y**our **O**wn **D**raggable: If you do not agree with any part of the library, or a built-in plugin, you don't have to open github issues and convince me to change it. You can just write your own plugin!! Just use your own and throw out the built-in behaviors you don't like.
 
@@ -195,4 +195,106 @@ All these are plugins that could exist in the userland on npm. You would just `n
 
 Tons!
 
-###
+### Tuned runtime perf
+
+This time, instead of focusing solely on bundle size reducton, which often causes you to write slower code compared to the faster but bigger version, I focused on runtime perf. Constantly running the profiler, comparing Task, checking requestAnimationFrame triggers and so much more! On safari alone, the dragging has become a significantly smoother with these changes.
+
+### Event delegation
+
+Neodrag works with Pointer Events: You have dragstart on `pointerdown`, dragging on `pointermove` and `dragEnd` on `pointerup`. The 3 events are registered on the `window` object, everytime a draggable is registered. Which means, if you have 100 draggables, you have **300** event listeners just watching and running for no reason. This is a huge waste of memory.
+
+With v3, I'm taking a page out of Svelte 5's handbook, and using event delegatin system. Now only the 3 event listeners will be registered on the `<body>`, and only when the very first draggable is registered. Even if you have 100 draggables, only `3` event listeners will be there in total, saving tons of memory!
+
+> I know 100 seems a lot but it really isn't, on the docs site [neodrag.dev](https://neodrag.dev), there are 80 or so draggable on the page, and it can get sluggish on slower devices. This will completely fix that issue.
+
+### Pointer captured!
+
+Something very simple I had overlooked in the v2: Forgetting to run `setPointerCapture` on the draggable element. This meant that if you were dragging the element on top of an iframe and your cursor went outside your draggable, you lost dragging. The pointer events would go to iframe.
+
+With v3, `setPointerCapture` fully avoids this issue. You can now drag the element on top of an iframe as fast as you want, and your pointer will never ever lose it.
+
+### Errors
+
+To reduce bundle size on neodrag v2, I opted to removed all the errors in favor of TypeScript being the error enforcer. This ofc meant it excluded non-TS users, since they were running blind with this library. Hence, this time, I have added conditional errors to the library: In dev mode, you will get tons of errors, and in prod, none! They will be tree-shaken out.
+
+Moreover, the library tries to graceful recover from errors, and will only `console.error` them, not throw them and stop all JavaScript execution. You can still control the errors with the new `onError` hook, and throw them yourself if you want.
+
+```ts
+import { createDraggable } from '@neodrag/core';
+
+const { draggable } = createDraggable({
+  onError(error) {
+    throw error;
+  },
+});
+```
+
+### Low level control
+
+You can import `draggable` from the `@neodrag/{svelte,react,vue,solid,vanilla}` packages ofc, but if you want to have full control over the draggaing, you can import the `createDraggable` function from `@neodrag/core`. This function returns the draggable instance itself, which you can use.
+
+```ts
+import { createDraggable } from '@neodrag/core';
+
+const {
+  draggable, // The draggable instance
+  instances, // A Map of all the draggable instances
+  dispose // Disposes of the event listeners, destroys all the instances
+} = createDraggable({
+  plugins: [grid(), transform()] // Overrides the default plugins
+  delegate: () => window, // This is where the events are registered () => document.body
+  onError(error) {
+    throw error; //  Overrides the default `console.error`
+  },
+});
+
+// Later
+import { reactWrapper } from '@neodrag/react';
+export const useDraggable = reactWrapper(draggable); // Or write your own!
+```
+
+## Some controversal things
+
+Some things are changing which could be seen as negatives, but in long term I think are absolutely needed and worth it.
+
+### Increased bundle size
+
+Yes, this one is painful to write but absolutely necessary.
+
+This code:
+
+```ts
+import { draggable } from '@neodrag/svelte';
+
+draggable();
+```
+
+is 4.29KB min+brotli. That is twice the size from before. This includes 6 default plugins as well. Without them it would be smaller ofc. But I don't want to include that size since you can't do much without plugins.
+
+I feel the user landscape has changed since 2021 when I made this library. Internet connections are faster, average devices are getting more powerful. And 4KB is not that much, let's be honest 😄. If you need a draggable in your app, it is probably interactve enough that 4KB is the least of your worries.
+
+Any more plugins will add to the size, but if you don't need them, you don't pay for them!
+
+### Removed `legacyTranslate` and `gpuAcceleration`
+
+legacyTranslate was there to use the `transform: translate(x, y)` property to move the element. This was a very simple solution, but it has a big issue: You can't easily rotate or skew or scale your element, since the library itself is hijacking all the ways of doing that. This caused users to use tons of hacks to get around it, and it wasn't pretty.
+
+So I introduced `transform` function which gives you the offsets, the `rootNode` and you can apply the transform yourself. This is just a hacky solution though I feel.
+
+So I introduced `legacyTranslate` option as false, and set the default to use the [translate](https://developer.mozilla.org/en-US/docs/Web/CSS/translate). This works the sasme as above but does not hijack all the different transforms! And it also does not require the [1px hack](https://arc.net/l/quote/jreliyaz) to trigger GPU acceleration, it is GPU accelerated by default.
+
+Hence both of these are going. However, the transform function is not, and can be used like this:
+
+```svelte
+<script>
+  import { draggable, transform } from '@neodrag/svelte';
+
+  function handleDrag({ offset, rootNode }) {
+    rootNode.style.transform = `translate(${offset.x}px, ${offset.y}px)`;
+  }
+</script>
+
+<div
+  use:draggable={[transform(handleDrag)]}
+></div>
+```
