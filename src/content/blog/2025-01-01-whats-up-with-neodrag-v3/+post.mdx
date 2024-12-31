@@ -253,9 +253,17 @@ import { reactWrapper } from '@neodrag/react';
 export const useDraggable = reactWrapper(draggable); // Or write your own!
 ```
 
-## Some controversal things
+### Testing
 
-Some things are changing which could be seen as negatives, but in long term I think are absolutely needed and worth it.
+Neodrag v2 has had Vitest+JSDom tests in it for a while, but I'll admit: I did not write them! A contributor, [tascodes](https://github.com/tascodes) generously contributed the [thousand-line test suite](https://github.com/PuruVJ/neodrag/pull/14). However, I never truly used these tests myself, and that showed up in weirdest bugs and regressions.
+
+Hence this time, I am going all in on testing. And not JSDOM/HappyDOM simulated-browser-in-node testing, but real browser testing: I'm going all in on [Playwright](https://playwright.dev/), with over 5 browsers and form-factors. This is a huge step, and I am very happy with the results. Even while writing this article, I am constantly finding a bug/unintended behavior in things and constantly fixing it, all because I'm writing a very basic test! 🔥
+
+Expect v3 to be robust and stable!
+
+## Some (breaking) things
+
+Some things are changing which could be seen as negatives, but in long term I think will be absolutely worth it!
 
 ### Increased bundle size
 
@@ -275,15 +283,24 @@ I feel the user landscape has changed since 2021 when I made this library. Inter
 
 Any more plugins will add to the size, but if you don't need them, you don't pay for them!
 
+### One (internal) dependency
+
+Until now, each `@neodrag/{svelte,react,vue,solid,vanilla}` package had 0 dependencies. THis was done by bundling the core library with each adapter. This was all good, meant you only downloaded one dependency instead of two(wrapper and the core), but it has issues:
+
+- Astro allows multiple frameworks, and if each framework is using a draggable, then you will end up with 2 copies of core code, it won't be deduped.
+- V3 allows you to work with the core for more control.
+
+Hence, Each neodrag library will have a dependency on `@neodrag/core`. Rest assured, there wil never be an external dependency in any of the packages. Ever!
+
 ### Removed `legacyTranslate` and `gpuAcceleration`
 
 legacyTranslate was there to use the `transform: translate(x, y)` property to move the element. This was a very simple solution, but it has a big issue: You can't easily rotate or skew or scale your element, since the library itself is hijacking all the ways of doing that. This caused users to use tons of hacks to get around it, and it wasn't pretty.
 
 So I introduced `transform` function which gives you the offsets, the `rootNode` and you can apply the transform yourself. This is just a hacky solution though I feel.
 
-So I introduced `legacyTranslate` option as false, and set the default to use the [translate](https://developer.mozilla.org/en-US/docs/Web/CSS/translate). This works the sasme as above but does not hijack all the different transforms! And it also does not require the [1px hack](https://arc.net/l/quote/jreliyaz) to trigger GPU acceleration, it is GPU accelerated by default.
+So I introduced `legacyTranslate` option as false, and set the default to use the [translate](https://developer.mozilla.org/en-US/docs/Web/CSS/translate). This works the sasme as above but does not hijack all the different transforms! And it also does not require the [1px hack](https://arc.net/l/quote/jreliyaz) to trigger GPU acceleration, it is GPU accelerated **by default**.
 
-Hence both of these are going. However, the transform function is not, and can be used like this:
+Hence both of these are going away. However, the transform function is not, and can be used like this:
 
 ```svelte
 <script>
@@ -298,3 +315,30 @@ Hence both of these are going. However, the transform function is not, and can b
   use:draggable={[transform(handleDrag)]}
 ></div>
 ```
+
+### handle and cancel are no more
+
+Or to be accurate, have been consolidate into a single `controls` plugin. This plugin is a function that takes in a `allow` and a `block` elements.
+
+```ts
+import { draggable, controls } from '@neodrag/svelte';
+
+const { draggable } = createDraggable({
+  plugins: [
+    controls({
+      allow: '.allow',
+      block: '.block,
+    }),
+  ],
+});
+```
+
+### No more classes
+
+Before, the library would add classes like `neodrag`, `neodrag-dragging`, `neodrag-dragged` to the element. Modifying classes may cause layout recalculation and extra unnecessary work, and may conflict with userland classes-handling logic, hence neodrag v3 will instead set `data-neodrag-state="idle"` and other `data-neodrag-*` attributes.
+
+## What's next?
+
+I will be writing more and more tests, writing framework adapters, overhauling the website(Will be making an entire REPL just for neodrag). The First Beta will launch by the end of January, do try it out and give me feedback! 😄
+
+Peace!
