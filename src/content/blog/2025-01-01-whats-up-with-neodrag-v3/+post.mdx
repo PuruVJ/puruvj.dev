@@ -292,7 +292,7 @@ Until now, each `@neodrag/{svelte,react,vue,solid,vanilla}` package had 0 depend
 
 Hence, Each neodrag library will have a dependency on `@neodrag/core`. Rest assured, there wil never be an external dependency in any of the packages. Ever!
 
-### Removed `legacyTranslate` and `gpuAcceleration`
+### Removed legacyTranslate and gpuAcceleration
 
 legacyTranslate was there to use the `transform: translate(x, y)` property to move the element. This was a very simple solution, but it has a big issue: You can't easily rotate or skew or scale your element, since the library itself is hijacking all the ways of doing that. This caused users to use tons of hacks to get around it, and it wasn't pretty.
 
