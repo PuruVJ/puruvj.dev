@@ -36,6 +36,10 @@
 	"pnpm": {
 		"overrides": {
 			"sharp": "^0.33.4"
-		}
+		},
+		"onlyBuiltDependencies": [
+			"esbuild",
+			"sharp"
+		]
 	}
 }
