@@ -1,0 +1,614 @@
+---
+title: From 50% Test Failures to 99% Reliability in One Weekend
+description: My Playwright drag-and-drop tests failed half the time and couldn't run on CI. Here's how I migrated to Vitest browser mode in 2 days and achieved 99% reliability with 60% faster runs.
+---
+
+_How a Svelte Summit talk inspired me to rethink everything about testing interactive components_
+
+A few months ago, I was sitting in the audience at Svelte Summit when [Dominik gave a fantastic talk](https://www.youtube.com/watch?v=ljmUuhfTR80) about modern testing approaches in Svelte. One phrase stuck with me: "Your tests should look like your actual code." At the time, I nodded along, but I didn't realize how much my own testing setup was violating this principle.
+
+I maintain a drag-and-drop library called [Neodrag](https://neodrag.dev), and my test suite had grown into something... well, let's call it "creative." I had hundreds of Playwright tests that were technically working about 50% of the time, and every time I looked at them, I felt a little piece of my soul die.
+
+## The Ridiculous Architecture I Had Built
+
+Let me show you what my testing setup actually looked like. It wasn't just using Playwright - I had built an entire **SvelteKit application whose sole purpose was to run tests**.
+
+Here's how a single test worked:
+
+```typescript
+// A "simple" test in my world
+test('position plugin with current and default values', async ({ page }) => {
+  await setup(page, 'plugins/position', SCHEMAS.PLUGINS.POSITION, {
+    default: { x: 20, y: 80 },
+    current: { x: 100, y: 180 },
+  });
+
+  const div = page.getByTestId('draggable');
+
+  await div.hover();
+  const { x, y } = await get_mouse_position(page);
+  await page.mouse.down();
+  await page.mouse.move(x + 100, y + 100);
+  await page.mouse.up();
+
+  await expect(div).toHaveCSS('translate', '200px 280px');
+});
+```
+
+That innocent-looking `setup()` function was doing some truly cursed things:
+
+```typescript
+export async function setup<T>(
+  page: Page,
+  path = 'defaults',
+  schema: ZodSchema<T> = z.any(),
+  options: ZodSchema<T>['_output'] | undefined = undefined,
+) {
+  const validated = schema.parse(options);
+  await page.goto(`/${path}?options=${stringify(options)}`);
+  await page.waitForLoadState('domcontentloaded');
+  await shake_mouse(page); // Yes, I had to shake the mouse 🤦‍♂️
+}
+```
+
+Here's what was happening for **every single test**:
+
+1. **Start the SvelteKit dev server**
+2. **Serialize test configuration** into URL parameters using `devalue.stringify()`
+3. **Navigate Playwright to a specific route** like `/plugins/position`
+4. **Server-side route handler** extracts and validates the URL parameters with Zod
+5. **Page renders the component** with the decoded configuration
+6. **Wait for full hydration** and DOM content loading
+7. **"Shake the mouse"** to establish initial position tracking
+8. **Finally run the actual test**
+
+Each test plugin had its own route with its own `+page.server.ts`:
+
+```typescript
+// +page.server.ts - Why did I think this was a good idea?
+export function load({ request }) {
+  const options = extract_options_from_url(request, SCHEMAS.PLUGINS.POSITION);
+  return { options };
+}
+```
+
+And corresponding `+page.svelte` files that were completely divorced from how anyone would actually use my components. But wait, it gets worse. Here's the controls plugin test page - brace yourself:
+
+```svelte
+<!-- +page.svelte for controls tests - prepare to cringe -->
+<script>
+  import Box from '$lib/Box.svelte';
+  import { controls, ControlFrom } from '../../../../../../src/plugins';
+
+  const { data } = $props();
+
+  // URL params told us what TYPE of test to render
+  let plugin_args = $derived.by(() => {
+    if (data.type === 'allow-block') {
+      return {
+        allow: ControlFrom.selector('.handle'),
+        block: ControlFrom.selector('.cancel'),
+        priority: 'allow',
+      };
+    } else if (data.type === 'allow-block-allow') {
+      return {
+        allow: ControlFrom.selector('[data-testid="handle"], [data-testid="handle2"]'),
+        block: ControlFrom.selector('[data-testid="cancel"]'),
+        priority: 'allow',
+      };
+    } else if (data.type === 'block-allow-block') {
+      return {
+        allow: ControlFrom.selector('[data-testid="middle-handle"]'),
+        block: ControlFrom.selector('[data-testid="outer-cancel"], [data-testid="inner-cancel"]'),
+        priority: 'block',
+      };
+    }
+    // ... more conditions
+  });
+</script>
+
+{#if is_mounted}
+  <Box testid="draggable" plugins={[controls(plugin_args)]}>
+    {#if data.type === 'allow-block'}
+      <div class="handle">
+        Handle
+        <br /><br />
+        <div class="cancel">Cancel</div>
+      </div>
+    {:else if data.type === 'allow-block-allow'}
+      <div class="handle">
+        <span class="handle-text"> Handle </span>
+        <div class="cancel">
+          <span class="cancel-text">Cancel</span>
+          <div class="handle2">Handle2</div>
+        </div>
+      </div>
+    {:else if data.type === 'block-allow-block'}
+      <div class="outer-handle">
+        <span class="outer-text">Outer Block</span>
+        <div class="middle-handle">
+          <span class="middle-text">Middle Allow</span>
+          <div class="inner-handle">
+            <span class="inner-text">Inner Block</span>
+          </div>
+        </div>
+      </div>
+    {:else}
+      <div class="handle">Handle</div>
+      <div class="cancel">Cancel</div>
+    {/if}
+  </Box>
+{/if}
+```
+
+I'm not joking. **This is a real file I wrote.** A single Svelte component with conditional rendering for different test scenarios, all controlled by URL parameters. The test would navigate to `/plugins/controls?options={"type":"allow-block-allow"}` and this monstrosity would render the appropriate DOM structure.
+
+Do you feel the absolute ridiculousness? Instead of just creating the exact component I wanted to test, I built a component **generator** that decoded URL parameters to decide what to render!
+
+## The Problems Were... Extensive
+
+This architecture created a perfect storm of issues:
+
+### 1. Extreme Flakiness
+
+The tests were failing roughly 50% of the time. This wasn't entirely my fault - **Playwright is just inherently flaky** for interaction tests. But I had made things infinitely worse by adding layers of complexity on top of an already unreliable foundation.
+
+Let me paint you a picture of my daily development routine:
+
+1. Make a code change
+2. Run tests
+3. Watch half of them fail randomly in headless mode
+4. Switch to headful mode, run again
+5. Still get random failures, rerun 2-3 times
+6. Finally get a green run
+7. Push to CI
+8. Watch CI fail because the tests are even flakier there
+9. Disable tests on CI because they're too unreliable
+10. Repeat tomorrow
+
+Here's what a typical "successful" test run looked like locally:
+
+```bash
+$ npm run test:e2e
+Running 47 tests...
+❌ Test failed: position plugin with threshold
+❌ Test failed: bounds checking with viewport
+❌ Test failed: drag with multiple steps
+✅ 23 passed, ❌ 24 failed
+
+# Rerun the failures...
+$ npm run test:e2e -- --only-failures
+❌ Test failed: position plugin with threshold  # Still failing!
+❌ Test failed: transform with custom function
+✅ 22 passed, ❌ 2 failed
+
+# Third time's the charm?
+$ npm run test:e2e -- --only-failures
+✅ All 2 tests passed! 🎉
+```
+
+And that was on a **good** day. Each full test run took **40+ seconds locally** when it worked.
+
+### 2. Complete CI Incompatibility
+
+The worst part? I couldn't run them on CI at all because they were too unreliable to gate deployments. What's the point of having tests if you can't trust them?
+
+### 3. Architectural Complexity
+
+Every single test had to:
+
+- Spin up the entire SvelteKit server
+- Navigate through HTTP routing
+- Serialize/deserialize test data through URL parameters
+- Validate parameters with Zod schemas
+- Wait for full page hydration
+- Establish mouse tracking with "mouse shaking"
+
+Even with perfect execution, this was **orders of magnitude** more complex than it needed to be.
+
+### 4. Type Safety Lost
+
+All my beautiful TypeScript types got lost at the URL serialization boundary. Test data went from `{ default: { x: 20, y: 80 } }` to `"{"default":{"x":20,"y":80}}"` and back again.
+
+### 5. No Development Workflow Integration
+
+- **No HMR**: Couldn't benefit from hot module reloading during test development
+- **Complex debugging**: Had to debug through full browser context instead of component level
+- **Slow iteration**: Every test change required full app restart
+
+## The Moment of Clarity
+
+After that Svelte Summit talk, I kept thinking: "Why am I testing my components through a web server when I could just... test the components directly?"
+
+The problems were obvious once I listed them all out. What I wanted was simple:
+
+- ✅ Import the component directly in my test
+- ✅ Pass props like a normal human being
+- ✅ Test the actual behavior, not HTTP routing
+- ✅ Run reliably every time
+- ✅ Work on CI
+
+And then it hit me: **I WAS basically running unit tests inside e2e tests (Playwright) when I could have been running e2e tests inside unit tests (Vitest).**
+
+## Enter Vitest Browser Mode: The Game Changer
+
+Now, I'd considered component testing before, but there was only JSDom and happy-dom available, which weren't enough. Testing in Chrome, Firefox, and Safari is a must for me - a real browser was the bare minimum for drag-and-drop interactions.
+
+But then I'd been hearing about Vitest's browser mode, and it seemed like the perfect fit. Real browsers, but in a component testing framework? This was exactly what I needed. I decided to give it a weekend and see what happened.
+
+**Two days later**, I had completely rewritten my entire test suite.
+
+The new architecture is embarrassingly simple:
+
+```typescript
+// New approach - so much cleaner!
+import { render } from 'vitest-browser-svelte';
+import { position } from '../src/plugins';
+import Box from './components/Box.svelte';
+
+describe('position plugin', () => {
+  let draggable: Locator;
+
+  beforeEach(() => {
+    const comp = render(Box, {
+      plugins: [
+        position({
+          default: { x: 20, y: 80 },
+          current: { x: 100, y: 180 },
+        }),
+      ],
+    });
+    draggable = comp.getByTestId('draggable');
+  });
+
+  it('should position element correctly', async () => {
+    await dragAndDrop(draggable, { deltaX: 100, deltaY: 100 });
+    await expect.element(draggable).toHaveStyle(translate(200, 280));
+  });
+});
+```
+
+That's it. **THAT'S THE ENTIRE TEST.**
+
+No URL parameters, no server routes, no Zod schemas validating query strings, no hydration waiting. Just components with props, like nature intended.
+
+Compare that monstrosity from before to the new controls tests:
+
+```typescript
+// New way - just render what you want to test!
+describe('controls allow-block-allow', () => {
+  beforeEach(() => {
+    const comp = render(Controls, {
+      plugins: [
+        controls({
+          allow: ControlFrom.selector(
+            '[data-testid="handle"], [data-testid="handle2"]',
+          ),
+          block: ControlFrom.selector('[data-testid="cancel"]'),
+          priority: 'allow',
+        }),
+      ],
+      priority_type: 'allow-block-allow',
+    });
+    draggable = comp.getByTestId('draggable');
+  });
+
+  it('should work as expected', async () => {
+    // Actually test the behavior instead of URL routing
+  });
+});
+```
+
+**THAT'S IT.** No URL navigation, no parameter parsing, no conditional rendering madness. Just pass the props you want and test the behavior. Like a normal human being.
+
+## The Results Were Immediate and Dramatic
+
+The difference was night and day:
+
+- **Test execution time**: Down from 40+ seconds to **15 seconds locally**
+- **Test reliability**: From ~50% failure rate to **1/10th the indeterminacy**
+- **CI compatibility**: Tests now **run reliably on CI** and can gate deployments
+- **Development speed**: **HMR integration** means faster iteration cycles
+- **Error testing**: Clean `console.error` mocking instead of complex interception logic
+
+## The dragAndDrop Revolution
+
+But the real game-changer wasn't just the architecture simplification - it was rebuilding the drag interaction API. My old Playwright tests were doing this primitive dance for every single interaction:
+
+```typescript
+// Old way - so much ceremony for a simple drag
+await div.hover();
+const { x, y } = await get_mouse_position(page);
+await page.mouse.down();
+await page.mouse.move(x + 100, y + 100);
+await page.mouse.up();
+```
+
+Every. Single. Test. Had to hover, get coordinates, mouse down, move, mouse up. It was repetitive, error-prone, and honestly pretty ugly.
+
+The new approach? One beautiful function call:
+
+```typescript
+// New way - chef's kiss 👌
+await dragAndDrop(draggable, { deltaX: 100, deltaY: 100 });
+```
+
+## The Magic of Custom Pointer Events
+
+Here's where things get really interesting. I discovered that modern browsers have incredibly sophisticated pointer event APIs, and by leveraging them properly, I could create much more realistic and reliable test interactions.
+
+The old approach used basic mouse events:
+
+```typescript
+// Old - basic and limited
+const event = new MouseEvent('mousedown', {
+  bubbles: true,
+  cancelable: true,
+  clientX: x,
+  clientY: y,
+  button: 0,
+});
+```
+
+The new approach uses enhanced pointer events with all the bells and whistles:
+
+```typescript
+// New - comprehensive and realistic
+const baseEventProps = {
+  bubbles: true,
+  cancelable: true,
+  pointerId: validPointerId,
+  width: 1,
+  height: 1,
+  pressure: 0.5, // Realistic pressure simulation
+  tangentialPressure: 0,
+  tiltX: 0,
+  tiltY: 0,
+  twist: 0,
+  pointerType: 'mouse' as const,
+  isPrimary: true,
+  view: window,
+};
+
+const event = new PointerEvent('pointerdown', {
+  ...baseEventProps,
+  clientX: x,
+  clientY: y,
+  screenX: x,
+  screenY: y,
+  button: 0,
+  buttons: 1,
+});
+```
+
+But the real magic happens in the smooth movement simulation:
+
+```typescript
+// Smooth movement with multiple steps
+for (let i = 1; i <= actualSteps; i++) {
+  const progress = i / actualSteps;
+  const currentX = startCoords.x + delta.deltaX * progress;
+  const currentY = startCoords.y + delta.deltaY * progress;
+
+  dispatchPointerEvent('pointermove', currentX, currentY, baseEventProps);
+  await new Promise((resolve) => setTimeout(resolve, stepDelay));
+}
+```
+
+This creates incredibly realistic drag interactions that behave exactly like real user input. The level of control is amazing - I can simulate everything from quick snappy drags to slow deliberate movements.
+
+## Cross-Browser Compatibility Magic
+
+One of the unexpected benefits was how much easier it became to handle browser quirks. Firefox, for example, has some interesting ideas about pointer capture that can break tests:
+
+```typescript
+// Handle Firefox's pointer capture quirks
+const isFirefox = navigator.userAgent.toLowerCase().includes('firefox');
+
+if (isFirefox) {
+  HTMLElement.prototype.setPointerCapture = function () {
+    // Temporarily disable to prevent errors
+  };
+  HTMLElement.prototype.releasePointerCapture = function () {
+    // Do nothing
+  };
+}
+```
+
+And Safari has its own special needs for user selection:
+
+```typescript
+// Safari user-select handling
+const is_safari = navigator.userAgent.toLowerCase().includes('safari');
+const userSelectProperty = is_safari
+  ? '-webkit-user-select: none'
+  : 'user-select: none';
+```
+
+The beauty is that all this complexity is hidden behind the simple `dragAndDrop()` API. Tests stay clean while the implementation handles all the browser-specific edge cases.
+
+## Better Error Testing
+
+One seemingly small improvement had a huge impact on test reliability. My old error testing approach was a nightmare:
+
+```typescript
+// Old way - complex console.error interception
+const console_error_promise = page.waitForEvent('console');
+await setup(page, 'plugins/bounds', SCHEMAS.PLUGINS.BOUNDS, {
+  type: 'element',
+  is_smaller_than_element: true,
+});
+const console_error = await console_error_promise;
+expect((await console_error.args()[0].jsonValue()).error.toString()).toContain(
+  'Bounds dimensions cannot be smaller',
+);
+```
+
+The new approach is beautifully simple:
+
+```typescript
+// New way - clean mocking with Vitest
+const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+render(Bounds, {
+  plugins: [bounds({ type: 'element', is_smaller_than_element: true })],
+});
+
+expect(spy).toHaveBeenCalledWith(
+  expect.objectContaining({
+    error: expect.stringContaining('Bounds dimensions cannot be smaller'),
+  }),
+);
+```
+
+Clean, readable, and **actually reliable**.
+
+## Bulletproof Custom Implementation
+
+The `dragAndDrop` function is my custom implementation built entirely on enhanced pointer events. No Vitest commands, no multiple fallback strategies - just pure, sophisticated pointer event simulation:
+
+```typescript
+export async function dragAndDrop(element, delta, options = {}) {
+  const { steps = 1, delay = 0, longpress = 0 } = options;
+
+  // Get element coordinates
+  const domElement = 'element' in element ? element.element() : element;
+  const rect = domElement.getBoundingClientRect();
+  const startCoords = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
+
+  // Enhanced pointer events with realistic properties
+  const baseEventProps = {
+    bubbles: true,
+    cancelable: true,
+    pointerId: validPointerId,
+    pressure: 0.5,
+    pointerType: 'mouse' as const,
+    isPrimary: true,
+    view: window,
+  };
+
+  // Smooth movement simulation
+  for (let i = 1; i <= steps; i++) {
+    const progress = i / steps;
+    const currentX = startCoords.x + delta.deltaX * progress;
+    const currentY = startCoords.y + delta.deltaY * progress;
+
+    dispatchPointerEvent('pointermove', currentX, currentY, baseEventProps);
+    await new Promise((resolve) => setTimeout(resolve, stepDelay));
+  }
+}
+```
+
+This custom implementation gives me complete control over the interaction simulation and works consistently across all browsers.
+
+## The API That Sparked Joy
+
+The final API is something I'm genuinely proud of. Compare these two approaches for testing a complex drag scenario:
+
+```typescript
+// Old way - lots of boilerplate and flakiness
+test('complex drag with threshold and delay', async ({ page }) => {
+  await setup(page, 'plugins/threshold', SCHEMAS.PLUGINS.THRESHOLD, {
+    delay: 400,
+    distance: 10,
+  });
+
+  const div = page.getByTestId('draggable');
+  await div.hover();
+  const { x, y } = await get_mouse_position(page);
+
+  await page.mouse.down();
+  await page.waitForTimeout(400); // Wait for threshold delay
+  await page.mouse.move(x + 1, y + 0);
+  await page.mouse.up();
+
+  await expect(div).not.toHaveCSS('translate', '1px');
+
+  // Now test that it works after the delay
+  await page.mouse.down();
+  await page.waitForTimeout(400);
+  await page.mouse.move(x + 15, y + 0);
+  await page.mouse.up();
+
+  await expect(div).toHaveCSS('translate', '15px');
+});
+```
+
+```typescript
+// New way - crystal clear intent, no flakiness
+describe('threshold with delay', () => {
+  beforeEach(() => {
+    const comp = render(Box, {
+      plugins: [threshold({ delay: 400, distance: 10 })],
+    });
+    draggable = comp.getByTestId('draggable');
+  });
+
+  it('should not drag immediately', async () => {
+    await dragAndDrop(draggable, { deltaX: 1, deltaY: 0 });
+    await expect.element(draggable).not.toHaveStyle(translate(1, 0));
+  });
+
+  it('should drag after delay threshold', async () => {
+    await dragAndDrop(
+      draggable,
+      { deltaX: 15, deltaY: 0 },
+      {
+        longpress: 400, // Built-in delay support!
+      },
+    );
+    await expect.element(draggable).toHaveStyle(translate(15, 0));
+  });
+});
+```
+
+The new version is not just shorter and more reliable - it's more expressive. The test clearly communicates what it's testing, and the `longpress` option makes the timing requirements explicit.
+
+## Advanced Features for Complex Scenarios
+
+The new system also supports sophisticated testing scenarios that were painful with the old approach:
+
+```typescript
+// Long press drag simulation
+await dragAndDrop(
+  draggable,
+  { deltaX: 100, deltaY: 100 },
+  {
+    longpress: 500, // Wait 500ms before starting drag
+    steps: 10, // Smooth movement with 10 interpolated steps
+    delay: 50, // Pause between each step
+  },
+);
+
+// Mouse wheel interactions
+await mouseWheel({ x: 100, y: 200, deltaX: 0, deltaY: -100 });
+
+// Precise cursor position tracking
+const position = await getCursorPosition();
+const isHovered = await isCursorOverElement(button);
+const relativePos = await getCursorPositionRelativeToElement(element);
+```
+
+## Lessons Learned
+
+1. **Playwright is just flaky for interaction tests**: The 50% failure rate wasn't my fault - it's a known issue with browser automation
+2. **But I still made things worse**: My overcomplicated architecture added unnecessary layers of failure points
+3. **Colocation matters**: Tests should live close to the code they're testing, both physically and conceptually
+4. **Abstractions should reduce complexity, not hide it**: The dragAndDrop API is simple to use but powerful under the hood
+5. **Reliability enables CI**: Once tests become deterministic, you can actually trust them in your deployment pipeline
+6. **Don't cargo cult your testing approach**: Just because Playwright is great for e2e testing doesn't mean it's the right tool for component interaction testing
+
+## What's Next?
+
+I'm now working on open-sourcing the mouse interaction utilities as a separate package. The patterns I've developed feel universally useful for anyone testing interactive components in Vitest browser mode.
+
+The journey from that Svelte Summit talk to this new testing paradise has been incredibly rewarding. Sometimes the best improvements come from stepping back and asking: "What if I just... did this the simple way?"
+
+If you're struggling with flaky e2e tests for component interactions, I highly recommend giving Vitest browser mode a try. Your future self (and your CI pipeline) will thank you.
+
+---
+
+_Have you had similar experiences with flaky test suites? I'd love to hear about your journey in the comments below!_
