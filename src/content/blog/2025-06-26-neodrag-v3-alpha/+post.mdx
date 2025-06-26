@@ -3,6 +3,8 @@ title: 'Neodrag v3 Alpha: A Complete Rewrite'
 description: Neodrag V3 Alpha is out! Here's a complete description of the new architecture,performance improvements, and how to use it with your favorite frameworks.
 ---
 
+Documentation is available on the [Neodrag website](https://next.neodrag.dev).
+
 After months of rebuilding from scratch, I'm releasing the **Neodrag v3 Alpha**. This isn't just an update - it's a complete rethink that makes drag-and-drop faster, more reliable, and infinitely extensible.
 
 ## What's New and Exciting
@@ -21,6 +23,94 @@ Only ship the plugins you actually use. Basic dragging is tiny, complex behavior
 
 **⚡ No More Event Listener Limits**  
 v2 would hit browser event listener limits in complex apps. v3 scales infinitely through delegation.
+
+## See v3 in Action
+
+Here are 5 examples that showcase what makes v3 special:
+
+**1. Simple dragging**
+
+```javascript
+// Just make it draggable
+draggable(element, []);
+```
+
+**2. Composed behavior**
+
+```javascript
+// Horizontal movement with grid snapping
+draggable(element, [axis('x'), grid([20, 20]), bounds(BoundsFrom.parent())]);
+```
+
+**3. Reactive updates (Svelte)**
+
+```svelte
+<script>
+  import { draggable, axis, grid, Compartment } from '@neodrag/svelte';
+
+  let isConstrained = $state(true);
+  let gridSize = $state(20);
+
+  const axisComp = Compartment.of(() =>
+    isConstrained ? axis('x') : null
+  );
+
+  const gridComp = Compartment.of(() =>
+    gridSize > 0 ? grid([gridSize, gridSize]) : null
+  );
+</script>
+
+<div {@attach draggable(() => [axisComp, gridComp])}>
+  Reactive dragging
+</div>
+
+<button onclick={() => isConstrained = !isConstrained}>
+  Toggle constraint
+</button>
+```
+
+**4. Custom plugin (magnetic snapping)**
+
+```javascript
+const magnetic = unstable_definePlugin((points) => ({
+  name: 'magnetic',
+  drag(ctx) {
+    const snap = points.find(
+      (p) =>
+        Math.abs(ctx.offset.x - p.x) < 30 && Math.abs(ctx.offset.y - p.y) < 30,
+    );
+    if (snap) {
+      ctx.offset.x = snap.x;
+      ctx.offset.y = snap.y;
+    }
+  },
+}));
+
+draggable(element, [
+  magnetic([
+    { x: 100, y: 100 },
+    { x: 300, y: 200 },
+  ]),
+]);
+```
+
+**5. Error-proof dragging**
+
+```javascript
+const buggyPlugin = unstable_definePlugin(() => ({
+  name: 'buggy',
+  drag() {
+    throw new Error('Plugin crashed!');
+  },
+}));
+
+// Drag still works even when plugin fails
+draggable(element, [
+  buggyPlugin(), // Fails silently
+  axis('x'), // Keeps working
+  grid([10, 10]), // Keeps working
+]);
+```
 
 ## The Power of Plugins
 
