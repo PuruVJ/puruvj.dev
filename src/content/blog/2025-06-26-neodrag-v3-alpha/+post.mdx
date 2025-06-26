@@ -1,0 +1,475 @@
+---
+title: 'Neodrag v3 Alpha: A Complete Rewrite'
+description: Neodrag V3 Alpha is out! Here's a complete description of the new architecture,performance improvements, and how to use it with your favorite frameworks.
+---
+
+After months of rebuilding from scratch, I'm releasing the **Neodrag v3 Alpha**. This isn't an incremental update - it's a fundamental rethink of how drag libraries should work.
+
+## Why Rewrite v2?
+
+Neodrag v2 has been solid, but I kept running into the same architectural limitations:
+
+- **Monolithic bundle** – you paid for features you never used
+- **Performance issues** – 3 event listeners per draggable + automatic reactivity overhead
+- **Limited extensibility** – adding custom behavior required hacks
+- **Fragile error handling** – one plugin error could break everything
+
+I decided to solve these problems properly rather than patch around them.
+
+## What's Different in v3
+
+The core is now built like a mini-framework with event delegation, state management, cancellable effects, scheduling, and robust error recovery. Everything is plugin-based now.
+
+The improvements:
+
+- **Plugin architecture** – Mix and match only what you need
+- **Event delegation** – 3 total listeners instead of 3 per draggable
+- **Tree-shakable** – Import only the plugins you use
+- **Bulletproof error handling** – Plugin failures never break your drag interactions
+- **Manual reactivity** – Performance-focused, no automatic overhead
+- **Extensible** – Write custom plugins for any behavior
+
+Yes, the bundle is slightly larger at 3.5KB (vs 2.2KB in v2), but you're getting a complete framework under the hood with much better reliability.
+
+## Performance Improvements
+
+The event delegation change has real impact:
+
+```javascript
+// v2: Each draggable gets its own listeners
+for (let i = 0; i < 100; i++) {
+  const element = document.createElement('div');
+  draggable(element, { axis: 'x' });
+  // Total: 300 event listeners (100 × 3)
+}
+
+// v3: Shared event delegation
+for (let i = 0; i < 100; i++) {
+  const element = document.createElement('div');
+  draggable(element, [axis('x')]);
+  // Total: 3 event listeners regardless of count
+}
+```
+
+Memory usage scales much better, and you don't hit browser limits on event listeners in complex applications.
+
+## Framework Support
+
+All the same frameworks are supported:
+
+**Svelte:**
+
+```svelte
+<script>
+  import { draggable, axis, grid, bounds, BoundsFrom, events } from '@neodrag/svelte';
+
+  let dragData = { x: 0, y: 0 };
+</script>
+
+<!-- Basic dragging -->
+<div {@attach draggable([axis('x'), grid([20, 20])])}>
+  Drag me horizontally
+</div>
+
+<!-- With events -->
+<div {@attach draggable([
+  bounds(BoundsFrom.viewport()),
+  events({
+    drag: (e) => dragData = e.offset
+  })
+])}>
+  Position: {dragData.x}, {dragData.y}
+</div>
+```
+
+**React:**
+
+```tsx
+import {
+  useDraggable,
+  axis,
+  grid,
+  bounds,
+  BoundsFrom,
+  events,
+} from '@neodrag/react';
+
+function DragBoard() {
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const cardRef = useRef(null);
+
+  // Basic usage
+  useDraggable(cardRef, [axis('x'), grid([10, 10])]);
+
+  // With state updates
+  const trackingRef = useRef(null);
+  useDraggable(trackingRef, [
+    bounds(BoundsFrom.parent()),
+    events({
+      drag: (e) => setPosition(e.offset),
+    }),
+  ]);
+
+  return (
+    <div className="drag-container">
+      <div ref={cardRef}>Snap to grid</div>
+      <div ref={trackingRef}>
+        Tracking position: {position.x}, {position.y}
+      </div>
+    </div>
+  );
+}
+```
+
+**Vue:**
+
+```vue
+<script setup>
+import {
+  vDraggable,
+  axis,
+  bounds,
+  BoundsFrom,
+  useCompartment,
+} from '@neodrag/vue';
+import { ref, computed } from 'vue';
+
+const mode = ref('constrained');
+const element = ref();
+
+const dynamicPlugins = computed(() => [
+  mode.value === 'constrained' ? bounds(BoundsFrom.parent()) : axis('both'),
+  grid([20, 20]),
+]);
+
+function toggleMode() {
+  mode.value = mode.value === 'constrained' ? 'free' : 'constrained';
+}
+</script>
+
+<template>
+  <!-- Directive style -->
+  <div v-draggable="[axis('y'), grid([15, 15])]">Vertical only</div>
+
+  <!-- With reactive bounds -->
+  <div v-draggable="dynamicPlugins" ref="element">
+    Dynamic behavior: {{ mode }}
+  </div>
+
+  <button @click="toggleMode">Toggle Mode</button>
+</template>
+```
+
+**Vanilla/CDN:**
+
+```html
+<div id="drag1">Basic dragging</div>
+<div id="drag2">Grid snapping</div>
+<div id="drag3">Constrained</div>
+
+<script src="https://unpkg.com/@neodrag/vanilla@next/dist/umd/index.js"></script>
+<script>
+  // Basic
+  new NeoDrag.Draggable(document.getElementById('drag1'), [
+    NeoDrag.axis('both'),
+  ]);
+
+  // Grid snapping
+  new NeoDrag.Draggable(document.getElementById('drag2'), [
+    NeoDrag.grid([25, 25]),
+    NeoDrag.axis('x'),
+  ]);
+
+  // Constrained with events
+  const constrainedDrag = new NeoDrag.Draggable(
+    document.getElementById('drag3'),
+    [
+      NeoDrag.bounds(NeoDrag.BoundsFrom.parent()),
+      NeoDrag.events({
+        start: () => console.log('Started dragging'),
+        end: (e) => console.log('Ended at', e.offset.x, e.offset.y),
+      }),
+    ],
+  );
+</script>
+```
+
+## Plugin System
+
+Everything is a plugin now. Built-in plugins include:
+
+- `axis()` – Constrain movement
+- `bounds()` – Keep within boundaries
+- `grid()` – Snap to grid
+- `events()` – Handle drag events
+- `controls()` – Drag handles and cancel elements
+- `disabled()` – Disable dragging
+- `threshold()` – Distance/time thresholds
+- `transform()` – Custom positioning
+
+**Plugin combinations:**
+
+```javascript
+// Horizontal-only grid snapping within parent bounds
+draggable(element, [axis('x'), grid([20, 0]), bounds(BoundsFrom.parent())]);
+
+// Custom drag handle with threshold
+draggable(element, [
+  controls(ControlFrom.selector('.drag-handle')),
+  threshold({ distance: 10, delay: 100 }),
+  events({
+    start: (e) => element.classList.add('dragging'),
+    end: (e) => element.classList.remove('dragging'),
+  }),
+]);
+
+// Constrain to viewport with custom transform
+draggable(element, [
+  bounds(BoundsFrom.viewport({ margin: 20 })),
+  transform({ mode: 'translate' }),
+]);
+```
+
+**Custom plugins:**
+
+```javascript
+import { unstable_definePlugin } from '@neodrag/core';
+
+// Simple logging plugin
+const logger = unstable_definePlugin(() => ({
+  name: 'logger',
+
+  start: () => console.log('Drag started'),
+  drag: (ctx) => console.log(`At ${ctx.offset.x}, ${ctx.offset.y}`),
+  end: () => console.log('Drag ended'),
+}));
+
+// Magnetic snapping plugin
+const magnetic = unstable_definePlugin((snapPoints, threshold = 50) => ({
+  name: 'magnetic',
+
+  drag(ctx, state, event) {
+    const nearest = snapPoints.find(
+      (point) =>
+        Math.abs(ctx.offset.x - point.x) < threshold &&
+        Math.abs(ctx.offset.y - point.y) < threshold,
+    );
+
+    if (nearest) {
+      ctx.offset.x = nearest.x;
+      ctx.offset.y = nearest.y;
+    }
+  },
+}));
+
+// Usage
+draggable(element, [
+  magnetic([
+    { x: 100, y: 100 },
+    { x: 200, y: 200 },
+    { x: 300, y: 100 },
+  ]),
+  logger(),
+]);
+```
+
+## Reactivity Changes
+
+v2 had automatic reactivity which was convenient but added overhead. v3 uses manual reactivity through compartments:
+
+```javascript
+// Basic compartment usage
+const axisCompartment = new Compartment(() =>
+  userPreference === 'horizontal' ? axis('x') : axis('y'),
+);
+
+// Update when you want
+userPreference = 'vertical';
+axisCompartment.current = axis('y');
+```
+
+**More complex reactive scenarios:**
+
+```javascript
+// Dynamic bounds based on screen size
+const boundsComp = new Compartment(() =>
+  window.innerWidth > 768
+    ? bounds(BoundsFrom.viewport())
+    : bounds(BoundsFrom.parent()),
+);
+
+// Conditional plugins
+const gridComp = new Compartment(() => (snapToGrid ? grid([20, 20]) : null));
+
+// React to user settings
+const settingsComp = new Compartment(() =>
+  [
+    settings.constrainAxis ? axis(settings.preferredAxis) : null,
+    settings.enableGrid ? grid(settings.gridSize) : null,
+    settings.enableBounds ? bounds(BoundsFrom.parent()) : null,
+  ].filter(Boolean),
+);
+
+draggable(element, () => [boundsComp, gridComp, settingsComp]);
+
+// Update multiple compartments
+function updateSettings(newSettings) {
+  snapToGrid = newSettings.grid;
+  gridComp.current = newSettings.grid ? grid([20, 20]) : null;
+
+  settings = newSettings;
+  settingsComp.current = [
+    newSettings.constrainAxis ? axis(newSettings.preferredAxis) : null,
+    // ... etc
+  ].filter(Boolean);
+}
+```
+
+This gives you precise control over when updates happen, eliminating unnecessary work.
+
+## Error Handling
+
+One of the biggest improvements is error isolation. If a plugin throws an error, it won't break the drag interaction or crash your page. The drag continues normally, and other plugins keep working.
+
+```javascript
+// A buggy plugin that throws errors
+const buggyPlugin = unstable_definePlugin(() => ({
+  name: 'buggy',
+
+  drag(ctx, state, event) {
+    // This will throw an error
+    throw new Error('Something went wrong!');
+  },
+}));
+
+// Other plugins continue working normally
+draggable(element, [
+  buggyPlugin(),
+  axis('x'), // Still works
+  grid([20, 20]), // Still works
+  events({
+    // Still works
+    drag: (e) => console.log('Dragging normally'),
+  }),
+]);
+
+// Global error handling
+const factory = new DraggableFactory({
+  onError: (error) => {
+    console.warn(`Plugin "${error.plugin?.name}" failed:`, error.error);
+    // Log to your error service, but don't break the UI
+  },
+});
+```
+
+## Migration from v2
+
+The migration is straightforward - you're mainly swapping an options object for a plugin array:
+
+```javascript
+// v2: Basic dragging
+draggable(element, {
+  axis: 'x',
+  grid: [20, 20],
+  bounds: 'parent',
+});
+
+// v3: Plugin array
+draggable(element, [axis('x'), grid([20, 20]), bounds(BoundsFrom.parent())]);
+```
+
+**More complex migrations:**
+
+```javascript
+// v2: Kitchen sink configuration
+draggable(element, {
+  axis: 'both',
+  bounds: { top: 0, left: 0, right: 500, bottom: 300 },
+  grid: [10, 10],
+  handle: '.drag-handle',
+  cancel: '.no-drag',
+  disabled: false,
+  onDrag: (data) => console.log(data),
+  onDragStart: (data) => console.log('start'),
+  onDragEnd: (data) => console.log('end'),
+  transform: ({ offsetX, offsetY, rootNode }) => {
+    return `translate(${offsetX}px, ${offsetY}px) scale(1.1)`;
+  },
+});
+
+// v3: Equivalent plugins
+draggable(element, [
+  bounds({ top: 0, left: 0, right: 500, bottom: 300 }),
+  grid([10, 10]),
+  controls({
+    handle: ControlFrom.selector('.drag-handle'),
+    cancel: ControlFrom.selector('.no-drag'),
+  }),
+  events({
+    drag: (data) => console.log(data),
+    start: (data) => console.log('start'),
+    end: (data) => console.log('end'),
+  }),
+  transform({
+    mode: 'custom',
+    fn: ({ offset }) => `translate(${offset.x}px, ${offset.y}px) scale(1.1)`,
+  }),
+]);
+```
+
+**Reactive migrations:**
+
+```javascript
+// v2: Automatic reactivity
+let currentAxis = 'x';
+const instance = draggable(element, {
+  get axis() {
+    return currentAxis;
+  }, // Automatically reactive
+  bounds: 'parent',
+});
+
+// Later: Just change the value
+currentAxis = 'y'; // Automatically updates
+
+// v3: Manual reactivity
+let currentAxis = 'x';
+const axisComp = new Compartment(() => axis(currentAxis));
+
+const instance = draggable(element, [axisComp, bounds(BoundsFrom.parent())]);
+
+// Later: Manual update
+currentAxis = 'y';
+axisComp.current = axis(currentAxis);
+```
+
+Reactivity needs more changes since it's now manual, but most migrations take under an hour.
+
+## What's Next
+
+This is an alpha release. The core architecture is solid, but I'm looking for feedback on:
+
+- Plugin API ergonomics
+- Framework integration patterns
+- Real-world performance
+- Migration experience
+- Documentation gaps
+
+## Try It Out
+
+```bash
+# Pick your framework
+npm install @neodrag/svelte@next
+npm install @neodrag/react@next
+npm install @neodrag/vue@next
+npm install @neodrag/solid@next
+npm install @neodrag/vanilla@next
+```
+
+File issues on GitHub, join discussions, or reach out on Twitter [@puruvjdev](https://twitter.com/puruvjdev) if you run into problems or have ideas.
+
+The plugin architecture opens up a lot of possibilities. I'm curious to see what people build with it.
+
+---
+
+_This has been a long project, but I think the architecture is much better now. Let me know what you think._
