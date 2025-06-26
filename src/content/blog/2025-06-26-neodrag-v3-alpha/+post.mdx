@@ -3,25 +3,139 @@ title: 'Neodrag v3 Alpha: A Complete Rewrite'
 description: Neodrag V3 Alpha is out! Here's a complete description of the new architecture,performance improvements, and how to use it with your favorite frameworks.
 ---
 
-After months of rebuilding from scratch, I'm releasing the **Neodrag v3 Alpha**. This isn't an incremental update - it's a fundamental rethink of how drag-and-drop libraries should work.
+After months of rebuilding from scratch, I'm releasing the **Neodrag v3 Alpha**. This isn't just an update - it's a complete rethink that makes drag-and-drop faster, more reliable, and infinitely extensible.
 
-## The New API
+## What's New and Exciting
 
-v3 moves from an options object to a plugin-based approach:
+**🚀 Blazing Performance**  
+Event delegation means 3 total event listeners instead of 3 per draggable. Create 100 draggable elements? Still just 3 listeners. Your memory usage stays flat as you scale.
 
-{/* prettier-ignore */}
+**🧩 Plugin Everything**  
+Want magnetic snapping? Write a 10-line plugin. Need momentum scrolling? Another plugin. Custom physics? Easy. The plugin system makes any drag behavior possible.
+
+**🛡️ Bulletproof Reliability**  
+Plugin errors don't crash your drag or break your page. Error isolation means one bad plugin won't affect anything else.
+
+**📦 Tree-Shakable by Design**  
+Only ship the plugins you actually use. Basic dragging is tiny, complex behaviors add exactly what they cost.
+
+**⚡ No More Event Listener Limits**  
+v2 would hit browser event listener limits in complex apps. v3 scales infinitely through delegation.
+
+## The Power of Plugins
+
+Instead of one monolithic library, you compose exactly what you need:
+
 ```javascript
+// Simple horizontal movement
+draggable(element, [axis('x')]);
 
+// Grid snapping with boundaries
+draggable(element, [grid([20, 20]), bounds(BoundsFrom.parent())]);
+
+// Complex behavior composition
 draggable(element, [
-  axis('x'),
-  grid([20, 20]),
-  bounds(BoundsFrom.parent())
+  axis('both'),
+  grid([10, 10]),
+  bounds(BoundsFrom.viewport()),
+  threshold({ distance: 5 }),
+  events({
+    start: () => addClass('dragging'),
+    end: () => removeClass('dragging'),
+  }),
 ]);
 ```
 
-Everything is a plugin now - axis constraints, grid snapping, boundaries, event handling, custom behaviors. You mix and match only what you need.
+## Write Your Own Plugins
 
-**Framework examples:**
+The real magic is how easy custom plugins are:
+
+```javascript
+// Magnetic snapping in 15 lines
+const magnetic = unstable_definePlugin((snapPoints, threshold = 50) => ({
+  name: 'magnetic',
+
+  drag(ctx) {
+    const nearest = snapPoints.find(
+      (point) =>
+        Math.abs(ctx.offset.x - point.x) < threshold &&
+        Math.abs(ctx.offset.y - point.y) < threshold,
+    );
+
+    if (nearest) {
+      ctx.offset.x = nearest.x;
+      ctx.offset.y = nearest.y;
+    }
+  },
+}));
+
+// Use it immediately
+draggable(element, [
+  magnetic([
+    { x: 100, y: 100 },
+    { x: 200, y: 200 },
+  ]),
+  axis('both'),
+]);
+```
+
+```javascript
+// Live position tracking
+const tracker = unstable_definePlugin((callback) => ({
+  name: 'tracker',
+  drag: (ctx) => callback(ctx.offset.x, ctx.offset.y),
+}));
+
+// Visual feedback plugin
+const shadow = unstable_definePlugin(() => ({
+  name: 'shadow',
+  drag(ctx) {
+    ctx.scheduleEffect(() => {
+      element.style.boxShadow = `${ctx.offset.x}px ${ctx.offset.y}px 10px rgba(0,0,0,0.3)`;
+    });
+  },
+}));
+```
+
+## Performance That Scales
+
+The event delegation improvement is dramatic:
+
+```javascript
+// v2: Creates 300 event listeners
+for (let i = 0; i < 100; i++) {
+  draggable(elements[i], { axis: 'x' });
+}
+
+// v3: Uses 3 event listeners total
+for (let i = 0; i < 100; i++) {
+  draggable(elements[i], [axis('x')]);
+}
+```
+
+No more memory leaks from event listeners. No more browser limits on complex UIs.
+
+## Dynamic Behavior Made Simple
+
+Reactive updates through compartments:
+
+```javascript
+// Switch behaviors on the fly
+let currentMode = 'constrained';
+const modeComp = new Compartment(() =>
+  currentMode === 'constrained' ? bounds(BoundsFrom.parent()) : axis('both'),
+);
+
+draggable(element, () => [modeComp]);
+
+// Update instantly
+currentMode = 'free';
+modeComp.current = axis('both');
+```
+
+## Framework Support Everywhere
+
+All the frameworks you love:
 
 ```svelte
 <!-- Svelte -->
@@ -34,9 +148,7 @@ Everything is a plugin now - axis constraints, grid snapping, boundaries, event 
 // React
 function Card() {
   const ref = useRef(null);
-
   useDraggable(ref, [bounds(BoundsFrom.viewport())]);
-
   return <div ref={ref}>Constrained card</div>;
 }
 ```
@@ -59,22 +171,124 @@ function Card() {
 }
 ```
 
-```tsx
-// Vanilla JS
-const element = document.querySelector('.draggable');
+```html
+<!-- Vanilla/CDN -->
+<script src="https://unpkg.com/@neodrag/vanilla@next/dist/umd/index.js"></script>
+<script>
+  new NeoDrag.Draggable(element, [
+    NeoDrag.axis('x'),
+    NeoDrag.bounds(NeoDrag.BoundsFrom.parent()),
+  ]);
+</script>
+```
 
-new Draggable(element, [
+## The New API
+
+v3 moves from an options object to a plugin-based approach:
+
+```javascript
+// v2: Single options object
+draggable(element, {
+  axis: 'x',
+  bounds: 'parent',
+  grid: [10, 10],
+  handle: '.drag-handle',
+  onDrag: (data) => updatePosition(data),
+});
+
+// v3: Composable plugins
+draggable(element, [
   axis('x'),
-  grid([20, 20]),
   bounds(BoundsFrom.parent()),
+  grid([10, 10]),
+  controls({ handle: ControlFrom.selector('.drag-handle') }),
+  events({ drag: (data) => updatePosition(data) }),
 ]);
 ```
 
-## Comparing to v2
+## Key Differences from v2
 
-Here's how the same functionality looks in both versions:
+**Reactivity:**
+v2 had automatic reactivity with performance overhead. v3 uses manual reactivity for precise control:
 
-**Basic dragging:**
+```javascript
+// v2: Automatic (but costly)
+const [currentAxis, setCurrentAxis] = useState('x');
+draggable(element, {
+  axis: currentAxis,
+});
+```
+
+```tsx
+// v3: Manual (performant)
+const [currentAxis, setCurrentAxis] = useState('x');
+
+const axisComp = useCompartment(() => axis(currentAxis), [currentAxis]);
+draggable(element, () => [axisComp]);
+
+setCurrentAxis('y');
+```
+
+**Bundle impact:**
+
+- v2: 2.2KB for everything, whether you use it or not
+- v3: 3.5KB core + only the plugins you import (tree-shakable)
+
+## The Architecture Behind It
+
+This performance and flexibility comes from a mini-framework architecture:
+
+**Core as peer dependency:** `@neodrag/core` is a peer dependency across all framework packages. This enables better deduplication and consistent behavior in meta-frameworks like Astro.
+
+**Event delegation:** 3 global listeners handle all draggables through delegation, not 3 per element.
+
+**State isolation:** Each draggable maintains its own state, plugins store their own data:
+
+```javascript
+const counterPlugin = unstable_definePlugin(() => ({
+  name: 'counter',
+  setup: () => ({ moveCount: 0 }),
+  drag: (ctx, state) => {
+    state.moveCount++;
+    console.log(`Move #${state.moveCount}`);
+  },
+}));
+```
+
+**Error isolation:** Plugin failures don't break the drag or crash your page:
+
+```javascript
+const buggyPlugin = unstable_definePlugin(() => ({
+  name: 'buggy',
+  drag() {
+    throw new Error('Oops!');
+  },
+}));
+
+// Other plugins continue working
+draggable(element, [
+  buggyPlugin(), // Fails safely
+  axis('x'), // Still works
+  grid([20, 20]), // Still works
+]);
+```
+
+**Effect system:** Schedule work after DOM updates:
+
+```javascript
+const shadowPlugin = unstable_definePlugin(() => ({
+  name: 'shadow',
+  drag(ctx) {
+    ctx.effect.paint(() => {
+      element.style.boxShadow = `${ctx.offset.x}px ${ctx.offset.y}px 10px rgba(0,0,0,0.3)`;
+    });
+  },
+}));
+```
+
+## Migration from v2
+
+Most migrations are straightforward - convert options to plugins:
 
 ```javascript
 // v2
@@ -88,267 +302,28 @@ draggable(element, {
 draggable(element, [axis('x'), grid([20, 20]), bounds(BoundsFrom.parent())]);
 ```
 
-**Complex configuration:**
+The main work is handling reactivity changes since it's now manual. But you get better performance and predictable behavior in return.
 
-```javascript
-// v2: Single options object
-draggable(element, {
-  axis: 'x',
-  bounds: 'parent',
-  grid: [10, 10],
-  handle: '.drag-handle',
-  onDrag: (data) => updatePosition(data),
-});
-
-// v3: Plugin array
-draggable(element, [
-  axis('x'),
-  bounds(BoundsFrom.parent()),
-  grid([10, 10]),
-  controls({ handle: ControlFrom.selector('.drag-handle') }),
-  events({ drag: (data) => updatePosition(data) }),
-]);
-```
-
-## Key Differences
-
-**Reactivity:**
-v2 had automatic reactivity - you could use getters and it would automatically update. v3 uses manual reactivity for better performance:
-
-```javascript
-// v2: Automatic
-let currentAxis = 'x';
-draggable(element, {
-  get axis() {
-    return currentAxis;
-  }, // Auto-reactive
-});
-currentAxis = 'y'; // Automatically updates
-
-// v3: Manual compartments
-let currentAxis = 'x';
-const axisComp = new Compartment(() => axis(currentAxis));
-draggable(element, [axisComp]);
-
-currentAxis = 'y';
-axisComp.current = axis(currentAxis); // Manual update
-```
-
-**Event handling:**
-
-```javascript
-// v2: Built-in callbacks
-draggable(element, {
-  onDrag: (data) => console.log(data.offsetX, data.offsetY),
-});
-
-// v3: Events plugin
-draggable(element, [
-  events({
-    drag: (data) => console.log(data.offset.x, data.offset.y),
-  }),
-]);
-```
-
-**Bundle impact:**
-
-- v2: 2.2KB for everything, whether you use it or not
-- v3: 3.5KB core + only the plugins you import (tree-shakable)
-
-## The New Architecture
-
-Under the hood, v3 is built like a mini-framework with several key systems:
-
-**Core as peer dependency:** `@neodrag/core` is a peer dependency across all framework packages. This enables better deduplication (one shared core) and consistent behavior in meta-frameworks like Astro where multiple framework packages might be used together.
-
-**Event delegation:** Instead of 3 listeners per draggable, there are 3 total listeners that handle all draggables through delegation:
-
-```javascript
-// v2: 300 listeners for 100 draggables
-for (let i = 0; i < 100; i++) {
-  draggable(elements[i], { axis: 'x' });
-}
-
-// v3: 3 listeners total, regardless of count
-for (let i = 0; i < 100; i++) {
-  draggable(elements[i], [axis('x')]);
-}
-```
-
-**State management:** Each draggable instance maintains isolated state, and plugins can store their own state:
-
-```javascript
-const counterPlugin = unstable_definePlugin(() => ({
-  name: 'counter',
-
-  setup() {
-    return { moveCount: 0 };
-  },
-
-  drag(ctx, state) {
-    state.moveCount++;
-    console.log(`Move #${state.moveCount}`);
-  },
-}));
-```
-
-**Error isolation:** Plugin errors don't break the entire drag interaction:
-
-```javascript
-const buggyPlugin = unstable_definePlugin(() => ({
-  name: 'buggy',
-  drag() {
-    throw new Error('Oops!');
-  },
-}));
-
-// Other plugins continue working normally
-draggable(element, [
-  buggyPlugin(),
-  axis('x'), // Still works
-  grid([20, 20]), // Still works
-  events({
-    // Still works
-    drag: (e) => console.log('Normal dragging'),
-  }),
-]);
-```
-
-**Effect system:** Plugins can schedule effects that run after the drag update:
-
-```javascript
-const shadowPlugin = unstable_definePlugin(() => ({
-  name: 'shadow',
-
-  drag(ctx) {
-    ctx.scheduleEffect(() => {
-      // Runs after position is applied
-      element.style.boxShadow = `${ctx.offset.x}px ${ctx.offset.y}px 10px rgba(0,0,0,0.3)`;
-    });
-  },
-}));
-```
-
-## Custom Plugins
-
-The plugin architecture makes extending behavior straightforward:
-
-```javascript
-// Simple logging plugin
-const logger = unstable_definePlugin(() => ({
-  name: 'logger',
-  start: () => console.log('Started'),
-  drag: (ctx) => console.log(`At ${ctx.offset.x}, ${ctx.offset.y}`),
-  end: () => console.log('Ended'),
-}));
-
-// Magnetic snapping
-const magnetic = unstable_definePlugin((snapPoints, threshold = 50) => ({
-  name: 'magnetic',
-
-  drag(ctx) {
-    const nearest = snapPoints.find(
-      (point) =>
-        Math.abs(ctx.offset.x - point.x) < threshold &&
-        Math.abs(ctx.offset.y - point.y) < threshold,
-    );
-
-    if (nearest) {
-      ctx.offset.x = nearest.x;
-      ctx.offset.y = nearest.y;
-    }
-  },
-}));
-
-// Usage
-draggable(element, [
-  logger(),
-  magnetic([
-    { x: 100, y: 100 },
-    { x: 200, y: 200 },
-  ]),
-]);
-```
-
-## Dynamic Behavior with Compartments
-
-Compartments handle reactive updates efficiently:
-
-```javascript
-// Basic compartment
-let currentAxis = 'x';
-const axisComp = new Compartment(() => axis(currentAxis));
-
-draggable(element, [axisComp]);
-
-// Update manually
-currentAxis = 'y';
-axisComp.current = axis(currentAxis);
-```
-
-**Conditional plugins:**
-
-```javascript
-// Enable/disable grid snapping
-let useGrid = false;
-const gridComp = new Compartment(() => (useGrid ? grid([20, 20]) : null));
-
-// Multiple dynamic settings
-let settings = { axis: 'x', constrain: true };
-const settingsComp = new Compartment(() => {
-  const plugins = [axis(settings.axis)];
-  if (settings.constrain) {
-    plugins.push(bounds(BoundsFrom.parent()));
-  }
-  return plugins;
-});
-
-draggable(element, () => [gridComp, settingsComp]);
-```
-
-## Why I Rewrote v2
-
-The v2 architecture had some fundamental limitations:
-
-- **Monolithic bundle** – you paid for features you never used
-- **Performance issues** – 3 event listeners per draggable + automatic reactivity overhead
-- **Limited extensibility** – adding custom behavior required hacks
-- **Fragile error handling** – one plugin error could break everything
-
-Instead of patching these issues, I decided to rebuild with a better foundation.
-
-## Migration Path
-
-Most migrations are straightforward - you're mainly converting an options object to a plugin array. The reactivity changes require more work since it's now manual, but most projects can migrate in under an hour.
-
-For complex reactive scenarios, you'll need to identify what was automatically reactive in v2 and create compartments for those values in v3. The manual approach gives you better performance and more predictable behavior.
-
-## What's Next
-
-This is an alpha release. The core architecture is solid, but I'm looking for feedback on:
-
-- Plugin API ergonomics
-- Framework integration patterns
-- Real-world performance
-- Migration experience
-- Documentation gaps
-
-## Try It Out
+## Try It Today
 
 ```bash
 # Pick your framework
 npm install @neodrag/core@next
-npm install @neodrag/svelte@next
-npm install @neodrag/react@next
-npm install @neodrag/vue@next
-npm install @neodrag/solid@next
-npm install @neodrag/vanilla@next
+npm install @neodrag/core@next @neodrag/svelte@next
+npm install @neodrag/core@next @neodrag/react@next
+npm install @neodrag/core@next @neodrag/vue@next
+npm install @neodrag/core@next @neodrag/solid@next
+npm install @neodrag/core@next @neodrag/vanilla@next
 ```
 
-File issues on GitHub, join discussions, or reach out on Twitter [@puruvjdev](https://twitter.com/puruvjdev) if you run into problems or have ideas.
+Documentation is available on the [Neodrag website](https://next.neodrag.dev).
 
-The plugin architecture opens up a lot of possibilities. I'm curious to see what people build with it.
+This is an alpha release - the core is solid but I'm looking for feedback on the plugin API, framework integration, and real-world performance.
+
+File issues on GitHub, join discussions, or reach out on Twitter [@puruvjdev](https://twitter.com/puruvjdev) with your experiments.
+
+The plugin architecture opens up endless possibilities. I can't wait to see what you build.
 
 ---
 
-_This has been a long project, but I think the architecture is much better now. Let me know what you think._
+_This has been a long project, but the extensibility and performance improvements make it worthwhile. Let me know what you think._
