@@ -7,7 +7,13 @@ Documentation is available on the [Neodrag website](https://next.neodrag.dev).
 
 After months of rebuilding from scratch, I'm releasing the **Neodrag v3 Alpha**. This isn't just an update - it's a complete rethink that makes drag-and-drop faster, more reliable, and infinitely extensible.
 
+For those new to Neodrag, it's a drag-and-drop library that works across all major JavaScript frameworks - Svelte, React, Vue, SolidJS, and vanilla JavaScript. While v2 served the community well, I kept hitting the same walls: performance bottlenecks in complex applications, rigid architecture that made customization difficult, and memory issues when scaling to hundreds of draggable elements.
+
+v3 addresses these fundamental limitations through a complete architectural overhaul. Instead of a monolithic approach, v3 embraces composability through plugins. Instead of creating event listeners for every draggable element, it uses delegation. Instead of bundling everything whether you need it or not, it's tree-shakable by design.
+
 ## What's New and Exciting
+
+The transformation from v2 to v3 brings improvements across every dimension that matters for drag-and-drop interactions:
 
 **🚀 Blazing Performance**  
 Event delegation means 3 total event listeners instead of 3 per draggable. Create 100 draggable elements? Still just 3 listeners. Your memory usage stays flat as you scale.
@@ -26,7 +32,7 @@ v2 would hit browser event listener limits in complex apps. v3 scales infinitely
 
 ## See v3 in Action
 
-Here are 5 examples that showcase what makes v3 special:
+The best way to understand v3's capabilities is through examples. These five scenarios showcase how the plugin architecture transforms drag-and-drop from a rigid feature into a flexible foundation for interaction design:
 
 **1. Simple dragging**
 
@@ -114,6 +120,8 @@ draggable(element, [
 
 ## The Power of Plugins
 
+This is where v3 fundamentally differs from every other drag-and-drop library. Instead of choosing between limited built-in options or writing everything from scratch, you compose behaviors like building blocks. Each plugin does one thing well, and you combine them to create exactly the interaction you need.
+
 Instead of one monolithic library, you compose exactly what you need:
 
 ```javascript
@@ -189,6 +197,8 @@ const shadow = unstable_definePlugin(() => ({
 
 ## Performance That Scales
 
+In drag-and-drop libraries, performance isn't just about being fast - it's about staying fast as your application grows. v2's approach of creating event listeners for each draggable element worked fine for simple cases but became a memory nightmare in complex UIs with dozens or hundreds of interactive elements.
+
 The event delegation improvement is dramatic:
 
 ```javascript
@@ -206,6 +216,8 @@ for (let i = 0; i < 100; i++) {
 No more memory leaks from event listeners. No more browser limits on complex UIs.
 
 ## Dynamic Behavior Made Simple
+
+Modern applications need drag-and-drop behaviors that can change in response to user actions, application state, or external data. v2 made this possible but clunky - you had to destroy and recreate draggable instances. v3's compartment system makes reactive updates seamless and performant.
 
 Reactive updates through compartments:
 
@@ -297,6 +309,8 @@ draggable(element, [
 ```
 
 ## Key Differences from v2
+
+Understanding these changes will help you appreciate why v3 represents such a significant step forward, even if it requires some migration effort:
 
 **Reactivity:**
 v2 had automatic reactivity with performance overhead. v3 uses manual reactivity for precise control:
