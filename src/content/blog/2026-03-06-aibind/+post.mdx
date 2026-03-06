@@ -1,0 +1,355 @@
+---
+title: 'Introducing aibind'
+description: I got tired of rewriting the same AI boilerplate. So I wrote aibind.
+cover_image: ./cover.png
+---
+
+The Vercel AI SDK's `@ai-sdk/svelte` package is good. A `Chat` class, Svelte 5 native, handles the basic case well. Ship a chat box in 20 lines. Done.
+
+Then your product evolves. Users want to edit messages and branch the conversation. You want to resume a stream after a network drop. You need to route short prompts to a cheap model and long ones to a smarter one. You want to show streaming JSON as it arrives, not wait for the full response.
+
+And `@ai-sdk/svelte` stops at the basic case. Everything beyond that — you're writing it yourself.
+
+I did that across too many projects. Then I built **aibind**.
+
+---
+
+## What it is
+
+aibind is a complete AI toolkit for SvelteKit — and every other major JS framework, but SvelteKit is home. It builds on the Vercel AI SDK and adds everything that comes after "basic streaming": branching history, durable streams, model routing, racing, agents, token tracking, inline completions, and more. All with `$state`-backed primitives that feel native to Svelte.
+
+### The full setup
+
+```ts
+// src/hooks.server.ts
+import { createStreamHandler } from '@aibind/sveltekit/server';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+
+const openrouter = createOpenRouter({
+  apiKey: process.env.OPENROUTER_API_KEY!,
+});
+
+export const handle = createStreamHandler({
+  models: {
+    fast: openrouter('google/gemini-3.1-flash-lite-preview'),
+    smart: openrouter('openai/gpt-5-mini'),
+  },
+});
+```
+
+```svelte
+<script lang="ts">
+  import { Stream } from "@aibind/sveltekit";
+
+  type ModelKey = "fast" | "smart";
+  const stream = new Stream<ModelKey>({ model: "fast" });
+  let prompt = $state("");
+</script>
+
+<form
+  onsubmit={(e) => {
+    e.preventDefault();
+    stream.send(prompt);
+    prompt = "";
+  }}
+>
+  <input bind:value={prompt} />
+  <button disabled={stream.loading}>Send</button>
+</form>
+
+<p>{stream.text}</p>
+```
+
+That's the whole thing. `stream.text`, `stream.loading`, `stream.error` — all `$state`. Abort on unmount, retry, everything handled.
+
+---
+
+## Every feature
+
+### Streaming markdown
+
+`@aibind/markdown` is a streaming markdown parser built for partial, incomplete text — it doesn't wait for a closing fence to render a code block, doesn't break on half-delivered syntax.
+
+```svelte
+<StreamMarkdown {stream} />
+```
+
+One component. Done.
+
+### Structured output that streams
+
+Don't wait for the full JSON — stream partial updates so your UI shows values as they arrive.
+
+```svelte
+<script lang="ts">
+  import { StructuredStream } from "@aibind/sveltekit";
+  import { z } from "zod";
+
+  const result = new StructuredStream({
+    model: "smart",
+    endpoint: "/__aibind__/structured",
+    schema: z.object({
+      title: z.string(),
+      summary: z.string(),
+      tags: z.array(z.string()),
+    }),
+  });
+</script>
+
+<button onclick={() => result.send("Analyze this article...")}>Analyze</button>
+<h2>{result.data?.title ?? "..."}</h2>
+<p>{result.data?.summary ?? "..."}</p>
+```
+
+Works with Zod, Valibot, or any Standard Schema.
+
+### Branching chat history
+
+`ChatHistory` is a tree, not an array. Edit a past message → new branch, old one preserved. Regenerate → another branch. Navigate between them with arrow buttons. It's the edit UI you see on Claude.ai and ChatGPT — yours in a few lines.
+
+```svelte
+<script lang="ts">
+  import { Stream } from "@aibind/sveltekit";
+  import { ChatHistory } from "@aibind/core";
+  import type { ConversationMessage } from "@aibind/core";
+
+  const chat = new ChatHistory<ConversationMessage>();
+  const stream = new Stream({ model: "fast" });
+  let prompt = $state("");
+
+  function edit(nodeId: string, newContent: string) {
+    chat.edit(nodeId, { role: "user", content: newContent });
+    // re-send from this point — stream picks up the new branch
+  }
+</script>
+
+{#each chat.messages as message, i}
+  <div class="message {message.role}">
+    <p>{message.content}</p>
+    {#if chat.hasAlternatives(chat.nodeIds[i])}
+      <button onclick={() => chat.prevAlternative(chat.nodeIds[i])}>←</button>
+      <span>{chat.alternativeIndex(chat.nodeIds[i]) + 1} / {chat.alternativeCount(chat.nodeIds[i])}</span>
+      <button onclick={() => chat.nextAlternative(chat.nodeIds[i])}>→</button>
+    {/if}
+  </div>
+{/each}
+```
+
+### Projects
+
+Claude-style project context — a persistent system prompt and document set shared across conversations. Define it once on the server, it applies to every message in that project.
+
+```ts
+import { Project } from '@aibind/core';
+
+const project = new Project({
+  systemPrompt: 'You are a code reviewer. Be direct, be precise.',
+  documents: [{ title: 'Style guide', content: styleGuideText }],
+});
+```
+
+### Compacting
+
+When a long conversation starts eating your context window, compact it: summarize the history into a single dense paragraph, replacing the messages. The AI continues with full context but a fraction of the tokens.
+
+```ts
+await stream.compact(chat); // server summarizes, history shrinks
+```
+
+### Durable streams (resume on reconnect)
+
+Network dropped? Tab reloaded? Page navigated away mid-response? Stream chunks are buffered server-side and replayed on reconnect. The user comes back and their response continues from exactly where it left off.
+
+```ts
+// hooks.server.ts
+import { SqliteStreamStore } from '@aibind/sqlite';
+import { createClient } from '@libsql/client';
+
+export const handle = createStreamHandler({
+  models,
+  resumable: true,
+  store: new SqliteStreamStore(
+    createClient({
+      url: process.env.TURSO_URL!,
+      authToken: process.env.TURSO_TOKEN!,
+    }),
+  ),
+});
+```
+
+### Model routing
+
+Define routing logic once. The library calls it before every request.
+
+```ts
+const stream = new Stream<ModelKey>({
+  routeModel: (prompt) => {
+    if (prompt.length < 200) return 'fast';
+    if (/\b(analyze|compare|explain)\b/i.test(prompt)) return 'smart';
+    return 'fast';
+  },
+});
+
+// Or use the built-in utility
+import { routeByLength } from '@aibind/core';
+
+const stream = new Stream<ModelKey>({
+  routeModel: routeByLength(
+    [
+      { maxLength: 200, model: 'fast' },
+      { maxLength: 800, model: 'smart' },
+    ],
+    'smart',
+  ),
+});
+```
+
+### Model racing
+
+Send the same prompt to two models simultaneously, show whichever responds first.
+
+```ts
+import { Race } from '@aibind/sveltekit';
+
+const race = new Race<ModelKey>({
+  models: ['fast', 'smart'],
+  endpoint: '/__aibind__/stream',
+});
+race.send('Generate a tagline for my product');
+// race.winner — which model responded first
+// race.text — the winning response
+```
+
+### Agents (tool calling)
+
+Full server-side tool-calling with streaming — define tools, the model calls them, results stream back to the client.
+
+```ts
+import { ServerAgent } from '@aibind/core';
+import { tool } from 'ai';
+
+const agent = new ServerAgent({
+  model: openrouter('openai/gpt-5-mini'),
+  system: 'You are a helpful assistant.',
+  tools: {
+    search: tool({
+      description: 'Search the web',
+      parameters: z.object({ query: z.string() }),
+      execute: async ({ query }) => searchWeb(query),
+    }),
+  },
+});
+```
+
+### Inline completions
+
+Ghost-text completions, like Copilot. Call `update()` on every keystroke — it debounces, cancels in-flight requests, and updates `completion.suggestion` reactively.
+
+```svelte
+<script lang="ts">
+  import { Completion } from "@aibind/sveltekit";
+
+  const completion = new Completion({ model: "fast" });
+  let input = $state("");
+</script>
+
+<input
+  bind:value={input}
+  oninput={() => completion.update(input)}
+  onkeydown={(e) => {
+    if (e.key === "Tab") { input = completion.accept(); e.preventDefault(); }
+  }}
+/>
+<span class="ghost">{input}{completion.suggestion}</span>
+```
+
+### Token tracking
+
+Track usage across turns — tokens in, tokens out, estimated cost. Useful for budget enforcement or showing users their usage.
+
+```ts
+import { Stream, UsageTracker } from '@aibind/sveltekit';
+
+const tracker = new UsageTracker({
+  pricing: {
+    fast: { inputPerMillion: 0.15, outputPerMillion: 0.6 },
+    smart: { inputPerMillion: 3.0, outputPerMillion: 15.0 },
+  },
+});
+
+const stream = new Stream<ModelKey>({ model: 'fast', tracker });
+// tracker.cost, tracker.inputTokens, tracker.outputTokens — all $state
+```
+
+### Prompt caching
+
+For Anthropic models — automatically add `cache_control` to system prompts. ~90% reduction on repeated input tokens, one config flag.
+
+```ts
+export const handle = createStreamHandler({ models, cacheSystemPrompt: true });
+```
+
+### Streaming diff
+
+Get a structured diff of changes as structured output streams in — useful for "suggest edits to this document" UIs.
+
+---
+
+## Storage integrations
+
+Five backends ship at launch. None of them auto-migrate your database — you create the tables, you name them, you pass us the client.
+
+| Package              | Works with                                |
+| -------------------- | ----------------------------------------- |
+| `@aibind/redis`      | ioredis, Upstash, node-redis              |
+| `@aibind/sqlite`     | Turso, better-sqlite3, Bun's `bun:sqlite` |
+| `@aibind/postgres`   | pg, Neon, Supabase, postgres.js           |
+| `@aibind/cloudflare` | D1 (streams) + KV (conversations)         |
+
+---
+
+## The feature I didn't plan
+
+Halfway through, I realized the stream handler is just a `Request → Response` function. It doesn't care where it runs. So I added `@aibind/service-worker`.
+
+Your service worker becomes the server. The LLM API is called directly from the browser. Conversation history and stream chunks live in IndexedDB. Your Svelte components are completely unchanged.
+
+```ts
+// sw.ts — this IS your backend
+import {
+  createSWHandler,
+  IDBStreamStore,
+  IDBConversationStore,
+} from '@aibind/service-worker';
+import { createOpenRouter } from '@openrouter/ai-sdk-provider';
+
+self.addEventListener(
+  'fetch',
+  createSWHandler({
+    models: { fast: openrouter('google/gemini-3.1-flash-lite-preview') },
+    resumable: true,
+    store: new IDBStreamStore(),
+    conversation: { store: new IDBConversationStore() },
+  }),
+);
+```
+
+The API key is client-side — that's the trade-off, yours to make. But for personal tools, internal apps, offline PWAs? Zero infrastructure. Ship to GitHub Pages.
+
+---
+
+## What I didn't include
+
+No opinion on your LLM provider — works with any [AI SDK provider](https://sdk.vercel.ai/providers). No opinion on auth. No CLI. No codegen. No magic. It's a library, not a platform.
+
+---
+
+## Get started
+
+```bash
+pnpm add @aibind/sveltekit ai @openrouter/ai-sdk-provider
+```
+
+Full docs at [aibind.dev](https://aibind.dev). Source on [GitHub](https://github.com/puruvj/aibind).
+
+I've been using this in production for a few days. Time to see what you build with it.
