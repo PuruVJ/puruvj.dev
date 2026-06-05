@@ -1,16 +1,16 @@
 ---
 title: 'neotraverse 0.7: prototype-pollution-safe, and up to 7× faster'
-description: A big neotraverse release — hardened against prototype pollution & injection, a re-architected modern build that's ~4.5× faster than traverse, an opt-in DoS guard, a tsdown build, and a brand-new docs site.
+description: "A big neotraverse release, hardened against prototype pollution and injection, a re-architected modern build that's ~4.5× faster than traverse, new modern-only APIs (array-style queries, lazy iteration, async traversal), an opt-in DoS guard, a tsdown build, and a brand-new docs site."
 cover_image: ./cover.png
 ---
 
-Heya friends! 👋 **neotraverse 0.7** is out, and it's a chunky one. If you don't know it yet, [neotraverse](https://neotraverse.puruvj.dev) is my zero-dependency, TypeScript-first rewrite of the classic [`traverse`](https://github.com/ljharb/js-traverse) — the little library that walks and transforms every node in an object tree. It's a **drop-in replacement**: swap the import and you're done.
+Heya friends! 👋 **neotraverse 0.7** is out, and it's a chunky one. If you don't know it yet, [neotraverse](https://neotraverse.puruvj.dev) is my zero-dependency, TypeScript-first rewrite of the classic [`traverse`](https://github.com/ljharb/js-traverse), the little library that walks and transforms every node in an object tree. It's a **drop-in replacement**: swap the import and you're done.
 
-This release does three big things: it makes neotraverse **safe to run on untrusted data**, makes the modern build **ridiculously fast**, and ships a proper **docs site** at [neotraverse.puruvj.dev](https://neotraverse.puruvj.dev). Let's dig in.
+This release does four big things: it makes neotraverse **safe to run on untrusted data**, makes the modern build **ridiculously fast**, gives that modern build a proper toolbelt of new APIs (queries, lazy iteration, async traversal), and ships a real **docs site** at [neotraverse.puruvj.dev](https://neotraverse.puruvj.dev). Let's dig in.
 
 ## 🔒 It's now prototype-pollution-safe
 
-Object-walking libraries are the classic home of **prototype pollution**, so I put neotraverse through a deep, adversarial security audit. The fun part? The _obvious_ gadget didn't fire — but a couple of less-obvious ones did.
+Object-walking libraries are the classic home of **prototype pollution**, so I put neotraverse through a deep, adversarial security audit. The fun part? The _obvious_ gadget didn't fire, but a couple of less-obvious ones did.
 
 The headline one: `JSON.parse('{"__proto__":{"isAdmin":true}}')` produces an object with an **own, enumerable** `__proto__` key (unlike an object literal). The old `clone()`/`map()` copied that key with `dst[key] = src[key]`, which fires the `__proto__` setter and grafts attacker data onto the clone's prototype:
 
@@ -20,16 +20,16 @@ const evil = JSON.parse('{"user":"bob","__proto__":{"isAdmin":true}}');
 oldClone(evil).isAdmin; // true
 ```
 
-In 0.7, every write sink (`set`, `clone`, `map`, `update`) refuses to mutate a prototype — the value is preserved as an inert own property instead:
+In 0.7, every write sink (`set`, `clone`, `map`, `update`) refuses to mutate a prototype, so the value is preserved as an inert own property instead:
 
 ```js
 // 0.7 ✅
 const evil = JSON.parse('{"user":"bob","__proto__":{"isAdmin":true}}');
 traverse(evil).clone().isAdmin; // undefined
-({}).isAdmin;                   // undefined — global prototype untouched
+({}).isAdmin;                   // undefined, global prototype untouched
 ```
 
-Legit prototypes are still preserved (a class instance is still an instance after cloning), and `get`/`has` only ever follow own properties. The really fun part was that the _first_ answer was "not vulnerable" — the naïve `['__proto__', …]` gadget genuinely doesn't fire on a plain object, because the old `node[key] = {}` clobber and the `__proto__` setter quietly neutralise it. It took adversarial re-checking to find the `constructor.prototype` path and the JSON-injection above. There's now a brand-new 42-case regression suite so none of it can ever silently come back.
+Legit prototypes are still preserved (a class instance is still an instance after cloning), and `get`/`has` only ever follow own properties. The really fun part was that the _first_ answer was "not vulnerable": the naïve `['__proto__', …]` gadget genuinely doesn't fire on a plain object, because the old `node[key] = {}` clobber and the `__proto__` setter quietly neutralise it. It took adversarial re-checking to find the `constructor.prototype` path and the JSON-injection above. There's now a brand-new 42-case regression suite so none of it can ever silently come back.
 
 Oh, and there's a new opt-in **DoS guard** for deeply-nested hostile input:
 
@@ -43,28 +43,79 @@ Hardening usually costs performance. This time it bought some.
 
 I re-architected the **modern** build's traversal engine. The old design allocated, for **every single node**, a context object _plus a fresh closure for each method_ (`update`, `remove`, `before`, …) _plus_ a `modifiers` object _plus_ a copy of the path array. The new design:
 
-- makes the context a **class with prototype methods** — one allocation per node instead of a dozen;
+- makes the context a **class with prototype methods**, one allocation per node instead of a dozen;
 - derives `ctx.path` **lazily** from the parent chain, so `forEach`/`map`/`clone`/`reduce`/`nodes` never pay for a path copy they don't read;
 - clones with a **`Map` for O(1) circular detection** instead of a linear scan;
 - and a pile of smaller wins (single key-scan, hoisted hot locals, indexed loops).
 
 The result, across the full operation × shape benchmark matrix:
 
-> **~4.5× faster than `traverse`** on average (geometric mean), **up to ~7×** on individual ops, while allocating **3–5× less memory** per op.
+> **~4.5× faster than `traverse`** on average (geometric mean), **up to ~7×** on individual ops, while allocating **3 to 5× less memory** per op.
 
-You can poke at the live, interactive numbers (throughput _and_ memory) on the [**benchmarks page**](https://neotraverse.puruvj.dev/benchmarks) — they're generated by the committed benchmark and rendered straight from the JSON. For a **bundle-size** comparison, there's a [bundle-roast link](https://bundle-roast.puruvj.dev) right on that page too.
+You can poke at the live, interactive numbers (throughput _and_ memory) on the [**benchmarks page**](https://neotraverse.puruvj.dev/benchmarks). They're generated by the committed benchmark and rendered straight from the JSON. For a **bundle-size** comparison, there's a [bundle-roast link](https://bundle-roast.puruvj.dev) right on that page too.
 
-The default and legacy builds keep the original, battle-tested implementation untouched — only the modern context was rewritten, and the full test suite passes identically on both.
+The default and legacy builds keep the original, battle-tested implementation untouched. Only the modern context was rewritten, and the full test suite passes identically on both.
+
+## 🧰 The modern build is now the one to reach for
+
+Here's the quieter shift in 0.7: the **modern** build (`import { Traverse } from 'neotraverse/modern'`) graduates from "the fast option" to "the one I'd start a new project on". It already had a `ctx` argument and the fastest path ops; now it gets a proper toolbelt. All four of these live on the modern build only. The default `this`-bound API is untouched and stays a faithful drop-in.
+
+First, **array-style queries** over every node, root included. `find` returns the first match and stops early, `filter` collects them all, and `some`/`every` hand back a boolean and short-circuit. The callback is `(ctx, value)`, so you can branch on the value or on the node's shape:
+
+```js
+const tree = { a: 1, b: { c: 2, d: 3 } };
+new Traverse(tree).find((ctx, x) => x === 2);   // 2
+new Traverse(tree).filter((ctx) => ctx.isLeaf); // [1, 2, 3]
+new Traverse(tree).some((ctx, x) => x > 2);     // true
+```
+
+These ride the existing walk plus `ctx.stop()`, so they cost nothing the walk wasn't already paying.
+
+Next, **lazy iteration**. `Traverse` is iterable now, so you can walk a tree pull-based instead of materialising a whole `.nodes()` array up front. `for...of` and spread yield every node depth-first, you can `break` out early, and `.entries()` gives you `[path, node]` pairs:
+
+```js
+for (const node of new Traverse(tree)) { /* every node, lazily */ }
+const all = [...new Traverse(tree)];                       // same as .nodes()
+for (const [path, node] of new Traverse(tree).entries()) { /* path: PropertyKey[] */ }
+```
+
+It's circular-safe: a cycle is visited once, never descended into.
+
+Then the big one, **async traversal**, for when the callback needs to `await` something (translate every string through an API, hydrate a node from the network, hash a leaf). The synchronous `forEach`/`map` couldn't help you there. `.forEachAsync(fn)` mutates in place, `.mapAsync(fn)` returns a fresh object, and both await your callback at each node. Because an async walk can run for a while, there's a new `signal` option (an `AbortSignal`) that cancels it on the next visited node:
+
+```js
+const out = await new Traverse(doc).mapAsync(async (ctx, x) => {
+  if (typeof x === 'string') ctx.update(await translate(x));
+});
+
+const controller = new AbortController();
+const walking = new Traverse(big, { signal: controller.signal }).forEachAsync(async (ctx) => { /* … */ });
+controller.abort(); // walking rejects with the abort reason
+```
+
+And finally a quiet but real **bug fix**: `clone()` now deep-clones `Map` and `Set` along with their entries, matching `structuredClone`. Before 0.7 it silently dropped every entry, a `Map` came back as an empty object that merely wore the `Map` prototype, which is exactly the kind of thing you don't notice until production:
+
+```js
+const cloned = new Traverse(new Map([['k', { n: 1 }]])).clone();
+cloned instanceof Map; // true
+cloned.get('k');       // { n: 1 }, a deep copy, not the original reference
+```
+
+Maps and Sets stay **leaf nodes** during a walk, by the way: their keys can be any type, so there's no sensible path to descend along.
+
+All four are purely additive. The frozen test suite stays green, 25 new tests came along, and the only new cost on the hot path is two cheap `instanceof` checks, so the ~4.5× benchmark numbers haven't budged. The whole lot adds about **0.43 KB** (mostly the async walker), keeping the modern build at a tidy **~2.2 KB** min+brotli. Cheap for that much reach.
 
 ## 🔧 New toolchain, and one breaking change
 
 - The build moved from **tsup → [tsdown](https://tsdown.dev)** (rolldown/oxc).
-- The **modern** build now targets **ES2026** (no change to emitted bytes today — the source is ES2022 — just a future-proof ceiling).
-- ⚠️ **Breaking:** the **legacy** build now targets **ES2015** instead of ES5. It's still CJS + ESM and a drop-in `traverse` replacement; only environments that needed literal ES5 (think IE11) are affected. Full browser/runtime support is in the [docs](https://neotraverse.puruvj.dev/guide#browser-runtime-support).
+- The **modern** build now targets **ES2026** (no change to emitted bytes today, since the source is still ES2022, just a future-proof ceiling).
+- ⚠️ **Breaking:** the **legacy** build now targets **ES2015** instead of ES5. It's still CJS + ESM and a drop-in `traverse` replacement; only environments that needed literal ES5 (think IE11) are affected. Full browser/runtime support is in the [docs](https://neotraverse.puruvj.dev/legacy#builds-browser-support).
 
 ## 📖 And a real docs site
 
-neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). One-page [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration) (`traverse → neotraverse → modern`), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), the [security section](https://neotraverse.puruvj.dev/guide#security), and even an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots.
+neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). The docs now lead with the **modern** build as the recommended API for new code, since that's where the `ctx` argument, all the new query/iteration/async helpers, and the fastest path ops all live. You'll find a one-page [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration) (`traverse → neotraverse → modern`), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), the [security section](https://neotraverse.puruvj.dev/guide#security), and even an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots.
+
+The classic `this`-bound, `traverse`-compatible API now has its own [**Legacy / Classic API**](https://neotraverse.puruvj.dev/legacy) page, where it stays a faithful, untouched drop-in. So the rule of thumb is simple: new code reaches for `neotraverse/modern`, and if you're an existing `traverse` user, nothing changes, you're still a drop-in.
 
 ## Upgrading
 
@@ -81,6 +132,6 @@ If you're still on the original `traverse`, now's a lovely time to switch:
 +import traverse from 'neotraverse';
 ```
 
-That's it! Go forth and traverse — safely, and fast. 💚
+That's it! Go forth and traverse, safely and fast. 💚
 
 If you find a bug or have ideas, the repo's [on GitHub](https://github.com/PuruVJ/neotraverse). Catch you in the next one!
