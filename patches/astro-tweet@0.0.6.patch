@@ -1,0 +1,17 @@
+diff --git a/src/utils.ts b/src/utils.ts
+index 66166d2c8fd901246d3f25bbb9347b2ab833afa5..1829a333e53904172c682b41dfe8ec8baeb2e30d 100644
+--- a/src/utils.ts
++++ b/src/utils.ts
+@@ -156,8 +156,11 @@ function getEntities(tweet: TweetBase): Entity[] {
+ function addEntities(
+   result: EntityWithType[],
+   type: EntityWithType["type"],
+-  entities: TweetEntity[],
++  entities: TweetEntity[] | undefined,
+ ) {
++  // The X syndication API omits empty entity arrays (hashtags, user_mentions,
++  // symbols, etc.) rather than returning `[]`, so guard against `undefined`.
++  if (!entities) return;
+   for (const entity of entities) {
+     for (const [i, item] of result.entries()) {
+       if (

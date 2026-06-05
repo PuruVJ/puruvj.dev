@@ -10,7 +10,7 @@ This release does three big things: it makes neotraverse **safe to run on untrus
 
 ## 🔒 It's now prototype-pollution-safe
 
-Object-walking libraries are the classic home of [prototype pollution](https://neotraverse.puruvj.dev/blog/the-vulnerability-run), so I put neotraverse through a deep, adversarial security audit. The fun part? The _obvious_ gadget didn't fire — but a couple of less-obvious ones did.
+Object-walking libraries are the classic home of **prototype pollution**, so I put neotraverse through a deep, adversarial security audit. The fun part? The _obvious_ gadget didn't fire — but a couple of less-obvious ones did.
 
 The headline one: `JSON.parse('{"__proto__":{"isAdmin":true}}')` produces an object with an **own, enumerable** `__proto__` key (unlike an object literal). The old `clone()`/`map()` copied that key with `dst[key] = src[key]`, which fires the `__proto__` setter and grafts attacker data onto the clone's prototype:
 
@@ -29,7 +29,7 @@ traverse(evil).clone().isAdmin; // undefined
 ({}).isAdmin;                   // undefined — global prototype untouched
 ```
 
-Legit prototypes are still preserved (a class instance is still an instance after cloning), and `get`/`has` only ever follow own properties. I wrote up the whole investigation — including why the first answer was wrong — in [**The vulnerability run**](https://neotraverse.puruvj.dev/blog/the-vulnerability-run). There's also a brand-new 42-case regression suite so this can never silently come back.
+Legit prototypes are still preserved (a class instance is still an instance after cloning), and `get`/`has` only ever follow own properties. The really fun part was that the _first_ answer was "not vulnerable" — the naïve `['__proto__', …]` gadget genuinely doesn't fire on a plain object, because the old `node[key] = {}` clobber and the `__proto__` setter quietly neutralise it. It took adversarial re-checking to find the `constructor.prototype` path and the JSON-injection above. There's now a brand-new 42-case regression suite so none of it can ever silently come back.
 
 Oh, and there's a new opt-in **DoS guard** for deeply-nested hostile input:
 
@@ -64,7 +64,7 @@ The default and legacy builds keep the original, battle-tested implementation un
 
 ## 📖 And a real docs site
 
-neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). One-page [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration) (`traverse → neotraverse → modern`), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), the [security writeup](https://neotraverse.puruvj.dev/blog/the-vulnerability-run), and even an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots.
+neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). One-page [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration) (`traverse → neotraverse → modern`), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), the [security section](https://neotraverse.puruvj.dev/guide#security), and even an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots.
 
 ## Upgrading
 
