@@ -1,6 +1,6 @@
 ---
 title: 'neotraverse 0.7: I accidentally built lodash for object trees'
-description: "neotraverse 0.7 started as a security + perf pass on the Traverse class and ended somewhere I didn't expect: a tree-shakeable functional API with ~50 helpers (merge, diff/patch, dereference, deepEqual, glob queries, async, Map/Set), ~5× faster than traverse with 5.5× less memory, and hardened against prototype pollution and DoS by a deep adversarial audit that's now gated in CI."
+description: "neotraverse 0.7 started as a security and perf pass on the Traverse class and ended somewhere I didn't expect: a tree-shakeable functional API with ~50 helpers (merge, diff/patch, dereference, deepEqual, glob queries, async, Map/Set), ~5× faster than traverse with 5.5× less memory, and hardened against prototype pollution and DoS by a deep adversarial audit that's now gated in CI."
 cover_image: ./cover.png
 ---
 
@@ -10,13 +10,13 @@ But this release is also a story about setting out to do one thing, realizing it
 
 ## The plan vs. what actually happened
 
-neotraverse has always shipped two builds. The **default/legacy** build is the faithful, `this`-bound, `traverse`-compatible drop-in. The **modern** build was a class — `new Traverse(obj).map(...)` — with a `ctx` argument and a faster engine.
+neotraverse has always shipped two builds. The **default/legacy** build is the faithful, `this`-bound, `traverse`-compatible drop-in. The **modern** build was a class, `new Traverse(obj).map(...)`, with a `ctx` argument and a faster engine.
 
 The 0.7 plan was modest: harden that `Traverse` class against prototype pollution, make it faster, and bolt on a few extra methods (queries, async traversal). I did all of that. And then, staring at the result, I had an annoying realization:
 
 **a class you can't chain is just functions with extra steps.**
 
-`Traverse` isn't chainable like a jQuery or a lodash wrapper — you can't go `traverse(x).filter(...).map(...)`. Every call is `new Traverse(obj).oneMethod(...)`. So the class was pure ceremony: it bundled every method onto one object you allocate just to call a single thing, and it actively *fought* tree-shaking, because importing `Traverse` drags in the entire surface even if you only ever call `get`.
+`Traverse` isn't chainable like a jQuery or a lodash wrapper. You can't go `traverse(x).filter(...).map(...)`. Every call is `new Traverse(obj).oneMethod(...)`. So the class was pure ceremony: it bundled every method onto one object you allocate just to call a single thing, and it actively *fought* tree-shaking, because importing `Traverse` drags in the entire surface even if you only ever call `get`.
 
 So I threw the ergonomics out and rebuilt the modern build as **standalone, tree-shakeable functions**:
 
@@ -28,7 +28,7 @@ get(obj, ['a', 'b', 0]);
 clone(deepThing);
 ```
 
-The `Traverse` class still exists — it's now a thin, deprecated re-export of these functions, so nobody's code breaks — but the functions are the API now. Your bundler keeps only what you import: reach for `get` and you ship `get`, not the whole library.
+The `Traverse` class still exists (it's now a thin, deprecated re-export of these functions, so nobody's code breaks), but the functions are the API now. Your bundler keeps only what you import: reach for `get` and you ship `get`, not the whole library.
 
 And once everything was a plain function instead of a method on one class… it got really tempting to just keep adding functions.
 
@@ -36,7 +36,7 @@ And once everything was a plain function instead of a method on one class… it 
 
 That's genuinely what 0.7 turned into. The modern build went from "a faster walk" to a **toolbelt of ~50 helpers** for arbitrary object/array/Map/Set trees. A tour:
 
-**Walk & transform** — `forEach`, `map`, `reduce`, `walk`, plus breadth-first `breadthFirst` / `mapBfs`:
+**Walk and transform.** `forEach`, `map`, `reduce`, `walk`, plus breadth-first `breadthFirst` / `mapBfs`:
 
 ```js
 import { map, reduce } from 'neotraverse/modern';
@@ -45,7 +45,7 @@ map(config, (ctx, x) => (typeof x === 'string' ? ctx.update(x.trim()) : undefine
 const total = reduce(invoice, (ctx, acc, x) => (ctx.isLeaf && typeof x === 'number' ? acc + x : acc), 0);
 ```
 
-**Array-style queries** over every node, root included — `find`, `filter`, `some`, `every` (short-circuiting), `count`, `size`:
+**Array-style queries** over every node, root included: `find`, `filter`, `some`, `every` (short-circuiting), `count`, `size`:
 
 ```js
 import { find, filter, some } from 'neotraverse/modern';
@@ -55,7 +55,7 @@ filter(tree, (ctx) => ctx.isLeaf);   // every leaf
 some(tree, (ctx, x) => x > 2);       // boolean, short-circuits
 ```
 
-**Paths** — `get` / `set` / `has` on key arrays, plus string-path twins `getPath` / `setPath` / `hasPath` (dot or JSON-Pointer), `paths`, `findPaths`, `filterPaths`, and a glob query, `select`:
+**Paths.** `get` / `set` / `has` on key arrays, plus string-path twins `getPath` / `setPath` / `hasPath` (dot or JSON-Pointer), `paths`, `findPaths`, `filterPaths`, and a glob query, `select`:
 
 ```js
 import { getPath, setPath, select } from 'neotraverse/modern';
@@ -65,7 +65,7 @@ setPath(state, 'items.0.done', true);
 select(data, 'users[*].email');      // [{ path: ['users', 0, 'email'], node: 'a@x.com' }, …]
 ```
 
-**The lodash-y bunch** — this is where it really earns the comparison: `clone` (deep), `merge` (deep, recursive), `deepEqual`, `diff` / `patch` (RFC-6902 JSON Patch), `dereference` (resolves `$ref`s in JSON Schema / OpenAPI), `groupBy`, `freeze` (deep), `pruneDeep`, `deleteWhere`, `prune`, `toJSON` (cycle-safe stringify), `getType`:
+**The lodash-y bunch.** This is where it really earns the comparison: `clone` (deep), `merge` (deep, recursive), `deepEqual`, `diff` / `patch` (RFC-6902 JSON Patch), `dereference` (resolves `$ref`s in JSON Schema / OpenAPI), `groupBy`, `freeze` (deep), `pruneDeep`, `deleteWhere`, `prune`, `toJSON` (cycle-safe stringify), `getType`:
 
 ```js
 import { merge, diff, patch, dereference } from 'neotraverse/modern';
@@ -76,7 +76,7 @@ patch(before, ops);                             // …apply them
 dereference(openApiDoc);                         // every #/components/... $ref resolved
 ```
 
-**Lazy iteration & async** — `entries` / `values` are generators (pull-based, `break`-able, circular-safe), and `forEachAsync` / `mapAsync` let your callback `await`, with an `AbortSignal` to cancel mid-walk:
+**Lazy iteration and async.** `entries` / `values` are generators (pull-based, `break`-able, circular-safe), and `forEachAsync` / `mapAsync` let your callback `await`, with an `AbortSignal` to cancel mid-walk:
 
 ```js
 import { values, mapAsync } from 'neotraverse/modern';
@@ -92,15 +92,15 @@ None of this needs a class, a chain, or a wrapper object. It's just functions yo
 
 ## 🗺️ Map and Set are first-class now
 
-`clone` used to silently drop `Map`/`Set` entries — a `Map` came back as an empty object wearing the `Map` prototype, the kind of bug you only meet in production. Now `clone` deep-clones them (matching `structuredClone`):
+`clone` used to silently drop `Map`/`Set` entries: a `Map` came back as an empty object wearing the `Map` prototype, the kind of bug you only meet in production. Now `clone` deep-clones them (matching `structuredClone`):
 
 ```js
 const cloned = clone(new Map([['k', { n: 1 }]]));
 cloned instanceof Map; // true
-cloned.get('k');       // { n: 1 } — a deep copy
+cloned.get('k');       // { n: 1 }, a deep copy
 ```
 
-By default `Map`/`Set` are **leaf nodes** during a walk (their keys can be anything, so there's no obvious path to descend). But if you *want* to walk into them, there's a new `descendIntoMapSet` option that visits each entry — Map values at their key, Set elements at a numeric index — with full update/writeback support. And array indices in paths are now real **numbers** (`['users', 0, 'email']`), consistent with `parsePath` and `patch`, instead of stringly-typed `'0'`.
+By default `Map`/`Set` are **leaf nodes** during a walk (their keys can be anything, so there's no obvious path to descend). But if you *want* to walk into them, there's a new `descendIntoMapSet` option that visits each entry (Map values at their key, Set elements at a numeric index) with full update/writeback support. And array indices in paths are now real **numbers** (`['users', 0, 'email']`), consistent with `parsePath` and `patch`, instead of stringly-typed `'0'`.
 
 ## ⚡ ~5× faster than traverse, with 5.5× less memory
 
@@ -110,45 +110,45 @@ Across the full operation × shape benchmark matrix:
 
 > **~4.96× faster than `traverse`** on average (geometric mean), **up to ~10×** on individual ops (clone of small/deep objects, wide `forEach`), while allocating **~5.5× less memory** per op (over **6× less** on pure traversal).
 
-A few headline ops vs. `traverse`: `clone` small **10×**, `clone` deep **9.3×**, `forEach` wide **7.6×**, `map` deep **7.3×**, `clone` of a realistic API response **7.2×**. The new helpers are quick too — `merge` ~238k ops/s, `select` ~252k, `dereference` ~124k on the benchmark shapes.
+A few headline ops vs. `traverse`: `clone` small **10×**, `clone` deep **9.3×**, `forEach` wide **7.6×**, `map` deep **7.3×**, `clone` of a realistic API response **7.2×**. The new helpers are quick too: `merge` ~238k ops/s, `select` ~252k, `dereference` ~124k on the benchmark shapes.
 
-And because it's tree-shakeable, the "lodash for objects" size scare doesn't apply: the *entire* modern build is ~6.7 KB min+brotli, but you only ship the functions you import — `get` alone is a rounding error. The interactive throughput **and** memory numbers live on the [benchmarks page](https://neotraverse.puruvj.dev/benchmarks), generated from a committed benchmark and rendered straight from JSON.
+And because it's tree-shakeable, the "lodash for objects" size scare doesn't apply: the *entire* modern build is ~6.7 KB min+brotli, but you only ship the functions you import. `get` alone is a rounding error. The interactive throughput **and** memory numbers live on the [benchmarks page](https://neotraverse.puruvj.dev/benchmarks), generated from a committed benchmark and rendered straight from JSON.
 
 The default and legacy builds keep the original, battle-tested implementation untouched. Only the modern engine was rewritten, and the full test suite passes identically.
 
 ## 🔒 A deep, adversarial security audit (now gated in CI)
 
-Object-walking libraries are the classic home of **prototype pollution**, so I put the whole thing through a thorough, adversarial audit — the kind where the first answer is "looks safe" and you keep digging anyway. Good thing I did.
+Object-walking libraries are the classic home of **prototype pollution**, so I put the whole thing through a thorough, adversarial audit, the kind where the first answer is "looks safe" and you keep digging anyway. Good thing I did.
 
-The obvious gadget (`['__proto__', …]` on a plain object) genuinely *doesn't* fire — the setter and the autovivification clobber quietly neutralize it. But two non-obvious ones did:
+The obvious gadget (`['__proto__', …]` on a plain object) genuinely *doesn't* fire: the setter and the autovivification clobber quietly neutralize it. But two non-obvious ones did:
 
 - **JSON injection.** `JSON.parse('{"__proto__":{"isAdmin":true}}')` makes an object with an *own, enumerable* `__proto__` key. The old `clone`/`map` copied it with `dst[key] = value`, which fires the `__proto__` setter and grafts attacker data onto the clone's prototype.
-- **The boxed-key bypass.** Every guard compared keys with `=== '__proto__'`. But a `new String('__proto__')` (or `{ toString: () => '__proto__' }`) is never `===` a string, yet still coerces to `__proto__` when used as a write key. It slipped past every check while firing the real setter — and a `toString` that returns a different value on each call could even defeat a naïve re-check (TOCTOU).
+- **The boxed-key bypass.** Every guard compared keys with `=== '__proto__'`. But a `new String('__proto__')` (or `{ toString: () => '__proto__' }`) is never `===` a string, yet still coerces to `__proto__` when used as a write key. It slipped past every check while firing the real setter, and a `toString` that returns a different value on each call could even defeat a naïve re-check (TOCTOU).
 
 Both are fixed: keys are coerced to a primitive **once**, before the guard, so the check and the write always agree, and injected `__proto__` is preserved as an inert own data property instead of touching any prototype:
 
 ```js
 const evil = JSON.parse('{"user":"bob","__proto__":{"isAdmin":true}}');
 clone(evil).isAdmin; // undefined
-({}).isAdmin;        // undefined — global prototype untouched
+({}).isAdmin;        // undefined, global prototype untouched
 ```
 
-The audit didn't stop at pollution. It turned up — and 0.7 fixes — a cluster of **denial-of-service** sharp edges that matter the moment you run this on untrusted data:
+The audit didn't stop at pollution. It turned up (and 0.7 fixes) a cluster of **denial-of-service** sharp edges that matter the moment you run this on untrusted data:
 
 - `merge` was the one transform op that wasn't cycle-safe (a cyclic input → stack overflow). Now it has an intrinsic cycle guard, like `clone`/`diff`/`deepEqual`.
-- `diff` could go **exponential** on shared-subtree (DAG) inputs. It now memoizes equal pairs — a depth-30 diamond that used to take seconds is instant.
+- `diff` could go **exponential** on shared-subtree (DAG) inputs. It now memoizes equal pairs, so a depth-30 diamond that used to take seconds is instant.
 - `dereference` could blow the stack on a long `$ref` chain and re-walk in O(N²). It's now iterative with a memoized resolver.
 - `deepEqual` on large Sets was O(n²); primitive-element Sets are now O(n).
 - Cross-realm `Map`/`Set`/`DataView` and `Symbol.toStringTag` spoofs no longer crash `clone` or silently lose data.
 
-And the opt-in **DoS guard** is still there for deeply-nested hostile input — and now reaches every recursive op:
+And the opt-in **DoS guard** is still there for deeply-nested hostile input, and now reaches every recursive op:
 
 ```js
 clone(untrusted, { maxDepth: 1000 }); // catchable RangeError instead of a stack overflow
 deepEqual(a, b, { maxDepth: 1000 });
 ```
 
-The best part: none of this can silently come back. There's a dedicated regression suite for every finding, and the GitHub CI **security gate** runs the prototype-pollution, DoS, type-confusion and isolation suites — plus a strict typecheck — on every pull request. A change that reintroduces any of it fails the PR. The contracts you should respect when handling untrusted input (set `maxDepth`, size-limit `$ref` documents, `freeze(clone(x))` for isolation) are written up in [`SECURITY.md`](https://github.com/PuruVJ/neotraverse/blob/main/SECURITY.md).
+The best part: none of this can silently come back. There's a dedicated regression suite for every finding, and the GitHub CI **security gate** runs the prototype-pollution, DoS, type-confusion and isolation suites (plus a strict typecheck) on every pull request. A change that reintroduces any of it fails the PR. The contracts you should respect when handling untrusted input (set `maxDepth`, size-limit `$ref` documents, `freeze(clone(x))` for isolation) are written up in [`SECURITY.md`](https://github.com/PuruVJ/neotraverse/blob/main/SECURITY.md).
 
 ## 🔧 Toolchain, and one breaking change
 
@@ -158,11 +158,11 @@ The best part: none of this can silently come back. There's a dedicated regressi
 
 ## 📖 And a real docs site
 
-neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). The docs lead with the **modern functional API** as the recommended starting point — that's where the ~50 helpers, the `ctx` argument, and the fastest path ops live. There's a [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), and an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots. The classic `this`-bound API has its own [**Legacy / Classic API**](https://neotraverse.puruvj.dev/legacy) page, where it stays a faithful, untouched drop-in.
+neotraverse finally has a home: [**neotraverse.puruvj.dev**](https://neotraverse.puruvj.dev). The docs lead with the **modern functional API** as the recommended starting point: that's where the ~50 helpers, the `ctx` argument, and the fastest path ops live. There's a [guide](https://neotraverse.puruvj.dev/guide), a [migration walkthrough](https://neotraverse.puruvj.dev/migration), the [benchmarks](https://neotraverse.puruvj.dev/benchmarks), and an [`/llms.txt`](https://neotraverse.puruvj.dev/llms.txt) for the robots. The classic `this`-bound API has its own [**Legacy / Classic API**](https://neotraverse.puruvj.dev/legacy) page, where it stays a faithful, untouched drop-in.
 
 So the rule of thumb is simple:
 
-- **New code →** `import { … } from 'neotraverse/modern'` — functional, tree-shakeable, the whole toolbelt.
+- **New code →** `import { … } from 'neotraverse/modern'`: functional, tree-shakeable, the whole toolbelt.
 - **Existing `traverse` user →** change nothing, you're still a drop-in.
 - **Used the `Traverse` class?** It still works (deprecated), but the standalone functions are where everything new lives.
 
@@ -172,7 +172,7 @@ So the rule of thumb is simple:
 npm install neotraverse@latest
 ```
 
-Still on the original `traverse`? Lovely time to switch — it's a drop-in:
+Still on the original `traverse`? Lovely time to switch, it's a drop-in:
 
 ```diff
 -import traverse from 'traverse';
@@ -181,6 +181,6 @@ Still on the original `traverse`? Lovely time to switch — it's a drop-in:
 
 …and when you want the toolbelt, reach for `neotraverse/modern`.
 
-That's it! Go forth and traverse — safely, fast, and with way more helpers than you probably expected. 💚
+That's it! Go forth and traverse, safely, fast, and with way more helpers than you probably expected. 💚
 
 Bugs or ideas? The repo's [on GitHub](https://github.com/PuruVJ/neotraverse). Catch you in the next one!
