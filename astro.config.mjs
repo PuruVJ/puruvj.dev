@@ -1,4 +1,5 @@
 import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
 import svelte from '@astrojs/svelte';
 import { defineConfig } from 'astro/config';
 import { h } from 'hastscript';
@@ -34,21 +35,23 @@ export default defineConfig({
 				radioactive: 'houston',
 			},
 		},
-		rehypePlugins: [
-			rehype_slug,
-			[
-				rehype_autolink_headings,
-				{
-					behavior: 'prepend',
-					content(node) {
-						return [
-							h('span.visually-hidden', '#'),
-							h('span.icon.icon-link', { ariaHidden: 'true' }),
-						];
+		processor: unified({
+			rehypePlugins: [
+				rehype_slug,
+				[
+					rehype_autolink_headings,
+					{
+						behavior: 'prepend',
+						content(node) {
+							return [
+								h('span.visually-hidden', '#'),
+								h('span.icon.icon-link', { ariaHidden: 'true' }),
+							];
+						},
 					},
-				},
+				],
+				[rehype_external_links, { rel: ['nofollow', 'noopener', 'noreferrer'], target: '_blank' }],
 			],
-			[rehype_external_links, { rel: ['nofollow', 'noopener', 'noreferrer'], target: '_blank' }],
-		],
+		}),
 	},
 });

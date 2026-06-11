@@ -10,37 +10,41 @@
 		"astro": "astro"
 	},
 	"dependencies": {
-		"@fontsource-variable/comfortaa": "^5.1.0",
-		"@fontsource-variable/jetbrains-mono": "^5.1.1",
-		"@fontsource/atkinson-hyperlegible": "^5.1.0",
+		"@fontsource-variable/comfortaa": "^5.2.8",
+		"@fontsource-variable/jetbrains-mono": "^5.2.8",
+		"@fontsource/atkinson-hyperlegible": "^5.2.8",
 		"@mdi/js": "^7.4.47",
-		"astro-og-canvas": "^0.5.5",
-		"astro-tweet": "^0.0.4"
+		"astro-og-canvas": "^0.11.1",
+		"astro-tweet": "^0.0.6"
 	},
 	"devDependencies": {
-		"@astrojs/check": "^0.9.4",
-		"@astrojs/mdx": "^4.0.1",
-		"@astrojs/rss": "^4.0.10",
-		"@astrojs/svelte": "^7.0.1",
-		"astro": "^5.0.3",
-		"canvaskit-wasm": "^0.39.1",
-		"hastscript": "^9.0.0",
-		"lightningcss": "^1.28.2",
+		"@astrojs/check": "^0.9.9",
+		"@astrojs/markdown-remark": "7.2.0",
+		"@astrojs/mdx": "^6.0.2",
+		"@astrojs/rss": "^4.0.18",
+		"@astrojs/svelte": "^8.1.2",
+		"astro": "^6.4.4",
+		"canvaskit-wasm": "^0.41.1",
+		"hastscript": "^9.0.1",
+		"lightningcss": "^1.32.0",
 		"rehype-autolink-headings": "^7.1.0",
 		"rehype-external-links": "^3.0.0",
 		"rehype-slug": "^6.0.0",
-		"sharp": "^0.33.5",
-		"svelte": "^5.7.1",
-		"typescript": "^5.7.2"
+		"sharp": "^0.34.5",
+		"svelte": "^5.56.2",
+		"typescript": "^6.0.3"
 	},
 	"pnpm": {
 		"overrides": {
-			"sharp": "^0.33.4"
+			"sharp": "^0.34.0"
 		},
 		"onlyBuiltDependencies": [
 			"esbuild",
 			"sharp"
-		]
+		],
+		"patchedDependencies": {
+			"astro-tweet@0.0.6": "patches/astro-tweet@0.0.6.patch"
+		}
 	},
 	"packageManager": "pnpm@10.22.0+sha512.bf049efe995b28f527fd2b41ae0474ce29186f7edcb3bf545087bd61fbbebb2bf75362d1307fda09c2d288e1e499787ac12d4fcb617a974718a6051f2eee741c"
 }
