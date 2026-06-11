@@ -8,7 +8,7 @@ Heya friends! 👋 **neotraverse 1.0** is out, and it is the biggest release by 
 
 This release is also a story about setting out to do one thing, realizing it was the wrong thing, and ending up somewhere much bigger. 1.0 is where that ends: the **functional API is now the default export**, the old class is a deprecated side door, and the classic `traverse` drop-in has its own home. Let me tell it properly.
 
-## The plan vs. what actually happened
+## The plan vs. reality
 
 neotraverse always shipped a class. The "modern" build was `new Traverse(obj).map(...)`, with a `ctx` argument and a faster engine. The plan was modest: harden that `Traverse` class against prototype pollution, make it faster, and bolt on a few extra methods (queries, async traversal). I did all of that. And then, staring at the result, I had an annoying realization:
 
@@ -30,7 +30,7 @@ Your bundler keeps only what you import: reach for `get` and you ship `get`, not
 
 And once everything was a plain function instead of a method on one class… it got really tempting to just keep adding functions.
 
-## 🧰 So I built lodash for object trees
+## Lodash for object trees
 
 That's genuinely what this turned into: a **toolbelt of ~50 helpers** for arbitrary object/array/Map/Set trees. A tour:
 
@@ -88,7 +88,7 @@ await mapAsync(doc, async (ctx, x) => {
 
 None of this needs a class, a chain, or a wrapper object. It's just functions you import à la carte.
 
-## 🗺️ Map and Set are first-class now
+## Map and Set, first-class
 
 `clone` used to silently drop `Map`/`Set` entries: a `Map` came back as an empty object wearing the `Map` prototype, the kind of bug you only meet in production. Now `clone` deep-clones them (matching `structuredClone`):
 
@@ -100,7 +100,7 @@ cloned.get('k');       // { n: 1 }, a deep copy
 
 By default `Map`/`Set` are **leaf nodes** during a walk (their keys can be anything, so there's no obvious path to descend). But if you *want* to walk into them, there's a `descendIntoMapSet` option that visits each entry (Map values at their key, Set elements at a numeric index) with full update/writeback support. And array indices in paths are now real **numbers** (`['users', 0, 'email']`), consistent with `parsePath` and `patch`, instead of stringly-typed `'0'`.
 
-## ⚡ ~5× faster than traverse, with 5.5× less memory
+## ~5× faster, 5.5× less memory
 
 Here's the fun bit: hardening and a rewrite usually *cost* performance. This time they bought it. The engine allocates, per node, a single context object (methods on the prototype, not a fresh closure per method) and derives `ctx.path` **lazily** from the parent chain, so the common ops never pay for a path array they don't read. `clone` writes each key exactly once instead of shallow-copying then deep-overwriting; the BFS walker reconstructs paths lazily; `merge` clones lazily instead of cloning the whole target up front; `dereference` resolves in a single pass with memoized `$ref` targets; early-exit queries stop allocating the moment you `stop()`.
 
@@ -112,7 +112,7 @@ A few headline ops vs. `traverse`: `clone` small **10×**, `clone` deep **9.3×*
 
 And because it's tree-shakeable, the "lodash for objects" size scare doesn't apply: the *entire* functional API is ~5.8 KB brotli, but you only ship the functions you import. `get` alone is a rounding error. The interactive throughput **and** memory numbers live on the [benchmarks page](https://neotraverse.puruvj.dev/benchmarks), generated from a committed benchmark and rendered straight from JSON.
 
-## 🔒 A deep, adversarial security audit (now gated in CI)
+## An adversarial security audit, gated in CI
 
 Object-walking libraries are the classic home of **prototype pollution**, so I put the whole thing through a thorough, adversarial audit, the kind where the first answer is "looks safe" and you keep digging anyway. Good thing I did.
 
@@ -148,7 +148,7 @@ deepEqual(a, b, { maxDepth: 1000 });
 
 The best part: none of this can silently come back. There's a dedicated regression suite for every finding, and the GitHub CI **security gate** runs the prototype-pollution, DoS, type-confusion and isolation suites (plus a strict typecheck) on every pull request. A change that reintroduces any of it fails the PR. The contracts you should respect when handling untrusted input (set `maxDepth`, size-limit `$ref` documents, `freeze(clone(x))` for isolation) are written up in [`SECURITY.md`](https://github.com/PuruVJ/neotraverse/blob/main/SECURITY.md).
 
-## 🛡️ `neotraverse/safe`: when "fail safely" isn't enough
+## `neotraverse/safe`: when failing safely isn't enough
 
 That `maxDepth` guard is honest about its limits: it turns a stack overflow into a *catchable error*. But the default engine is **recursive**, which is exactly why it's fast, and a recursive walker fundamentally can't *traverse* a 100,000-level-deep tree. It can only refuse to. Sometimes refusing is right (hostile input). Sometimes you actually need to walk the deep thing.
 
@@ -194,7 +194,7 @@ redacted.profile === payload.profile; // true, untouched subtree shared
 
 I'll be straight about the trade, because that's the whole point of giving it its own entry instead of swapping the default: on a **full eager scan** `/safe` runs at ~0.8× the default (still ~4× faster than the original `traverse`), and if you materialize the *entire* tree it uses a bit *more* memory (one record per node). It is not a free upgrade. It's the right tool when the input is **deep, untrusted, huge, or only partially consumed**, and the wrong one for a quick full pass over trusted, bounded data. Same engine philosophy as the rest of 1.0: pick the entry that matches the job. The full story and the honest trade-off table are in the [`/safe` guide](https://neotraverse.puruvj.dev/guide/safe).
 
-## 🧭 Four entry points, one clear rule
+## Four entry points, one rule
 
 1.0 draws clean lines. There are four ways in, and each has one job:
 
@@ -203,7 +203,7 @@ I'll be straight about the trade, because that's the whole point of giving it it
 - **`neotraverse/modern`** is *only* the deprecated `Traverse` class, kept so existing `import { Traverse } from 'neotraverse/modern'` doesn't break. It is trimmed to exactly the legacy method set (`get`/`has`/`set`/`map`/`forEach`/`reduce`/`paths`/`nodes`/`clone`) and **will be removed in v2**. Reach for the functions instead.
 - **`neotraverse/legacy`** is the classic, `this`-bound, `traverse`-compatible **drop-in** (ES2015, CJS + ESM). If you came from the original `traverse`, this is your one-line swap.
 
-## ❓ Will the legacy build get the security and perf work?
+## Will legacy get the security and perf work?
 
 No, and that's deliberate.
 
