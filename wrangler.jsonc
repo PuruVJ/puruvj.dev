@@ -1,0 +1,16 @@
+{
+	"$schema": "https://unpkg.com/wrangler@4.159.0/config-schema.json",
+	"name": "puruvj-dev",
+	"compatibility_date": "2026-11-01",
+	"assets": {
+		"directory": "dist",
+		"html_handling": "auto-trailing-slash",
+		"not_found_handling": "404-page"
+	},
+	"routes": [
+		{ "pattern": "puruvj.dev/*", "zone_name": "puruvj.dev" },
+		{ "pattern": "www.puruvj.dev/*", "zone_name": "puruvj.dev" }
+	],
+	"workers_dev": true,
+	"preview_urls": true
+}
