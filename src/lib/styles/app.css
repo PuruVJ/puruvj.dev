@@ -4,13 +4,15 @@
 @import '@fontsource/ibm-plex-mono/500.css';
 @import '@fontsource/ibm-plex-mono/600.css';
 
-/* ---------- tokens: paper and ink ---------- */
+/* ---------- tokens: paper and ink ----------
+   ink-2 and ink-3 are the quiet text. both stay at or above 4.5:1 on paper and paper-2,
+   in light and dark, so small grey labels are still easy to read. */
 :root {
 	--paper: #f4f3ef;
 	--paper-2: #ebeae4;
 	--ink: #0d0d0c;
 	--ink-2: #4a4a47;
-	--ink-3: #8a8983;
+	--ink-3: #686760;
 	--rule: #0d0d0c;
 	--hair: rgba(13, 13, 12, 0.12);
 	--hill-2: #cfccc4;
@@ -26,8 +28,8 @@
 		--paper: #0f0f0e;
 		--paper-2: #181817;
 		--ink: #ecebe6;
-		--ink-2: #b3b2ac;
-		--ink-3: #77766f;
+		--ink-2: #c0bfb9;
+		--ink-3: #94938c;
 		--rule: #3a3a37;
 		--hair: rgba(236, 235, 230, 0.1);
 		--hill-2: #2e2e2b;
@@ -39,8 +41,8 @@
 	--paper: #0f0f0e;
 	--paper-2: #181817;
 	--ink: #ecebe6;
-	--ink-2: #b3b2ac;
-	--ink-3: #77766f;
+	--ink-2: #c0bfb9;
+	--ink-3: #94938c;
 	--rule: #3a3a37;
 	--hair: rgba(236, 235, 230, 0.1);
 	--hill-2: #2e2e2b;

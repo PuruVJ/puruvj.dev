@@ -27,6 +27,6 @@ function theme(name: string, type: 'light' | 'dark', c: Ink) {
 }
 
 export const ink = {
-	light: theme('ink-light', 'light', { fg: '#0d0d0c', mid: '#5f5e5a', dim: '#8a8983' }),
-	dark: theme('ink-dark', 'dark', { fg: '#ecebe6', mid: '#a9a8a2', dim: '#77766f' }),
+	light: theme('ink-light', 'light', { fg: '#0d0d0c', mid: '#5f5e5a', dim: '#66655f' }),
+	dark: theme('ink-dark', 'dark', { fg: '#ecebe6', mid: '#a9a8a2', dim: '#94938c' }),
 };
