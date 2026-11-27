@@ -143,6 +143,12 @@
 	.map :global(.st:hover .mark) {
 		stroke-width: 2.4;
 	}
+	/* svg text keeps its ink fill when selected, so the site's solid ink highlight would hide it:
+	   the map's labels get a light highlight instead */
+	.map :global(text::selection),
+	.map :global(tspan::selection) {
+		background: color-mix(in srgb, var(--ink) 18%, transparent);
+	}
 	.map :global(.lbl) {
 		font-family: var(--mono);
 		font-size: 11px;

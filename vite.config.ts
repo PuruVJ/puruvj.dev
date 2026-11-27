@@ -7,7 +7,10 @@ import { rehypeQuiet } from './src/lib/rehype-quiet.ts';
 
 export default defineConfig({
 	plugins: [
-		ogygia(),
+		// plain page loads: every page is prerendered html, and hover prefetch (speculation rules in
+		// +layout.svelte) makes them instant. the in-place router swapped pages before their own css
+		// arrived, which flashed unstyled content mid-fade.
+		ogygia({ router: false }),
 		content({
 			markdown: {
 				themes: ink,
