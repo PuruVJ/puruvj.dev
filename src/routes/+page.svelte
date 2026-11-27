@@ -16,7 +16,7 @@
 
 <svelte:head>
 	<title>puru vijayvargia</title>
-	<meta name="description" content="puru vijayvargia makes small, fast things for the web. on the svelte team." />
+	<meta name="description" content="i make small, fast things for the web. on the svelte team." />
 	<meta property="og:title" content="puru vijayvargia" />
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>

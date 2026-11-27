@@ -6,10 +6,6 @@
 	let { data } = $props();
 	const s = $derived(data.stats);
 	const max = $derived(Math.max(...data.rows.map((r) => r.downloads ?? 0), 1));
-	const when = $derived(s ? new Date(s.fetchedAt) : null);
-	const stamp = $derived(
-		when ? `${when.toISOString().slice(0, 10).replaceAll('-', '.')} ${when.toISOString().slice(11, 16)} utc` : 'never',
-	);
 	// a log scale keeps 3.6k visible next to 389m
 	const bar = (n: number) => (Math.log10(Math.max(n, 1)) / Math.log10(max)) * 100;
 </script>
@@ -17,7 +13,7 @@
 <Shell
 	here="/stats"
 	title="stats · puru vijayvargia"
-	description="live numbers: all-time npm downloads, github stars and lines of code across puru's projects."
+	description="live numbers: all-time npm downloads, github stars and lines of code across my projects."
 	md="/stats.md"
 >
 	<header class="b hero">
@@ -27,25 +23,13 @@
 		</div>
 		<p class="big num">{s?.npm ? full(s.npm.total) : '–'}</p>
 		<p class="lede">
-			every download of every package puru maintains on npm, since the first one. counted again once a
-			day.
+			every download of every package i maintain on npm, since the very first one.
 		</p>
 		{#if data.graphs.npm}<Graph g={data.graphs.npm} />{/if}
 	</header>
-	<aside class="b meta">
-		<div class="h"><span><span class="n">02</span>how this works</span></div>
-		<p>
-			each build asks npm and github, then keeps the answer for a day so every deploy shares one count.
-			if an api is down, the last good number stays.
-		</p>
-		<dl class="mono">
-			<div><dt>counted</dt><dd>{stamp}</dd></div>
-			<div><dt>sources</dt><dd>api.npmjs.org, api.github.com</dd></div>
-		</dl>
-	</aside>
 
 	<section class="b projects">
-		<div class="h"><span><span class="n">03</span>by project</span><span>log scale</span></div>
+		<div class="h"><span><span class="n">02</span>by project</span></div>
 		<ol>
 			{#each data.rows as r (r.title)}
 				<li>
@@ -59,23 +43,23 @@
 	</section>
 
 	<section class="b cell">
-		<div class="h"><span><span class="n">04</span>github stars</span></div>
+		<div class="h"><span><span class="n">03</span>github stars</span></div>
 		<p class="mid num">{s?.github ? full(s.github.stars) : '–'}</p>
-		<p class="sub mono">across {s?.github?.repos ?? '–'} repos, forks left out</p>
+		<p class="sub mono">across {s?.github?.repos ?? '–'} repos</p>
 		{#if data.graphs.stars}<Graph g={data.graphs.stars} />{/if}
 	</section>
 	<section class="b cell">
-		<div class="h"><span><span class="n">05</span>lines written</span></div>
+		<div class="h"><span><span class="n">04</span>lines written</span></div>
 		<p class="mid num">{s?.code ? `+${short(s.code.additions)}` : '–'}</p>
 		<p class="sub mono">
-			{#if s?.code}−{short(s.code.deletions)} deleted, net {short(s.code.additions - s.code.deletions)}{:else}needs a github token{/if}
+			{#if s?.code}−{short(s.code.deletions)} deleted, net {short(s.code.additions - s.code.deletions)}{/if}
 		</p>
 		{#if data.graphs.lines}<Graph g={data.graphs.lines} />{/if}
 	</section>
 	<section class="b cell">
-		<div class="h"><span><span class="n">06</span>commits</span></div>
+		<div class="h"><span><span class="n">05</span>commits</span></div>
 		<p class="mid num">{s?.code ? full(s.code.commits) : '–'}</p>
-		<p class="sub mono">to puru's own repos, as counted by github</p>
+		<p class="sub mono">to my own repos</p>
 		{#if data.graphs.commits}<Graph g={data.graphs.commits} />{/if}
 	</section>
 </Shell>
@@ -92,7 +76,7 @@
 		overflow: clip;
 	}
 	.hero {
-		grid-column: 1 / 3;
+		grid-column: 1 / -1;
 		padding-bottom: 36px;
 	}
 	.big {
@@ -108,27 +92,6 @@
 		margin-top: 26px;
 		max-width: 46ch;
 	}
-	.meta p {
-		margin-top: auto;
-		font-size: 15px;
-		line-height: 1.5;
-		color: var(--ink-2);
-		max-width: 36ch;
-	}
-	.meta dl {
-		margin-top: 22px;
-		display: flex;
-		flex-direction: column;
-		gap: 10px;
-		font-size: 11px;
-	}
-	.meta dt {
-		color: var(--ink-3);
-	}
-	.meta dd {
-		margin-top: 2px;
-	}
-
 	.projects {
 		grid-column: 1 / -1;
 		padding-bottom: 30px;
@@ -199,7 +162,6 @@
 
 	@media (max-width: 760px) {
 		.hero,
-		.meta,
 		.cell {
 			grid-column: 1 / -1;
 		}

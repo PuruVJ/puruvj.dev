@@ -9,7 +9,7 @@
 <Shell
 	here="/blog"
 	title="writing · puru vijayvargia"
-	description="everything puru has written about the web, svelte, typescript and life, since 2020."
+	description="everything i've written about the web, svelte, typescript and life, since 2020."
 	md="/blog.md"
 >
 	<header class="b intro">

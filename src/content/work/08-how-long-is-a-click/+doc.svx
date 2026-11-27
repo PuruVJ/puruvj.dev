@@ -11,4 +11,4 @@ lines: [svelte]
 stats: how-long-is-a-click
 ---
 
-How long is a click? A fun way to learn how fast you actually click, versus how fast you **thinkg** you clicked.
+How long is a click? A fun way to learn how fast you actually click, versus how fast you **think** you clicked.

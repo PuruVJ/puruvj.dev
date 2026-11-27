@@ -22,7 +22,7 @@
 <Shell
 	here="/career"
 	title="career · puru vijayvargia"
-	description="where puru has worked: schneider electric, the svelte team, beyonk, clockwork labs, stackblitz and more."
+	description="where i've worked: schneider electric, the svelte team, beyonk, clockwork labs, stackblitz and more."
 	md="/career.md"
 >
 	<header class="b intro">

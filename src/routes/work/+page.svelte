@@ -11,7 +11,7 @@
 <Shell
 	here="/work"
 	title="work · puru vijayvargia"
-	description="puru's projects: ogygia, neosanitize, heisenbench, neotraverse, neodrag, neoconfetti, macos web and more."
+	description="things i've made: ogygia, neosanitize, heisenbench, neotraverse, neodrag, neoconfetti, macos web and more."
 	md="/work.md"
 >
 	<header class="b intro">

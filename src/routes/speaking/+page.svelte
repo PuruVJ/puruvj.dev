@@ -10,7 +10,7 @@
 <Shell
 	here="/speaking"
 	title="talks · puru vijayvargia"
-	description="talks and podcasts by puru: svelte summit, react india, svelte radio and more."
+	description="my talks and podcasts: svelte summit, react india, svelte radio and more."
 	md="/speaking.md"
 >
 	<header class="b intro">
