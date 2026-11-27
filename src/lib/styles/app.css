@@ -48,6 +48,21 @@
 	color-scheme: dark;
 }
 
+/* the theme switch crossfades the whole page (see theme_toggle in $lib/site.ts) */
+/* the old page holds still and the new one fades in over it, so text never shows twice */
+::view-transition-old(root) {
+	animation: none;
+}
+::view-transition-new(root) {
+	animation: theme-in 420ms cubic-bezier(0.4, 0, 0.2, 1);
+	mix-blend-mode: normal;
+}
+@keyframes theme-in {
+	from {
+		opacity: 0;
+	}
+}
+
 /* ---------- reset ---------- */
 *,
 *::before,

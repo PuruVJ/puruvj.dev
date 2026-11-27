@@ -34,7 +34,10 @@ export const theme_toggle = () =>
 			try {
 				localStorage.setItem('og-pref-theme', next);
 			} catch {}
-			root.setAttribute('data-pref-theme', next);
+			const flip = () => root.setAttribute('data-pref-theme', next);
+			// a soft crossfade where the browser can do it; instant for reduced motion
+			if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) flip();
+			else document.startViewTransition(flip);
 		});
 	});
 
