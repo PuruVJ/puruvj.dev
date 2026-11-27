@@ -28,8 +28,8 @@
 	<aside class="b side">
 		<div class="h"><span>hint</span></div>
 		<p>
-			a renamed post keeps its old address. if a link here is broken, tell me at
-			<a class="u" href="mailto:devpuruvj@gmail.com">devpuruvj@gmail.com</a> and i will add the lemma.
+			a renamed post keeps its old address. if a link here is broken,
+			<a class="u" href="https://x.com/puruvjdev">drop me a dm on x</a> and i will add the lemma.
 		</p>
 		<i class="clay banana" aria-hidden="true"></i>
 	</aside>

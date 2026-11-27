@@ -24,6 +24,7 @@
 	title="{low(data.title)} · puru vijayvargia"
 	description={data.description}
 	md="/blog/{data.slug}.md"
+	reading
 >
 	<!-- hero: the title runs across columns 1 and 2, the facts sit in column 3 -->
 	<header class="b head">
@@ -112,9 +113,9 @@
 </Shell>
 
 <style>
-	/* the post locks to the header's three columns:
-	   1 contents · 2 the text · 3 the margin. below 1300px column 2 is too narrow to read in,
-	   so the text takes 2 and 3 and the margin's links move to a row at the end. */
+	/* the post locks to the header's three columns, with the middle one doubled (Shell's
+	   reading mode): 1 contents · 2 the text · 3 the margin. below 1300px the text takes 2 and 3
+	   and the margin's links move to a row at the end. */
 	.head {
 		grid-column: 1 / 3;
 		padding-bottom: 40px;
@@ -131,8 +132,7 @@
 	}
 	.head .lede {
 		margin-top: 26px;
-		/* one column wide: the dek ends where column 2's text would */
-		max-width: min(48ch, calc(50% - 0.5px));
+		max-width: 52ch;
 	}
 	.meta {
 		grid-column: 3;
@@ -199,19 +199,15 @@
 		padding-bottom: 80px;
 		container-type: inline-size;
 	}
-	/* in one third of the page: a slightly smaller face so the column holds a fair line */
+	/* the doubled middle column: full-size text, a comfortable line, and code blocks that stay
+	   inside the column with their own padding */
 	.body .prose {
-		font-size: 16.5px;
-		--measure: none;
+		font-size: 18px;
+		--measure: 40em;
 	}
-	/* code bleeds across the rule into the margin column, to column 3's text edge, and sits
-	   over the margin as it scrolls past */
 	.body .prose :global(pre) {
-		position: relative;
-		z-index: 2;
-		margin-right: calc(-100cqw - 2 * var(--pad) - 1px);
-		font-size: 12.5px;
-		padding: 16px 18px;
+		font-size: 13px;
+		padding: 18px 22px;
 	}
 
 	.rail {

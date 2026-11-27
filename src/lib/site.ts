@@ -1,11 +1,13 @@
 import { preference, script } from 'ogygia';
 
 export const SITE = 'https://puruvj.dev';
-export const EMAIL = 'devpuruvj@gmail.com';
+/** the way to reach me: a dm on x */
+export const DM = 'https://x.com/puruvjdev';
 
 export const ELSEWHERE = [
 	{ name: 'github', href: 'https://github.com/puruvj' },
 	{ name: 'x', href: 'https://x.com/puruvjdev' },
+	{ name: 'bluesky', href: 'https://bsky.app/profile/puruvj.dev' },
 	{ name: 'dev.to', href: 'https://dev.to/puruvj' },
 	{ name: 'rss', href: '/rss.xml' },
 ];

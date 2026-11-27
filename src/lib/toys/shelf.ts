@@ -25,7 +25,7 @@ type Def = {
 };
 
 const DEFS: Def[] = [
-	{ id: 'duck', label: 'a duck. say hi →', href: 'mailto:devpuruvj@gmail.com', build: T.duck, at: 0.06, turn: 0.5, phone: true, upright: 0.7, face: true, scale: 1.7 },
+	{ id: 'duck', label: 'a duck. dm me on x ↗', href: 'https://x.com/puruvjdev', build: T.duck, at: 0.06, turn: 0.5, phone: true, upright: 0.7, face: true, scale: 1.7 },
 	{ id: 'die-w', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.white, at: 0.15, z: 0.3, turn: 0.5, phone: true, scale: 1.45 },
 	{ id: 'die-r', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.red, at: 0.185, z: -0.4, turn: -0.3, scale: 1.45 },
 	{ id: 'banana', label: 'just a banana.', build: T.banana, at: 0.29, turn: 0.2, phone: true, scale: 1.35 },
@@ -373,8 +373,12 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		}
 		shown = t;
 		label.textContent = t.label;
-		if (t.href) label.href = t.href;
-		else label.removeAttribute('href');
+		if (t.href) {
+			label.href = t.href;
+			// outside links open in a new tab, like every other one on the site
+			if (/^https?:/.test(t.href)) Object.assign(label, { target: '_blank', rel: 'noopener' });
+			else label.removeAttribute('target');
+		} else label.removeAttribute('href');
 		label.classList.add('on');
 		place_label();
 	}

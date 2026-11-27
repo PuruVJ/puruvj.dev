@@ -3,7 +3,7 @@ import { posts, projects, talks } from './content.server.ts';
 import { read_stats } from './stats/source.server.ts';
 import { project_numbers } from './project-stats.ts';
 import { CAREER, span } from './career.ts';
-import { EMAIL, ELSEWHERE, SITE } from './site.ts';
+import { DM, ELSEWHERE, SITE } from './site.ts';
 import { full } from './numbers.ts';
 
 const link = (l: { name: string; href: string }) => `[${l.name}](${l.href.startsWith('/') ? SITE + l.href : l.href})`;
@@ -25,7 +25,7 @@ ${s?.npm ? `- ${full(s.npm.total)} npm downloads, all time: ${SITE}/stats.md\n` 
 
 ## say hi
 
-${EMAIL} · ${ELSEWHERE.map(link).join(' · ')}
+[drop me a dm on x](${DM}) · ${ELSEWHERE.map(link).join(' · ')}
 `;
 }
 

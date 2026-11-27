@@ -3,15 +3,16 @@
 	import Clock from './Clock.svelte' with { wake: 'idle' };
 	import ThemeSwitch from './ThemeSwitch.svelte';
 	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
-	import { NAV, ELSEWHERE, EMAIL } from '$lib/site.ts';
+	import { NAV, ELSEWHERE, DM } from '$lib/site.ts';
 
 	let {
 		here = '',
 		title,
 		description,
 		md,
+		reading = false,
 		children,
-	}: { here?: string; title: string; description: string; md?: string; children: Snippet } = $props();
+	}: { here?: string; title: string; description: string; md?: string; reading?: boolean; children: Snippet } = $props();
 </script>
 
 <svelte:head>
@@ -22,7 +23,7 @@
 	{#if md}<link rel="alternate" type="text/markdown" href={md} />{/if}
 </svelte:head>
 
-<div class="sheet page">
+<div class="sheet page" class:reading>
 	<header class="b top-id">
 		<a href="/" class="name">puru vijayvargia</a>
 	</header>
@@ -43,7 +44,7 @@
 
 	<footer class="b foot-mail">
 		<div class="h"><span>say hi</span></div>
-		<a class="mail hov" href="mailto:{EMAIL}">{EMAIL}</a>
+		<a class="mail hov" href={DM}>drop me a dm on x</a>
 	</footer>
 	<div class="b foot-links">
 		<div class="h"><span>elsewhere</span></div>
@@ -69,6 +70,13 @@
 		min-height: 100dvh;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
 		grid-template-rows: auto 1fr auto auto;
+	}
+	/* a page made for reading (a post): the middle column is twice as wide, header included,
+	   so the text gets a real measure and every rule still lines up top to bottom */
+	@media (min-width: 1300px) {
+		.page.reading {
+			grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
+		}
 	}
 	/* the page's own blocks sit on the same three columns; when there is spare height, every
 	   row of blocks grows a little, so the ruled lines run straight down to the footer */

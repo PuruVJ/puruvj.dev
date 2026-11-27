@@ -5,7 +5,7 @@
 	import ThemeSwitch from '$lib/components/ThemeSwitch.svelte';
 	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
 	import { CAREER, span } from '$lib/career.ts';
-	import { EMAIL, ELSEWHERE, ym, low } from '$lib/site.ts';
+	import { DM, ELSEWHERE, ym, low } from '$lib/site.ts';
 	import { short } from '$lib/numbers.ts';
 
 	let { data } = $props();
@@ -80,7 +80,7 @@
 
 	<section class="b b-mail">
 		<header class="h"><span><span class="n">06</span>say hi</span></header>
-		<a class="mail" href="mailto:{EMAIL}">{EMAIL}</a>
+		<a class="mail" href={DM}>drop me a dm on x</a>
 		<div class="elsewhere">
 			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a class="ln" href={l.href}>{l.name}</a>{/each}
 		</div>
