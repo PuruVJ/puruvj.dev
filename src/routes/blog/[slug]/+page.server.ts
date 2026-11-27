@@ -23,6 +23,7 @@ export const load = async ({ params }) => {
 		title: view.entry.data.title,
 		description: view.entry.data.description,
 		date: me.date,
+		edit: `https://github.com/puruvj/puruvj.dev/edit/main/src/content/blog/${me.date}-${params.slug}/+doc.svx`,
 		minutes: me.minutes,
 		series: me.series ? { name: SERIES[me.series], posts: series } : null,
 		headings: view.headings.filter((h) => h.depth <= 3),

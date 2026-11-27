@@ -139,6 +139,12 @@
 		max-width: 38ch;
 	}
 
+	@media (min-width: 761px) and (max-width: 1100px) {
+		.top-nav {
+			gap: 16px;
+			font-size: 14px;
+		}
+	}
 	@media (max-width: 760px) {
 		.page {
 			grid-template-columns: minmax(0, 1fr) auto;
