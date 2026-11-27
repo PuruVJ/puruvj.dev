@@ -86,7 +86,10 @@ export async function get_stats(
 		const merged: Stats = {
 			fetchedAt: whole ? next.fetchedAt : (cached?.fetchedAt ?? new Date(0).toISOString()),
 			npm: next.npm ?? cached?.npm ?? null,
-			github: next.github ?? cached?.github ?? null,
+			// without a token the stars come back undated: keep the last dated series
+			github: next.github
+				? { ...next.github, starMonths: next.github.starMonths ?? cached?.github?.starMonths ?? null }
+				: (cached?.github ?? null),
 			code: next.code ?? cached?.code ?? null,
 		};
 		for (const store of stores()) {

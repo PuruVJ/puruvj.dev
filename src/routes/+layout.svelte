@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '$lib/styles/app.css';
-	import { theme, theme_toggle } from '$lib/site.ts';
+	import { theme, theme_toggle, js_flag } from '$lib/site.ts';
 	// the two faces every page paints first. the same files app.css pulls in, so vite gives them
 	// the same hashed url and the preload is the request the css later reuses.
 	import sans from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-standard-normal.woff2?url';
@@ -14,6 +14,7 @@
 	<link rel="preload" href={mono} as="font" type="font/woff2" crossorigin="anonymous" />
 	{@html theme.head()}
 	{@html theme_toggle()}
+	{@html js_flag()}
 </svelte:head>
 
 {@render children()}

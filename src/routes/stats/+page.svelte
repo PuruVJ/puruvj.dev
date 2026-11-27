@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Shell from '$lib/components/Shell.svelte';
 	import { short, full } from '$lib/numbers.ts';
+	import Graph from '$lib/stats/Graph.svelte' with { wake: 'visible' };
 
 	let { data } = $props();
 	const s = $derived(data.stats);
@@ -29,6 +30,7 @@
 			every download of every package puru maintains on npm, since the first one. counted again once a
 			day.
 		</p>
+		{#if data.graphs.npm}<Graph g={data.graphs.npm} />{/if}
 	</header>
 	<aside class="b meta">
 		<div class="h"><span><span class="n">02</span>how this works</span></div>
@@ -60,6 +62,7 @@
 		<div class="h"><span><span class="n">04</span>github stars</span></div>
 		<p class="mid num">{s?.github ? full(s.github.stars) : '–'}</p>
 		<p class="sub mono">across {s?.github?.repos ?? '–'} repos, forks left out</p>
+		{#if data.graphs.stars}<Graph g={data.graphs.stars} />{/if}
 	</section>
 	<section class="b cell">
 		<div class="h"><span><span class="n">05</span>lines written</span></div>
@@ -67,15 +70,27 @@
 		<p class="sub mono">
 			{#if s?.code}−{short(s.code.deletions)} deleted, net {short(s.code.additions - s.code.deletions)}{:else}needs a github token{/if}
 		</p>
+		{#if data.graphs.lines}<Graph g={data.graphs.lines} />{/if}
 	</section>
 	<section class="b cell">
 		<div class="h"><span><span class="n">06</span>commits</span></div>
 		<p class="mid num">{s?.code ? full(s.code.commits) : '–'}</p>
 		<p class="sub mono">to puru's own repos, as counted by github</p>
+		{#if data.graphs.commits}<Graph g={data.graphs.commits} />{/if}
 	</section>
 </Shell>
 
 <style>
+	/* the number and its words sit over the graph */
+	.hero > :not(:global(.graph)),
+	.cell > :not(:global(.graph)) {
+		position: relative;
+		z-index: 1;
+	}
+	.hero,
+	.cell {
+		overflow: clip;
+	}
 	.hero {
 		grid-column: 1 / 3;
 		padding-bottom: 36px;

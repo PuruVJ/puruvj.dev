@@ -41,6 +41,9 @@ export const theme_toggle = () =>
 		});
 	});
 
+/** marks the page as scripted before paint, so css can hold back things js will reveal */
+export const js_flag = () => script(() => document.documentElement.classList.add('js'));
+
 /** 2026-06-05 -> 2026.06 */
 export const ym = (d: string) => d.slice(0, 7).replace('-', '.');
 /** 2026-06-05 -> 06.05 */
