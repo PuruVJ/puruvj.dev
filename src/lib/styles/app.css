@@ -277,19 +277,19 @@ ul {
 	--night: url(/clay/computer-dark.webp);
 }
 .clay.papers {
-	width: 127px;
-	height: 44px;
+	width: 123px;
+	height: 43px;
 	--day: url(/clay/papers.webp);
 	--night: url(/clay/papers-dark.webp);
 }
 .clay.duck {
 	width: 114px;
-	height: 89px;
+	height: 80px;
 	--day: url(/clay/duck.webp);
 	--night: url(/clay/duck-dark.webp);
 }
 .clay.mic {
-	width: 101px;
+	width: 67px;
 	height: 94px;
 	--day: url(/clay/mic.webp);
 	--night: url(/clay/mic-dark.webp);
@@ -301,8 +301,8 @@ ul {
 	--night: url(/clay/dice-dark.webp);
 }
 .clay.banana {
-	width: 139px;
-	height: 47px;
+	width: 134px;
+	height: 46px;
 	--day: url(/clay/banana.webp);
 	--night: url(/clay/banana-dark.webp);
 }
