@@ -26,7 +26,7 @@
 		<header class="h"><span><span class="n">01</span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
 		<Mountain />
 		<h1 class="display">
-			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru, in a hat and blue sunglasses, waving" /><br />vijayvargia
+			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
 		</h1>
 		<p class="lede intro">
 			frontend engineer at schneider electric, on the svelte core team. i make small, fast open source
