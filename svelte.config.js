@@ -12,7 +12,7 @@ const config = {
 		adapter: adapter(),
 		prerender: {
 			origin: 'https://puruvj.dev',
-			entries: ['*'],
+			entries: ['*', '/404'],
 		},
 	},
 };

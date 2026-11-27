@@ -20,6 +20,8 @@ export type Stats = {
 	fetchedAt: string;
 	npm: {
 		total: number;
+		/** the last day counted (yyyy-mm-dd): the next count only adds the days after it */
+		through: string;
 		packages: Record<string, number>;
 		groups: Record<string, number>;
 	} | null;
@@ -94,11 +96,14 @@ export async function npm_packages(): Promise<string[]> {
 const DAY = 86_400_000;
 const iso = (t: number) => new Date(t).toISOString().slice(0, 10);
 
-/** date windows, newest first, each at most `days` long, back to 2015-01-10 (npm's first data) */
-function windows(days: number): [string, string][] {
+/** yesterday: the newest day npm has a full count for */
+const last_day = () => iso(Date.now() - DAY);
+
+/** date windows, newest first, each at most `days` long, from `since` (npm's first data by default) to yesterday */
+function windows(days: number, since = '2015-01-10'): [string, string][] {
 	const out: [string, string][] = [];
-	const start = Date.parse('2015-01-10');
-	let end = Date.now() - DAY;
+	const start = Date.parse(since);
+	let end = Date.parse(last_day());
 	while (end >= start) {
 		const from = Math.max(start, end - (days - 1) * DAY);
 		out.push([iso(from), iso(end)]);
@@ -153,14 +158,46 @@ function in_group(pkg: string, patterns: string[]) {
 	return patterns.some((p) => (p.endsWith('/*') ? pkg.startsWith(p.slice(0, -1)) : pkg === p));
 }
 
-export async function npm_stats(log: Log): Promise<NonNullable<Stats['npm']>> {
+/**
+ * Downloads since the last count, added to it: one call per scoped package and one bulk call for
+ * the rest, instead of the whole history. Packages without a last count get the full walk.
+ */
+async function since_last(prev: NonNullable<Stats['npm']>, pkgs: string[], log: Log) {
+	const from = iso(Date.parse(prev.through) + DAY);
+	const to = last_day();
+	const packages: Record<string, number> = {};
+	const known = pkgs.filter((p) => p in prev.packages);
+	for (const p of known) packages[p] = prev.packages[p];
+	if (from <= to) {
+		const days = (Date.parse(to) - Date.parse(from)) / DAY + 1;
+		if (days > 365) return null; // too far behind for one window: count everything again
+		const plain = known.filter((p) => !p.startsWith('@'));
+		for (let i = 0; i < plain.length; i += 128) {
+			const batch = plain.slice(i, i + 128);
+			const r = await get_json(`https://api.npmjs.org/downloads/range/${from}:${to}/${batch.join(',')}`);
+			for (const p of batch) packages[p] += sum(batch.length === 1 ? r?.downloads : r?.[p]?.downloads);
+		}
+		for (const p of known.filter((p) => p.startsWith('@'))) {
+			const r = await get_json(`https://api.npmjs.org/downloads/range/${from}:${to}/${p}`);
+			packages[p] += sum(r?.downloads);
+		}
+	}
+	const fresh = pkgs.filter((p) => !(p in prev.packages));
+	if (fresh.length) log(`npm: ${fresh.length} new packages, counting their whole history`);
+	Object.assign(packages, await all_time_bulk(fresh.filter((p) => !p.startsWith('@'))));
+	for (const p of fresh.filter((p) => p.startsWith('@'))) packages[p] = await all_time(p);
+	return packages;
+}
+
+export async function npm_stats(log: Log, prev?: Stats['npm']): Promise<NonNullable<Stats['npm']>> {
 	const pkgs = await npm_packages();
-	log(`npm: ${pkgs.length} packages`);
-	const scoped = pkgs.filter((p) => p.startsWith('@'));
-	const plain = pkgs.filter((p) => !p.startsWith('@'));
-	const packages: Record<string, number> = await all_time_bulk(plain);
-	const counts = await pool(scoped, 1, all_time);
-	scoped.forEach((p, i) => (packages[p] = counts[i]));
+	log(`npm: ${pkgs.length} packages${prev?.through ? `, adding the days since ${prev.through}` : ', counting every day since 2015'}`);
+	let packages = prev?.through ? await since_last(prev, pkgs, log) : null;
+	if (!packages) {
+		const scoped = pkgs.filter((p) => p.startsWith('@'));
+		packages = await all_time_bulk(pkgs.filter((p) => !p.startsWith('@')));
+		for (const p of scoped) packages[p] = await all_time(p);
+	}
 	const groups: Record<string, number> = {};
 	for (const [g, pats] of Object.entries(GROUPS)) {
 		groups[g] = Object.entries(packages)
@@ -169,7 +206,7 @@ export async function npm_stats(log: Log): Promise<NonNullable<Stats['npm']>> {
 	}
 	const total = Object.values(packages).reduce((a, b) => a + b, 0);
 	log(`npm: ${total.toLocaleString()} downloads, all time`);
-	return { total, packages, groups };
+	return { total, packages, groups, through: last_day() };
 }
 
 // ---------- github ----------
@@ -246,7 +283,7 @@ export async function code_stats(log: Log, all?: Repo[]): Promise<NonNullable<St
 }
 
 /** everything, section by section. a failed section comes back null. */
-export async function compute(log: Log = console.log): Promise<Stats> {
+export async function compute(log: Log = console.log, prev?: Stats | null): Promise<Stats> {
 	const safe = async <T>(name: string, fn: () => Promise<T>): Promise<T | null> => {
 		try {
 			return await fn();
@@ -257,7 +294,7 @@ export async function compute(log: Log = console.log): Promise<Stats> {
 	};
 	const list = await safe('github repos', repos);
 	const [npm, github, code] = await Promise.all([
-		safe('npm', () => npm_stats(log)),
+		safe('npm', () => npm_stats(log, prev?.npm)),
 		list ? safe('github', () => github_stats(log, list)) : null,
 		// the contributor stats cost one call per repo: only with a token (60 calls an hour without)
 		list && process.env.GITHUB_TOKEN ? safe('code', () => code_stats(log, list)) : null,

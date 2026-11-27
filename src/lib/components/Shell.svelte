@@ -60,7 +60,6 @@
 <style>
 	.page {
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-		min-height: 100vh;
 		grid-auto-rows: auto;
 		align-content: start;
 	}

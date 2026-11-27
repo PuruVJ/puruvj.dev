@@ -71,7 +71,7 @@ async function read_any(log: (m: string) => void): Promise<Stats | null> {
  * Sections that fail now keep their last good value. `force` skips the cache.
  */
 export async function get_stats(
-	opts: { force?: boolean; readOnly?: boolean; log?: (m: string) => void } = {},
+	opts: { force?: boolean; full?: boolean; readOnly?: boolean; log?: (m: string) => void } = {},
 ): Promise<Stats | null> {
 	const log = opts.log ?? ((m: string) => console.log(`[stats] ${m}`));
 	try {
@@ -79,7 +79,8 @@ export async function get_stats(
 		if (!opts.force && fresh(cached)) return cached;
 		if (opts.readOnly || process.env.PURU_STATS === 'off') return cached;
 		log('stats: older than a day, counting again');
-		const next = await compute(log);
+		// npm downloads only add the days since the last count, unless `full` asks for the whole history
+		const next = await compute(log, opts.full ? null : cached);
 		// a section that failed is retried on the next build, so only a full result counts as fresh
 		const whole = !!next.npm && !!next.github;
 		const merged: Stats = {
