@@ -2,6 +2,7 @@
 	import type { Snippet } from 'svelte';
 	import Clock from './Clock.svelte' with { wake: 'idle' };
 	import ThemeSwitch from './ThemeSwitch.svelte';
+	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
 	import { NAV, ELSEWHERE, EMAIL } from '$lib/site.ts';
 
 	let {
@@ -37,6 +38,9 @@
 
 	<main class="main">{@render children()}</main>
 
+	<!-- the toy shelf: its bottom edge is the rule above the footer -->
+	<div class="b shelf"><Shelf /></div>
+
 	<footer class="b foot-mail">
 		<div class="h"><span>say hi</span></div>
 		<a class="mail hov" href="mailto:{EMAIL}">{EMAIL}</a>
@@ -64,7 +68,7 @@
 		min-height: 100vh;
 		min-height: 100dvh;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
-		grid-template-rows: auto 1fr auto;
+		grid-template-rows: auto 1fr auto auto;
 	}
 	/* the page's own blocks sit on the same three columns; when there is spare height, every
 	   row of blocks grows a little, so the ruled lines run straight down to the footer */
@@ -108,6 +112,10 @@
 		gap: 16px;
 	}
 
+	.shelf {
+		grid-column: 1 / -1;
+		padding: 0;
+	}
 	.foot-mail,
 	.foot-links,
 	.foot-note {

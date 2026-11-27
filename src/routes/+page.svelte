@@ -3,6 +3,7 @@
 	import Mountain from '$lib/home/Mountain.svelte' with { wake: 'visible' };
 	import LineMap from '$lib/home/LineMap.svelte' with { wake: 'load' };
 	import ThemeSwitch from '$lib/components/ThemeSwitch.svelte';
+	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
 	import { CAREER, span } from '$lib/career.ts';
 	import { EMAIL, ELSEWHERE, ym, low } from '$lib/site.ts';
 	import { short } from '$lib/numbers.ts';
@@ -83,16 +84,17 @@
 		<div class="elsewhere">
 			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a class="ln" href={l.href}>{l.name}</a>{/each}
 		</div>
-		<i class="clay duck" aria-hidden="true"></i>
 	</section>
+
+	<div class="b b-shelf"><Shelf /></div>
 </main>
 
 <style>
 	.home {
 		height: 100vh;
 		grid-template-columns: minmax(0, 0.62fr) minmax(0, 0.62fr) minmax(0, 1fr);
-		grid-template-rows: minmax(0, 1fr) minmax(0, auto) minmax(0, auto);
-		grid-template-areas: 'id id map' 'work career map' 'write mail map';
+		grid-template-rows: minmax(0, 1fr) minmax(0, auto) minmax(0, auto) auto;
+		grid-template-areas: 'id id map' 'work career map' 'write mail map' 'shelf shelf shelf';
 	}
 	.b {
 		overflow: hidden;
@@ -131,6 +133,10 @@
 	}
 	.b-mail {
 		grid-area: mail;
+	}
+	.b-shelf {
+		grid-area: shelf;
+		padding: 0;
 	}
 
 	.b-id h1 {
@@ -252,10 +258,6 @@
 		color: var(--ink-3);
 	}
 
-	.duck {
-		right: 40px;
-		bottom: 0;
-	}
 
 	@media (min-width: 761px) {
 		:global(html:has(.home)),
@@ -301,7 +303,7 @@
 			height: auto;
 			grid-template-columns: 1fr;
 			grid-template-rows: none;
-			grid-template-areas: 'id' 'map' 'work' 'career' 'write' 'mail';
+			grid-template-areas: 'id' 'map' 'work' 'career' 'write' 'mail' 'shelf';
 		}
 		.b-id {
 			min-height: 600px;
@@ -322,9 +324,6 @@
 		.mail {
 			font-size: 20px;
 			padding-bottom: 40px;
-		}
-		.duck {
-			right: 22px;
 		}
 	}
 </style>

@@ -15,7 +15,9 @@
 		"@fontsource/ibm-plex-mono": "^5.3.0",
 		"@ogygia/content": "0.15.1",
 		"@vercel/blob": "^2.9.0",
+		"cannon-es": "0.20.0",
 		"ogygia": "0.15.1",
+		"three": "0.170.0",
 		"valibot": "^1.5.0"
 	},
 	"devDependencies": {
@@ -23,6 +25,7 @@
 		"@sveltejs/kit": "^2.70.4",
 		"@sveltejs/vite-plugin-svelte": "^7.3.2",
 		"@types/node": "^26.6.11",
+		"@types/three": "0.170.0",
 		"shiki": "^4.6.0",
 		"svelte": "^5.59.2",
 		"svelte-check": "^4.7.8",
