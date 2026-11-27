@@ -46,28 +46,28 @@
 <style>
 	/* flat greys. at night (--n, set on the block by the loop) every sheet sinks toward --m-dusk */
 	.mtn {
-		--m-back: #e4e2dc;
-		--m-lit: #d1cec6;
-		--m-shade: #b3b0a8;
+		--m-back: #e8e6e0;
+		--m-lit: #dcd9d2;
+		--m-shade: #cbc8c0;
 		--m-snow: #fbfaf7;
-		--m-sun: #d3d0c8;
-		--m-moon: #a3a199;
+		--m-sun: #d6d3cb;
+		--m-moon: #a9a79f;
 		--m-dusk: #8f8d86;
 		--m-k: 26%;
 		position: absolute;
 		right: 0;
 		bottom: 0;
-		width: 60%;
-		height: 90%;
+		width: 100%;
+		height: 92%;
 		z-index: 0;
 		pointer-events: none;
 	}
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not([data-pref-theme='light'])) .mtn {
-			--m-back: #1d1d1c;
-			--m-lit: #2e2e2b;
-			--m-shade: #232321;
-			--m-snow: #8b8a84;
+			--m-back: #1a1a19;
+			--m-lit: #262624;
+			--m-shade: #1f1f1e;
+			--m-snow: #6f6e69;
 			--m-sun: #3a3a37;
 			--m-moon: #d6d4cc;
 			--m-dusk: #000;
@@ -75,10 +75,10 @@
 		}
 	}
 	:global(:root[data-pref-theme='dark']) .mtn {
-		--m-back: #1d1d1c;
-		--m-lit: #2e2e2b;
-		--m-shade: #232321;
-		--m-snow: #8b8a84;
+		--m-back: #1a1a19;
+		--m-lit: #262624;
+		--m-shade: #1f1f1e;
+		--m-snow: #6f6e69;
 		--m-sun: #3a3a37;
 		--m-moon: #d6d4cc;
 		--m-dusk: #000;
@@ -88,7 +88,8 @@
 		width: 100%;
 		height: 100%;
 		display: block;
-		overflow: hidden;
+		/* the back range runs on past the left edge of the drawing; the block clips it */
+		overflow: visible;
 		--dusk: calc(var(--n, 0) * var(--m-k));
 	}
 	.sun circle {
