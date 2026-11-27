@@ -1,0 +1,15 @@
+---
+title: neosanitize
+url: https://neosanitize.puruvj.dev
+stack: typescript, vitest
+repo:
+  url: https://github.com/puruvj/neosanitize
+cover_image: ./image.png
+tagline: zero-dep html sanitizer
+started: 2026-06-19
+lines: [neo]
+stats: neosanitize
+npm: https://npm.im/neosanitize
+---
+
+A zero-dependency HTML sanitizer that parses HTML the way the browser does. Deny-by-default, ~3KB in the browser, ~2.3x faster than [sanitize-html](https://github.com/apostrophecms/sanitize-html), and it ships a byte-identical drop-in for it too.

@@ -1,0 +1,15 @@
+---
+title: ogygia
+url: https://ogygiajs.dev
+stack: svelte, sveltekit, typescript, vite
+repo:
+  url: https://github.com/ogygiajs/ogygia
+cover_image: ./image.png
+tagline: ssr islands for sveltekit
+started: 2026-07-30
+lines: [ogygia, svelte]
+stats: ogygia
+npm: https://npm.im/ogygia
+---
+
+SSR islands for SvelteKit, no Kit patches. Your pages are plain HTML, and nothing hydrates until you say so: mark a component with `wake: 'load'` (or on scroll, or any cue you pick) and only that ships JavaScript. Comes with content, image and a whole family of helper packages.

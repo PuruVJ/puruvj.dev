@@ -1,0 +1,8 @@
+---
+title: "Svelte 4 Launch Party"
+event: "This Dot Media"
+url: https://youtu.be/-9gy_leMmcQ
+date: 2023-06-22
+lines: [talks, svelte]
+cover_image: ./image.png
+---

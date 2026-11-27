@@ -1,0 +1,15 @@
+---
+title: neodrag
+url: https://neodrag.dev
+stack: svelte, react, solid, vue, vanilla, typescript
+repo:
+  url: https://github.com/puruvj/neodrag
+cover_image: ./neodrag.png
+tagline: drag anything, any framework
+started: 2021-12-05
+lines: [neo, svelte]
+stats: neodrag
+npm: https://npm.im/@neodrag/svelte
+---
+
+A framework agnostic tiny(&lt;2KB) draggable library for React, Solid, Vue, Svelte, and vanillaJS!

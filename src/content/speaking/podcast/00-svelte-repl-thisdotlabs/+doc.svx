@@ -1,0 +1,8 @@
+---
+title: "exploring svelte's interactive REPL"
+event: "JS Drops"
+url: https://youtu.be/ISGDLr9Gm-Q
+date: 2022-03-15
+lines: [talks]
+cover_image: ./image.png
+---
