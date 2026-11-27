@@ -16,11 +16,13 @@ pnpm check    # svelte-check
 
 ## Stats
 
-`src/lib/stats` counts all-time npm downloads (every package `puruvj` maintains), GitHub stars and lines
+`src/lib/stats` counts all-time npm downloads (every package i maintain), GitHub stars and lines
 changed. The result is cached for a day and shared by every build:
 
-- With `BLOB_READ_WRITE_TOKEN` set, the cache is `stats/stats.json` in Vercel Blob, so all deploys (production
-  and previews) reuse one count a day. Without it, the cache is `node_modules/.cache/puru-stats/stats.json`.
+- On Cloudflare builds, the cache is `stats/stats.json` in the `puruvj-stats` Workers KV namespace, so all
+  deploys (production and previews) reuse one count a day. It uses the build's `CLOUDFLARE_API_TOKEN`, or
+  `STATS_KV_TOKEN` if that is set. Without either, the cache is `node_modules/.cache/puru-stats/stats.json`.
+- With no cache at all, a build starts from `src/lib/stats/seed.json` (refresh it with `pnpm stats:seed`).
 - npm counts are incremental: each run adds only the days since the last count.
 - Set `GITHUB_TOKEN` for the lines-changed numbers (they cost one GitHub call per repo).
 - A failed API never fails the build: the last good numbers stay.

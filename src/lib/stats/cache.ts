@@ -1,4 +1,4 @@
-// one stats result a day, shared by every build. vercel blob when BLOB_READ_WRITE_TOKEN is set
+// one stats result a day, shared by every build. cloudflare workers kv when a token is around
 // (so ten preview deploys in a day reuse one result), else a file in node_modules/.cache.
 // never throws: a failure means "use what we had", and no stats at all is a valid answer.
 
@@ -30,27 +30,29 @@ const file: Store = {
 	},
 };
 
-const blob: Store = {
-	name: 'vercel blob',
+/** cloudflare workers kv, over the rest api (a build has no bindings). the build's own
+ *  CLOUDFLARE_API_TOKEN works when it can edit kv; STATS_KV_TOKEN overrides it. */
+const KV = {
+	account: process.env.STATS_KV_ACCOUNT ?? 'a1f57716ab9ed74c3c41cc67dae0c404',
+	namespace: process.env.STATS_KV_NAMESPACE ?? 'b247bd9d56fa41f3aa57127d7a59073f',
+	token: () => process.env.STATS_KV_TOKEN ?? process.env.CLOUDFLARE_API_TOKEN,
+};
+const kv_url = () =>
+	`https://api.cloudflare.com/client/v4/accounts/${KV.account}/storage/kv/namespaces/${KV.namespace}/values/${encodeURIComponent(KEY)}`;
+
+const kv: Store = {
+	name: 'workers kv',
 	async read() {
-		const { head } = await import('@vercel/blob');
-		try {
-			const meta = await head(KEY);
-			const res = await fetch(`${meta.url}?t=${Date.now()}`, { cache: 'no-store' });
-			return res.ok ? await res.json() : null;
-		} catch {
-			return null;
-		}
+		const res = await fetch(kv_url(), { headers: { authorization: `Bearer ${KV.token()}` } });
+		return res.ok ? await res.json() : null;
 	},
 	async write(s) {
-		const { put } = await import('@vercel/blob');
-		await put(KEY, JSON.stringify(s), {
-			access: 'public',
-			addRandomSuffix: false,
-			allowOverwrite: true,
-			contentType: 'application/json',
-			cacheControlMaxAge: 60,
+		const res = await fetch(kv_url(), {
+			method: 'PUT',
+			headers: { authorization: `Bearer ${KV.token()}`, 'content-type': 'application/json' },
+			body: JSON.stringify(s),
 		});
+		if (!res.ok) throw new Error(`kv put ${res.status}`);
 	},
 };
 
@@ -66,7 +68,7 @@ const seed: Store = {
 	async write() {},
 };
 
-const stores = (): Store[] => (process.env.BLOB_READ_WRITE_TOKEN ? [blob, file, seed] : [file, seed]);
+const stores = (): Store[] => (KV.token() ? [kv, file, seed] : [file, seed]);
 
 const fresh = (s: Stats | null) => !!s && Date.now() - Date.parse(s.fetchedAt) < TTL;
 
