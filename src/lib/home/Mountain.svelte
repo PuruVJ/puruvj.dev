@@ -1,59 +1,73 @@
 <script lang="ts">
-	import { hills, sky, CYCLE, STILL, VW, VH } from './mountain.ts';
+	import { terrain, body, sky, SILHOUETTE, CYCLE, STILL, VW, VH } from './mountain.ts';
 
-	const drawn = hills();
+	// painted once on the server. the paint never moves, so it is drawn (rasterised) once per load,
+	// resize or theme switch, and never while the sun travels.
+	const painting = terrain();
+	const sun = body('sun');
+	const moon = body('moon');
 	const s0 = sky(STILL);
 
-	/** the sky loop lives outside reactivity: it writes straight to the svg, never to $state */
+	/**
+	 * the sky loop lives outside reactivity: it writes straight to the dom, never to $state.
+	 * the sun and moon sit in their own svg, behind the paint, and the loop slides that whole svg with
+	 * a css transform. that is compositor work only: the painted filters are never redrawn.
+	 */
 	function sky_loop(svg: SVGSVGElement) {
 		if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 		const block = svg.closest<HTMLElement>('.b');
-		const sun = svg.querySelector<SVGGElement>('.sun')!;
-		const moon = svg.querySelector<SVGGElement>('.moon')!;
+		const sunG = svg.querySelector<SVGGElement>('.sun')!;
+		const moonG = svg.querySelector<SVGGElement>('.moon')!;
+		// px per viewBox unit: 'meet' scales by the tighter of the two sides
+		let s = 1;
+		const ro = new ResizeObserver(() => (s = Math.min(svg.clientWidth / VW, svg.clientHeight / VH)));
+		ro.observe(svg);
+		let day = s0.day;
 		const t0 = performance.now() - STILL * CYCLE;
 		let raf = requestAnimationFrame(function frame(now) {
 			const k = sky(((now - t0) % CYCLE) / CYCLE);
-			const on = k.day ? sun : moon;
-			sun.style.display = k.day ? '' : 'none';
-			moon.style.display = k.day ? 'none' : '';
-			on.setAttribute('transform', `translate(${k.x.toFixed(2)} ${k.y.toFixed(2)})`);
+			if (k.day !== day) {
+				day = k.day;
+				sunG.style.display = day ? '' : 'none';
+				moonG.style.display = day ? 'none' : '';
+			}
+			svg.style.transform = `translate(${((k.x - s0.x) * s).toFixed(1)}px, ${((k.y - s0.y) * s).toFixed(1)}px)`;
 			block?.style.setProperty('--n', k.night.toFixed(3));
 			raf = requestAnimationFrame(frame);
 		});
-		return () => cancelAnimationFrame(raf);
+		return () => {
+			cancelAnimationFrame(raf);
+			ro.disconnect();
+		};
 	}
 </script>
 
 <div class="mtn" aria-hidden="true">
-	<svg viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" {@attach sky_loop}>
-		<defs>
-			<mask id="moon-cut" maskContentUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40">
-				<circle r="12" fill="#fff" />
-				<circle cx="5.5" cy="-3.5" r="10.5" fill="#000" />
-			</mask>
-		</defs>
-		<!-- the sun and moon are drawn first, so they set behind the ridges -->
+	<!-- back to front: the sky (sun or moon), the painting, and a veil that dims it all at night -->
+	<svg class="sky" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" {@attach sky_loop}>
 		<g class="sun" transform="translate({s0.x.toFixed(2)} {s0.y.toFixed(2)})" style:display={s0.day ? null : 'none'}>
-			<circle r="15" />
+			{@html sun}
 		</g>
 		<g class="moon" transform="translate({s0.x.toFixed(2)} {s0.y.toFixed(2)})" style:display={s0.day ? 'none' : null}>
-			<circle r="12" mask="url(#moon-cut)" />
+			{@html moon}
 		</g>
-		{@html drawn}
 	</svg>
+	<svg class="paint" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet">{@html painting}</svg>
+	<svg class="veil" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet"><path d={SILHOUETTE} /></svg>
 </div>
 
 <style>
-	/* flat greys. at night (--n, set on the block by the loop) every sheet sinks toward --m-dusk */
+	/* paint tones: greys on paper by day, charcoal greys in the dark. each is rgb(v, v-1, v-4). */
 	.mtn {
-		--m-back: #e8e6e0;
-		--m-lit: #dcd9d2;
-		--m-shade: #cbc8c0;
-		--m-snow: #fbfaf7;
-		--m-sun: #d6d3cb;
-		--m-moon: #a9a79f;
+		--oil-back: rgb(228 227 224);
+		--oil-lit: rgb(217 216 213);
+		--oil-shade: rgb(184 183 180);
+		--oil-snow: rgb(250 249 246);
+		--oil-sun: rgb(218 217 214);
+		--oil-moon: rgb(174 173 170);
+		--oil-sheen: #fff;
 		--m-dusk: #8f8d86;
-		--m-k: 26%;
+		--veil: 0.26;
 		position: absolute;
 		right: 0;
 		bottom: 0;
@@ -64,51 +78,70 @@
 	}
 	@media (prefers-color-scheme: dark) {
 		:global(:root:not([data-pref-theme='light'])) .mtn {
-			--m-back: #1a1a19;
-			--m-lit: #262624;
-			--m-shade: #1f1f1e;
-			--m-snow: #6f6e69;
-			--m-sun: #3a3a37;
-			--m-moon: #d6d4cc;
+			--oil-back: rgb(29 28 25);
+			--oil-lit: rgb(50 49 46);
+			--oil-shade: rgb(33 32 29);
+			--oil-snow: rgb(111 110 107);
+			--oil-sun: rgb(59 58 55);
+			--oil-moon: rgb(201 200 197);
+			--oil-sheen: #555;
 			--m-dusk: #000;
-			--m-k: 18%;
+			--veil: 0.3;
 		}
 	}
 	:global(:root[data-pref-theme='dark']) .mtn {
-		--m-back: #1a1a19;
-		--m-lit: #262624;
-		--m-shade: #1f1f1e;
-		--m-snow: #6f6e69;
-		--m-sun: #3a3a37;
-		--m-moon: #d6d4cc;
+		--oil-back: rgb(29 28 25);
+		--oil-lit: rgb(50 49 46);
+		--oil-shade: rgb(33 32 29);
+		--oil-snow: rgb(111 110 107);
+		--oil-sun: rgb(59 58 55);
+		--oil-moon: rgb(201 200 197);
+		--oil-sheen: #555;
 		--m-dusk: #000;
-		--m-k: 18%;
+		--veil: 0.3;
 	}
 	svg {
+		position: absolute;
+		inset: 0;
 		width: 100%;
 		height: 100%;
 		display: block;
 		/* the back range runs on past the left edge of the drawing; the block clips it */
 		overflow: visible;
-		--dusk: calc(var(--n, 0) * var(--m-k));
 	}
-	.sun circle {
-		fill: var(--m-sun);
+	.sky {
+		will-change: transform;
 	}
-	.moon circle {
-		fill: var(--m-moon);
+	/* its own layer, so the sun sliding behind it never asks it to be painted again */
+	.paint {
+		will-change: transform;
 	}
-	.mtn :global(.m-back) {
-		fill: color-mix(in oklab, var(--m-back), var(--m-dusk) var(--dusk));
+	.mtn :global(.tone-back) {
+		flood-color: var(--oil-back);
 	}
-	.mtn :global(.m-lit) {
-		fill: color-mix(in oklab, var(--m-lit), var(--m-dusk) var(--dusk));
+	.mtn :global(.tone-lit) {
+		flood-color: var(--oil-lit);
 	}
-	.mtn :global(.m-shade) {
-		fill: color-mix(in oklab, var(--m-shade), var(--m-dusk) var(--dusk));
+	.mtn :global(.tone-shade) {
+		flood-color: var(--oil-shade);
 	}
-	.mtn :global(.m-snow) {
-		fill: color-mix(in oklab, var(--m-snow), var(--m-dusk) var(--dusk));
+	.mtn :global(.tone-snow) {
+		flood-color: var(--oil-snow);
+	}
+	.mtn :global(.tone-sun) {
+		flood-color: var(--oil-sun);
+	}
+	.mtn :global(.tone-moon) {
+		flood-color: var(--oil-moon);
+	}
+	.mtn :global(.sheen) {
+		lighting-color: var(--oil-sheen);
+	}
+	/* night falls as a veil over the painting: a css opacity, so it costs no repaint of the paint */
+	.veil {
+		fill: var(--m-dusk);
+		opacity: calc(var(--n, 0) * var(--veil));
+		mix-blend-mode: multiply;
 	}
 	@media (max-width: 760px) {
 		/* on a phone the mountain sits above the name, not behind it */

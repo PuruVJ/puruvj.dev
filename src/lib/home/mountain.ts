@@ -1,6 +1,6 @@
-// the mountain on the home page: flat sheets of grey, like a print. a back range, one peak with a
-// lit face and a shadow face, and a cap of snow. pure functions: the server draws the still,
-// the island only moves the sun and moon behind it.
+// the mountain on the home page, painted in thick oil: a back range, one peak with a lit face and a
+// shadow face, a cap of snow. pure, seeded functions: the server paints it once, the island only
+// slides the sun and moon behind it.
 
 export const VW = 400;
 export const VH = 300;
@@ -22,18 +22,102 @@ const PEAK = {
 	] as Pt[][],
 };
 
-const poly = (pts: Pt[]) => 'M' + pts.map((p) => `${p[0]} ${p[1]}`).join('L') + 'Z';
+const f1 = (n: number) => +n.toFixed(1);
+const poly = (pts: Pt[]) => 'M' + pts.map((p) => `${f1(p[0])} ${f1(p[1])}`).join('L') + 'Z';
+const LIT: Pt[] = [...PEAK.left, PEAK.crease[0], PEAK.crease[1]];
+const SHADE: Pt[] = [PEAK.left.at(-1)!, ...PEAK.right.slice(1), PEAK.crease[1], PEAK.crease[0]];
 
-/** the hills, as svg markup. the colours come from css (see Mountain.svelte). */
-export function hills(): string {
-	const top = PEAK.left.at(-1)!;
-	const shade = [top, ...PEAK.right.slice(1), PEAK.crease[1], PEAK.crease[0]];
-	return (
-		PEAK.back.map((b) => `<path class="m-back" d="${poly(b)}"/>`).join('') +
-		`<path class="m-lit" d="${poly([...PEAK.left, ...PEAK.right.slice(1)])}"/>` +
-		`<path class="m-shade" d="${poly(shade)}"/>` +
-		`<path class="m-snow" d="${poly(PEAK.snow)}"/>`
-	);
+/** the whole silhouette, for the dusk veil that darkens the painting at night */
+export const SILHOUETTE = PEAK.back.map(poly).join('') + poly([...PEAK.left, ...PEAK.right.slice(1)]);
+
+/** seeded, so the server and every build paint the same strokes */
+function rng(seed: number) {
+	return () => {
+		seed |= 0;
+		seed = (seed + 0x6d2b79f5) | 0;
+		let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+		t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+		return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+	};
+}
+
+/**
+ * thick oil paint: where brush strokes pile up the paint is higher, and the lighting turns that
+ * height into ridges lit from the upper left, with a little wet shine. the paint's colour and the
+ * shine come from css (`.tone-*` flood colours, `--oil-sheen`), so one drawing serves both themes.
+ */
+function paint(id: string, seed: number, tone: string) {
+	return `<filter id="${id}" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+<feTurbulence type="fractalNoise" baseFrequency=".03 .9" numOctaves="3" seed="${seed}" result="br"/>
+<feColorMatrix in="br" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0 0 0 0" result="bra"/>
+<feGaussianBlur in="SourceAlpha" stdDeviation=".55" result="h0"/>
+<feComposite in="h0" in2="bra" operator="arithmetic" k2="1" k3="1" result="h"/>
+<feDiffuseLighting in="h" surfaceScale="7" lighting-color="#fff" result="L"><feDistantLight azimuth="225" elevation="46"/></feDiffuseLighting>
+<feSpecularLighting class="sheen" in="h" surfaceScale="7" specularConstant=".5" specularExponent="34" result="S"><feDistantLight azimuth="225" elevation="58"/></feSpecularLighting>
+<feFlood class="tone-${tone}" result="tn"/>
+<feComposite in="tn" in2="L" operator="arithmetic" k1=".62" k2=".52" result="c"/>
+<feComposite in="S" in2="c" operator="arithmetic" k2=".3" k3="1"/>
+</filter>`;
+}
+
+function painter(seed: number) {
+	const r = rng(seed);
+	type Strokes = { angle: number; cx: number; cy: number; span: number; s: string };
+	// strokes laid level in a face's own frame; the group is then turned to the slope
+	const strokes = (angle: number, cx: number, cy: number, span: number, n: number, wmin: number, wmax: number): Strokes => {
+		let s = '';
+		for (let i = 0; i < n; i++) {
+			const x = cx - span + r() * span * 2;
+			const y = cy - span + r() * span * 2;
+			const len = 10 + r() * 34;
+			const w = wmin + r() * (wmax - wmin);
+			const bow = (r() - 0.5) * 5;
+			s += `<path d="M${f1(x)} ${f1(y)}q${f1(len / 2)} ${f1(bow)} ${f1(len)} ${f1((r() - 0.5) * 2)}" stroke-width="${f1(w)}" stroke-opacity="${f1(0.18 + r() * 0.3)}"/>`;
+		}
+		return { angle, cx, cy, span, s };
+	};
+	// the half-opaque square under the strokes is the canvas ground the paint sits on
+	const face = (fid: string, ...st: Strokes[]) =>
+		st
+			.map(
+				(k) =>
+					`<g filter="url(#${fid})" transform="rotate(${k.angle} ${k.cx} ${k.cy})"><rect x="${f1(k.cx - k.span * 1.5)}" y="${f1(k.cy - k.span * 1.5)}" width="${f1(k.span * 3)}" height="${f1(k.span * 3)}" fill-opacity=".5"/><g stroke="#000" stroke-linecap="round" fill="none">${k.s}</g></g>`,
+			)
+			.join('');
+	return { strokes, face };
+}
+
+/** the still painting: back ranges, lit face, shadow face, snow. it thins toward the left, where it
+ *  sits behind the tagline and the menu, so the words always read first. */
+export function terrain(): string {
+	const { strokes, face } = painter(41);
+	return `<defs>${paint('oil-bf', 5, 'back')}${paint('oil-lf', 12, 'lit')}${paint('oil-sf', 19, 'shade')}${paint('oil-nf', 23, 'snow')}
+<clipPath id="oil-b"><path d="${PEAK.back.map(poly).join('')}"/></clipPath>
+<clipPath id="oil-l"><path d="${poly(LIT)}"/></clipPath>
+<clipPath id="oil-s"><path d="${poly(SHADE)}"/></clipPath>
+<clipPath id="oil-n"><path d="${poly(PEAK.snow)}"/></clipPath>
+<linearGradient id="oil-fg" gradientUnits="userSpaceOnUse" x1="-80" y1="0" x2="190" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".4"/><stop offset="1" stop-color="#fff"/></linearGradient>
+<mask id="oil-fm" maskUnits="userSpaceOnUse" x="-240" y="-20" width="700" height="340"><rect x="-240" y="-20" width="700" height="340" fill="url(#oil-fg)"/></mask></defs>
+<g mask="url(#oil-fm)">
+<g clip-path="url(#oil-b)">${face('oil-bf', strokes(-4, 60, 250, 170, 300, 3, 7), strokes(-3, 380, 220, 70, 80, 3, 7))}</g>
+<g clip-path="url(#oil-l)">${face('oil-lf', strokes(-52, 230, 180, 135, 480, 3, 8))}</g>
+<g clip-path="url(#oil-s)">${face('oil-sf', strokes(48, 350, 170, 130, 340, 3, 8))}</g>
+<g clip-path="url(#oil-n)">${face('oil-nf', strokes(-30, 283, 70, 22, 50, 2.5, 5))}</g>
+</g>`;
+}
+
+/** the sun (r 15) or the crescent moon (r 12), painted the same way, centred on 0,0 */
+export function body(kind: 'sun' | 'moon'): string {
+	const { strokes, face } = painter(kind === 'sun' ? 77 : 91);
+	const R = kind === 'sun' ? 15 : 12;
+	const id = (k: string) => `oil-${kind}-${k}`;
+	const clip = `<clipPath id="${id('c')}"><circle r="${R}"/></clipPath>`;
+	const cut =
+		kind === 'moon'
+			? `<mask id="${id('m')}" maskContentUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40"><circle r="12" fill="#fff"/><circle cx="5.5" cy="-3.5" r="10.5" fill="#000"/></mask>`
+			: '';
+	return `<defs>${paint(id('f'), kind === 'sun' ? 29 : 31, kind)}${clip}${cut}</defs>
+<g${kind === 'moon' ? ` mask="url(#${id('m')})"` : ''}><g clip-path="url(#${id('c')})">${face(id('f'), strokes(-20, 0, 0, R + 1, kind === 'sun' ? 26 : 20, 2.5, 5))}</g></g>`;
 }
 
 /** one day and one night every 120s. 56% of the loop is day. */

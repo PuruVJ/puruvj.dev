@@ -170,7 +170,7 @@
 	}
 	.intro {
 		margin-top: 20px;
-		max-width: 58ch;
+		max-width: 44ch;
 	}
 	.nav {
 		display: flex;
