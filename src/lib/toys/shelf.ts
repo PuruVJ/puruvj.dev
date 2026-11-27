@@ -16,25 +16,25 @@ type Def = {
 	z?: number;
 	turn?: number;
 	scale?: number;
-	round?: boolean;
 	phone?: boolean;
-	/** how strongly it rights itself */
-	upright?: number;
-	/** turns back to its resting angle once upright, so the screen and the beak face the room */
-	face?: boolean;
+	/** where its weight sits, as a fraction of its height. a heavy base (the mic, the pot) sits
+	 *  low, so it rocks back when nudged and only falls when pushed past its tipping point. */
+	com?: number;
+	/** what it is made of: clay is soft and dead, the dice are hard and bounce a little */
+	stuff?: 'clay' | 'hard';
 };
 
 const DEFS: Def[] = [
-	{ id: 'duck', label: 'a duck. dm me on x ↗', href: 'https://x.com/puruvjdev', build: T.duck, at: 0.06, turn: 0.5, phone: true, upright: 0.7, face: true, scale: 1.7 },
-	{ id: 'die-w', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.white, at: 0.15, z: 0.3, turn: 0.5, phone: true, scale: 1.45 },
-	{ id: 'die-r', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.red, at: 0.185, z: -0.4, turn: -0.3, scale: 1.45 },
+	{ id: 'duck', label: 'a duck. dm me on x ↗', href: 'https://x.com/puruvjdev', build: T.duck, at: 0.06, turn: 0.5, phone: true, com: 0.38, scale: 1.7 },
+	{ id: 'die-w', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.white, at: 0.15, z: 0.3, turn: 0.5, phone: true, stuff: 'hard', scale: 1.45 },
+	{ id: 'die-r', label: 'neodrag →', href: 'https://neodrag.dev', build: T.DICE.red, at: 0.185, z: -0.4, turn: -0.3, stuff: 'hard', scale: 1.45 },
 	{ id: 'banana', label: 'just a banana.', build: T.banana, at: 0.29, turn: 0.2, phone: true, scale: 1.35 },
-	{ id: 'pebble', label: 'just a pebble.', build: T.pebble, at: 0.37, z: 0.3, round: true, scale: 1.4 },
-	{ id: 'mic', label: 'talks →', href: '/speaking', build: T.mic, at: 0.47, turn: 0.4, upright: 1, scale: 1.05 },
-	{ id: 'computer', label: 'macos web →', href: 'https://macos-web.app', build: T.computer, at: 0.59, turn: -0.35, phone: true, upright: 0.6, face: true, scale: 0.95 },
+	{ id: 'pebble', label: 'just a pebble.', build: T.pebble, at: 0.37, z: 0.3, stuff: 'hard', scale: 1.4 },
+	{ id: 'mic', label: 'talks →', href: '/speaking', build: T.mic, at: 0.47, turn: 0.4, com: 0.1, scale: 1.05 },
+	{ id: 'computer', label: 'macos web →', href: 'https://macos-web.app', build: T.computer, at: 0.59, turn: -0.35, phone: true, com: 0.42, scale: 0.95 },
 	{ id: 'papers', label: 'career →', href: '/career', build: T.papers, at: 0.71, turn: 0.15, scale: 1.25 },
-	{ id: 'popper', label: 'neoconfetti →', href: 'https://npm.im/@neoconfetti/svelte', build: T.popper, at: 0.81, turn: 0.3, phone: true, upright: 1, scale: 1.3 },
-	{ id: 'tree', label: 'ogygia, growing →', href: 'https://ogygiajs.dev', build: T.tree, at: 0.92, turn: 0.2, upright: 1.2, scale: 0.82 },
+	{ id: 'popper', label: 'neoconfetti →', href: 'https://npm.im/@neoconfetti/svelte', build: T.popper, at: 0.81, turn: 0.3, phone: true, com: 0.3, scale: 1.3 },
+	{ id: 'tree', label: 'ogygia, growing →', href: 'https://ogygiajs.dev', build: T.tree, at: 0.92, turn: 0.2, com: 0.22, scale: 0.82 },
 ];
 
 /** the shelf in world units: 1 unit is PX css pixels */
@@ -46,7 +46,8 @@ type Toy = Def & {
 	inner: THREE.Group;
 	body: CANNON.Body;
 	size: THREE.Vector3;
-	sq: { s: number; v: number };
+	/** height of the body's origin (its centre of mass) above its base */
+	low: number;
 	blob: THREE.Mesh;
 	last: number;
 };
@@ -221,21 +222,38 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	const blobGeo = new THREE.PlaneGeometry(1, 1);
 
 	// ---------- physics ----------
-	const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -15, 0) });
+	// true scale: one unit is about 10 cm, so gravity is 9.8 m/s² = 98 units/s². at this scale
+	// small things fall fast and land hard, which is what makes them read as real objects.
+	const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -98, 0) });
 	world.allowSleep = true;
-	(world.solver as CANNON.GSSolver).iterations = 10;
-	world.defaultContactMaterial.friction = 0.55;
-	world.defaultContactMaterial.restitution = 0.05;
+	(world.solver as CANNON.GSSolver).iterations = 16;
+	const M = {
+		shelf: new CANNON.Material('shelf'),
+		// the invisible walls (sides, front, back, lid): slick, so a tumbling toy can never wedge
+		// between them and hang in the air
+		wall: new CANNON.Material('wall'),
+		clay: new CANNON.Material('clay'),
+		hard: new CANNON.Material('hard'),
+	};
+	const pair = (a: CANNON.Material, b: CANNON.Material, friction: number, restitution: number) =>
+		world.addContactMaterial(new CANNON.ContactMaterial(a, b, { friction, restitution }));
+	pair(M.shelf, M.clay, 0.62, 0.06);
+	pair(M.shelf, M.hard, 0.4, 0.32);
+	pair(M.clay, M.clay, 0.55, 0.05);
+	pair(M.clay, M.hard, 0.45, 0.12);
+	pair(M.hard, M.hard, 0.3, 0.38);
+	pair(M.wall, M.clay, 0, 0.1);
+	pair(M.wall, M.hard, 0, 0.3);
 	const walls: CANNON.Body[] = [];
-	const plane = (pos: [number, number, number], e: [number, number, number]) => {
-		const b = new CANNON.Body({ mass: 0, shape: new CANNON.Plane() });
+	const plane = (pos: [number, number, number], e: [number, number, number], material = M.wall) => {
+		const b = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material });
 		b.position.set(...pos);
 		b.quaternion.setFromEuler(...e);
 		world.addBody(b);
 		walls.push(b);
 		return b;
 	};
-	plane([0, 0, 0], [-PI / 2, 0, 0]);
+	plane([0, 0, 0], [-PI / 2, 0, 0], M.shelf);
 	plane([0, 0, -DEPTH / 2], [0, 0, 0]);
 	plane([0, 0, DEPTH / 2], [0, PI, 0]);
 	const left = plane([-w / 2, 0, 0], [0, PI / 2, 0]);
@@ -273,14 +291,29 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		const c = box.getCenter(new THREE.Vector3());
 		const size = box.getSize(new THREE.Vector3());
 		g.position.sub(c);
+		// the body's origin is its centre of mass: `low` above the base. the box shape and the
+		// drawing both sit above it by the same amount, so a heavy base really is heavy.
+		const low = (d.com ?? 0.5) * size.y;
+		inner.position.y = size.y / 2 - low;
 		const outer = new THREE.Group();
 		outer.add(inner);
 		scene.add(outer);
-		const shape = d.round ? new CANNON.Sphere(Math.max(size.x, size.y, size.z) / 2) : new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
+		const shape = new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
 		const mass = clamp(size.x * size.y * size.z * 2.2, 0.3, 2.2);
-		const body = new CANNON.Body({ mass, shape, linearDamping: 0.16, angularDamping: 0.5, allowSleep: true, sleepSpeedLimit: 0.1, sleepTimeLimit: 0.4 });
+		const body = new CANNON.Body({
+			mass,
+			material: M[d.stuff ?? 'clay'],
+			// a little air, a little rolling resistance: enough to settle, never syrupy
+			linearDamping: 0.01,
+			angularDamping: 0.06,
+			allowSleep: true,
+			// under true-scale gravity a resting toy hums a little; below 3 cm/s it is at rest
+			sleepSpeedLimit: 0.3,
+			sleepTimeLimit: 0.3,
+		});
+		body.addShape(shape, new CANNON.Vec3(0, size.y / 2 - low, 0));
 		const x = (d.at - 0.5) * w;
-		body.position.set(x, size.y / 2 + 0.002, (d.z ?? 0) * (DEPTH / 2 - Math.min(size.z, DEPTH) / 2) * 0.8);
+		body.position.set(x, low + 0.002, (d.z ?? 0) * (DEPTH / 2 - Math.min(size.z, DEPTH) / 2) * 0.8);
 		body.quaternion.setFromEuler(0, d.turn ?? 0, 0);
 		world.addBody(body);
 		body.sleep();
@@ -288,7 +321,7 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		blob.rotation.x = -PI / 2;
 		blob.renderOrder = -1;
 		scene.add(blob);
-		const t: Toy = { ...d, outer, inner, body, size, sq: { s: 0, v: 0 }, blob, last: 0 };
+		const t: Toy = { ...d, outer, inner, body, size, low, blob, last: 0 };
 		g.traverse((m) => {
 			if ((m as THREE.Mesh).isMesh) {
 				m.userData.toy = t;
@@ -297,8 +330,7 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		});
 		body.addEventListener('collide', (e: any) => {
 			const iv = Math.abs(e.contact.getImpactVelocityAlongNormal());
-			if (iv < 1) return;
-			t.sq.v = clamp(t.sq.v + Math.min(iv, 10) * 0.28, -4, 4);
+			if (iv < 1.8) return;
 			const now = performance.now();
 			if (now - t.last > 90) {
 				t.last = now;
@@ -315,7 +347,7 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		t.outer.position.set(b.position.x, b.position.y, b.position.z);
 		t.outer.quaternion.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
 		// the contact shadow stays on the shelf, fading as the toy lifts off it
-		const lift = clamp(b.position.y - t.size.y / 2, 0, 2);
+		const lift = clamp(b.position.y - t.low, 0, 2);
 		const k = Math.max(0, 1 - lift * 1.6);
 		t.blob.position.set(b.position.x, 0.003, b.position.z);
 		t.blob.scale.set(t.size.x * 1.15 * (1 + lift * 0.5), Math.min(t.size.z, DEPTH) * 1.1, 1);
@@ -424,15 +456,17 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		const b = press.t.body;
 		const p = press.point;
 		press.dragging = true;
+		// never doze off in the hand, or it would hang in the air when let go
+		b.allowSleep = false;
 		b.wakeUp();
 		// drag in a plane facing the viewer, so up and down on screen lift and drop the toy
 		dragPlane.setFromNormalAndCoplanarPoint(fwd.clone().negate(), p);
 		const local = b.pointToLocalFrame(new CANNON.Vec3(p.x, p.y, p.z));
 		grab.position.set(p.x, p.y, p.z);
-		joint = new CANNON.PointToPointConstraint(b, local, grab, new CANNON.Vec3(0, 0, 0), b.mass * 60);
+		// strong enough to lift it against real gravity; it still swings from where it was held
+		joint = new CANNON.PointToPointConstraint(b, local, grab, new CANNON.Vec3(0, 0, 0), b.mass * 900);
 		world.addConstraint(joint);
-		b.angularDamping = 0.9;
-		press.t.sq.v -= 2;
+		b.angularDamping = 0.6;
 		canvas.style.cursor = 'grabbing';
 		move_drag(press.e);
 	}
@@ -449,10 +483,12 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		if (press.dragging) {
 			if (joint) world.removeConstraint(joint);
 			joint = null;
-			t.body.angularDamping = 0.5;
+			t.body.angularDamping = 0.06;
+			t.body.allowSleep = true;
+			t.body.wakeUp();
 			const v = t.body.velocity;
 			const s = v.length();
-			if (s > 12) v.scale(12 / s, v);
+			if (s > 30) v.scale(30 / s, v);
 			canvas.style.cursor = 'grab';
 		} else if (!cancelled) poke(t, press.point);
 		press = null;
@@ -462,41 +498,19 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	canvas.addEventListener('pointerup', (e) => end(e, false));
 	canvas.addEventListener('pointercancel', (e) => end(e, true));
 
-	/** a light touch: hop, spin away from where it was poked */
+	/** a flick: one push, at the exact spot that was touched, away from the finger and a little up.
+	 *  where it lands decides what happens: low on a wide thing slides it, high on a tall thing
+	 *  tips it. no made-up spin. */
 	function poke(t: Toy, at: THREE.Vector3) {
 		const b = t.body;
 		b.wakeUp();
-		const dx = clamp((t.outer.position.x - at.x) * 4, -1.5, 1.5);
-		b.velocity.set(b.velocity.x + dx + rand(-0.6, 0.6), Math.max(b.velocity.y, 3.6), b.velocity.z + rand(-0.3, 0.3));
-		b.angularVelocity.set(rand(-3, 3), rand(-3, 3), rand(-3, 3) - dx * 2);
-		t.sq.v -= 3;
+		const side = clamp((t.outer.position.x - at.x) / Math.max(t.size.x / 2, 0.01), -1, 1);
+		const away = new CANNON.Vec3(side * 2.4 + (at.x < t.outer.position.x ? 0.6 : -0.6), 6.2, -1.2);
+		// cannon wants the point relative to the centre of mass, not in world space
+		b.applyImpulse(away.scale(b.mass), new CANNON.Vec3(at.x - b.position.x, at.y - b.position.y, at.z - b.position.z));
 	}
 
 	// ---------- the loop: runs only while something moves, on screen, in a visible tab ----------
-	const UP = new CANNON.Vec3(0, 1, 0);
-	const FWD = new CANNON.Vec3(0, 0, 1);
-	world.addEventListener('preStep', () => {
-		for (const t of toys) {
-			if (!t.upright || (press?.dragging && press.t === t)) continue;
-			const b = t.body;
-			const u = b.quaternion.vmult(UP);
-			const sp = b.velocity.length();
-			if (u.y < 0.985 && b.position.y < t.size.y && sp < 3) {
-				const ax = u.cross(UP);
-				if (u.y < -0.95) ax.set(1, 0, 0);
-				const k = t.upright * b.mass * 26 * (1 - sp / 3);
-				b.torque.x += ax.x * k - b.angularVelocity.x * b.mass * 0.6;
-				b.torque.z += ax.z * k - b.angularVelocity.z * b.mass * 0.6;
-			}
-			if (t.face && u.y > 0.95 && sp < 1.2) {
-				const f = b.quaternion.vmult(FWD);
-				let err = Math.atan2(f.x, f.z) - (t.turn ?? 0);
-				err = Math.atan2(Math.sin(err), Math.cos(err));
-				if (Math.abs(err) > 0.06) b.torque.y += (-err * 2.4 - b.angularVelocity.y * 0.8) * b.mass;
-			}
-		}
-	});
-
 	let raf = 0;
 	let last = 0;
 	let onscreen = true;
@@ -510,7 +524,7 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	}
 	function moving() {
 		if (press) return true;
-		for (const t of toys) if (t.body.sleepState !== CANNON.Body.SLEEPING || Math.abs(t.sq.s) > 0.002 || Math.abs(t.sq.v) > 0.02) return true;
+		for (const t of toys) if (t.body.sleepState !== CANNON.Body.SLEEPING) return true;
 		return false;
 	}
 	function tick(now: number) {
@@ -518,18 +532,15 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		const dt = Math.min((now - last) / 1000, 0.05);
 		last = now;
 		if (press && !press.dragging && now - press.at > 220) start_drag();
-		world.step(1 / 60, dt, 4);
+		// small, fast, true-scale things need a fine step: 240 a second keeps landings crisp
+		world.step(1 / 240, dt, 16);
 		for (const t of toys) {
 			const b = t.body;
 			if (b.position.y < -1 || Math.abs(b.position.x) > w / 2 + 1) {
 				b.position.set(clamp(b.position.x, -w / 2 + 0.5, w / 2 - 0.5), h, 0);
 				b.velocity.setZero();
+				b.angularVelocity.setZero();
 			}
-			const q = t.sq;
-			q.v += (-240 * q.s - 11 * q.v) * dt;
-			q.s = clamp(q.s + q.v * dt, -0.3, 0.32);
-			t.inner.scale.set(1 + q.s * 0.5, 1 - q.s, 1 + q.s * 0.5);
-			t.inner.position.y = (-t.size.y / 2) * q.s;
 			sync(t);
 		}
 		const go = moving();
