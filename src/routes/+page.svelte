@@ -7,6 +7,7 @@
 	import { CAREER, span } from '$lib/career.ts';
 	import Meta from '$lib/components/Meta.svelte';
 	import Soon from '$lib/components/Soon.svelte';
+	import { DESK, PHONE, rise, clip, line } from '$lib/home/ridge.ts';
 	import { DM, ELSEWHERE, ym, low } from '$lib/site.ts';
 	import { short } from '$lib/numbers.ts';
 
@@ -21,10 +22,20 @@
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>
 
-<main class="sheet home">
+<main
+	class="sheet home"
+	style="--rise: {rise(DESK)}px; --rise-p: {rise(PHONE)}px; --clip: {clip(DESK)}; --clip-p: {clip(PHONE)}"
+>
 	<section class="b b-id">
 		<header class="h"><span><span class="n">01</span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
 		<Mountain />
+		<!-- the ridge: the line this block is cut along, drawn on its bottom edge -->
+		<svg class="ridge desk" viewBox="0 0 100 {rise(DESK) + 1}" preserveAspectRatio="none" aria-hidden="true">
+			<polyline points={line(DESK)} />
+		</svg>
+		<svg class="ridge phone" viewBox="0 0 100 {rise(PHONE) + 1}" preserveAspectRatio="none" aria-hidden="true">
+			<polyline points={line(PHONE)} />
+		</svg>
 		<h1 class="display">
 			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
 		</h1>
@@ -104,8 +115,14 @@
 	.b {
 		overflow: hidden;
 	}
+	/* the name block reaches down past its row by the ridge's height, is cut along the ridge, and
+	   sits over the blocks below, whose tops move down by the same amount */
 	.b-id {
 		grid-area: id;
+		z-index: 3;
+		margin-bottom: calc(-1 * var(--rise));
+		padding-bottom: calc(var(--pad) + var(--rise));
+		clip-path: var(--clip);
 		--sky: color-mix(in srgb, var(--paper), var(--night) calc(var(--n, 0) * 100%));
 		background: var(--sky);
 	}
@@ -120,7 +137,7 @@
 	:global(:root[data-pref-theme='dark']) {
 		--night: #060606;
 	}
-	.b-id > :not(:global(.mtn), .clay) {
+	.b-id > :not(:global(.mtn), .clay, .ridge) {
 		position: relative;
 		z-index: 1;
 	}
@@ -132,6 +149,30 @@
 	}
 	.b-career {
 		grid-area: career;
+	}
+	.b-work,
+	.b-career {
+		padding-top: calc(var(--pad) + var(--rise));
+	}
+	.ridge {
+		position: absolute;
+		left: 0;
+		bottom: 0;
+		width: 100%;
+		height: calc(var(--rise) + 1px);
+		z-index: 2;
+		fill: none;
+		stroke: var(--rule);
+		overflow: visible;
+		pointer-events: none;
+	}
+	.ridge polyline {
+		stroke-width: 1px;
+		vector-effect: non-scaling-stroke;
+		stroke-linejoin: miter;
+	}
+	.ridge.phone {
+		display: none;
 	}
 	.b-write {
 		grid-area: write;
@@ -341,6 +382,23 @@
 		}
 		.b-id {
 			min-height: 540px;
+			margin-bottom: calc(-1 * var(--rise-p));
+			padding-bottom: calc(var(--pad) + var(--rise-p));
+			clip-path: var(--clip-p);
+		}
+		.b-work,
+		.b-career {
+			padding-top: var(--pad);
+		}
+		.b-map {
+			padding-top: calc(var(--pad) + var(--rise-p));
+		}
+		.ridge.desk {
+			display: none;
+		}
+		.ridge.phone {
+			display: block;
+			height: calc(var(--rise-p) + 1px);
 		}
 		.b-id h1 {
 			font-size: 72px;
