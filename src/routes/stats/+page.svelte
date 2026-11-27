@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Soon from '$lib/components/Soon.svelte';
 	import Shell from '$lib/components/Shell.svelte';
 	import { short, full } from '$lib/numbers.ts';
 	import Graph from '$lib/stats/Graph.svelte' with { wake: 'visible' };
@@ -28,6 +29,12 @@
 	<section class="b projects">
 		<div class="h"><span><span class="n">02</span>by project</span></div>
 		<ol>
+			<li class="soon">
+				<span class="name"><Soon /></span>
+				<span class="spark"></span>
+				<span class="n2 num">–</span>
+				<span class="exact mono">not out yet</span>
+			</li>
 			{#each data.rows as r (r.title)}
 				<li>
 					<a href={r.url} class="name">{r.title}</a>
@@ -106,6 +113,11 @@
 	}
 	.projects li:first-child {
 		border-top-color: var(--ink);
+	}
+	.soon .name,
+	.soon .n2 {
+		color: var(--ink-3);
+		font-style: italic;
 	}
 	.name {
 		font-size: 24px;

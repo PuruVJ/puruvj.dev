@@ -15,6 +15,9 @@
 	{@html theme.head()}
 	{@html theme_toggle()}
 	{@html js_flag()}
+	<!-- fetch a page as soon as someone rests on its link (chrome, edge), so the click lands instantly.
+	     prefetch, not prerender: the toys and islands of the next page don't start in the background -->
+	{@html `<script type="speculationrules">${JSON.stringify({ prefetch: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/*.:ext(png|xml|txt|md|pdf)' } }] }, eagerness: 'moderate' }] })}</script>`}
 </svelte:head>
 
 {@render children()}

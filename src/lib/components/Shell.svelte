@@ -4,6 +4,7 @@
 	import ThemeSwitch from './ThemeSwitch.svelte';
 	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
 	import { NAV, ELSEWHERE, DM } from '$lib/site.ts';
+	import Meta from './Meta.svelte';
 
 	let {
 		here = '',
@@ -11,15 +12,26 @@
 		description,
 		md,
 		reading = false,
+		og,
 		children,
-	}: { here?: string; title: string; description: string; md?: string; reading?: boolean; children: Snippet } = $props();
+	}: {
+		here?: string;
+		title: string;
+		description: string;
+		md?: string;
+		reading?: boolean;
+		/** the social card, e.g. /og/blog/some-post.png. defaults to this section's card */
+		og?: string;
+		children: Snippet;
+	} = $props();
+
+	const card = $derived(og ?? `/og/${here ? here.slice(1) : 'home'}.png`);
 </script>
 
 <svelte:head>
 	<title>{title}</title>
 	<meta name="description" content={description} />
-	<meta property="og:title" content={title} />
-	<meta property="og:description" content={description} />
+	<Meta {title} {description} image={card} />
 	{#if md}<link rel="alternate" type="text/markdown" href={md} />{/if}
 </svelte:head>
 

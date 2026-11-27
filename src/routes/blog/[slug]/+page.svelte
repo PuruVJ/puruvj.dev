@@ -25,6 +25,7 @@
 	description={data.description}
 	md="/blog/{data.slug}.md"
 	reading
+	og="/og/blog/{data.slug}.png"
 >
 	<!-- hero: the title runs across columns 1 and 2, the facts sit in column 3 -->
 	<header class="b head">

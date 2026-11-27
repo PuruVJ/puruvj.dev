@@ -5,6 +5,8 @@
 	import ThemeSwitch from '$lib/components/ThemeSwitch.svelte';
 	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
 	import { CAREER, span } from '$lib/career.ts';
+	import Meta from '$lib/components/Meta.svelte';
+	import Soon from '$lib/components/Soon.svelte';
 	import { DM, ELSEWHERE, ym, low } from '$lib/site.ts';
 	import { short } from '$lib/numbers.ts';
 
@@ -17,7 +19,7 @@
 <svelte:head>
 	<title>puru vijayvargia</title>
 	<meta name="description" content="frontend engineer at schneider electric, on the svelte core team. i make small, fast open source libraries for the web." />
-	<meta property="og:title" content="puru vijayvargia" />
+	<Meta title="puru vijayvargia" description="frontend engineer at schneider electric, on the svelte core team. i make small, fast open source libraries for the web." image="/og/home.png" />
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>
 
@@ -51,6 +53,7 @@
 	<section class="b b-work">
 		<header class="h"><span><span class="n">03</span>work</span><a href="/work">all →</a></header>
 		<ul class="list">
+			<li class="soon"><b><Soon /></b><span>a new library, in the works</span></li>
 			{#each data.work as w (w.url)}
 				<li><a href={w.url}><b>{w.title}</b><span>{w.tagline}</span></a></li>
 			{/each}
@@ -208,6 +211,13 @@
 	}
 	.list li:has(> a) {
 		display: block;
+	}
+	.list .soon b,
+	.list .soon span {
+		color: var(--ink-3);
+	}
+	.list .soon b {
+		font-style: italic;
 	}
 	.list b {
 		font-weight: 500;

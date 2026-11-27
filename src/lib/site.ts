@@ -23,16 +23,16 @@ export const NAV = [
 /** light / dark / follow the system. lives on <html data-pref-theme>, set before paint. */
 export const theme = preference({ name: 'theme', values: ['auto', 'light', 'dark'], default: 'auto' });
 
-/** the one theme button: flip whatever is showing now (the system's choice, until the first click) */
+/** the one theme button: steps through device → light → dark → device. the icon shows the mode. */
 export const theme_toggle = () =>
 	script(() => {
 		document.addEventListener('click', (e) => {
 			const t = e.target as Element | null;
-			if (!t?.closest?.('[data-theme-toggle]')) return;
+			const btn = t?.closest?.('[data-theme-toggle]');
+			if (!btn) return;
 			const root = document.documentElement;
-			const cur = root.getAttribute('data-pref-theme');
-			const dark = cur === 'dark' || (cur !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
-			const next = dark ? 'light' : 'dark';
+			const cur = root.getAttribute('data-pref-theme') ?? 'auto';
+			const next = cur === 'light' ? 'dark' : cur === 'dark' ? 'auto' : 'light';
 			try {
 				localStorage.setItem('og-pref-theme', next);
 			} catch {}

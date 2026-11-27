@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Soon from '$lib/components/Soon.svelte';
 	import { Region } from 'ogygia';
 	import Shell from '$lib/components/Shell.svelte';
 	import { short } from '$lib/numbers.ts';
@@ -33,10 +34,23 @@
 		</dl>
 	</aside>
 
+	<!-- the next thing, before it has a name -->
+	<article class="b proj soon">
+		<div class="h">
+			<span><span class="n">03</span>2027</span>
+			<span>soon</span>
+		</div>
+		<h2><Soon><span class="redact" title="not yet">██████████</span></Soon></h2>
+		<p class="tag">coming soon. a new library, in the works.</p>
+		<div class="foot">
+			<p class="stack mono">more when it ships</p>
+		</div>
+	</article>
+
 	{#each data.items as p, i (p.slug)}
 		<article class="b proj" class:lead={i < 3}>
 			<div class="h">
-				<span><span class="n">{pad(i + 3)}</span>{p.started.slice(0, 4)}</span>
+				<span><span class="n">{pad(i + 4)}</span>{p.started.slice(0, 4)}</span>
 				<a href={p.url}>{host(p.url)} ↗</a>
 			</div>
 			<h2><a href={p.url}>{p.title}</a></h2>
@@ -97,6 +111,21 @@
 
 	.proj {
 		min-height: 400px;
+	}
+	/* the unannounced one: drawn in pencil, not ink */
+	.soon {
+		background:
+			repeating-linear-gradient(-45deg, transparent 0 9px, var(--hair) 9px 10px),
+			var(--paper);
+	}
+	.soon h2,
+	.soon .tag {
+		color: var(--ink-3);
+	}
+	/* the name, blacked out like a redacted file */
+	.redact {
+		color: var(--ink-3);
+		letter-spacing: -0.02em;
 	}
 	.proj h2 {
 		margin-top: 56px;
