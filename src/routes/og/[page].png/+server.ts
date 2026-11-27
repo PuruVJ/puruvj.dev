@@ -17,7 +17,7 @@ async function card(page: string): Promise<Card | null> {
 			return {
 				kicker: '01  puruvj.dev',
 				title: 'puru vijayvargia',
-				sub: 'on the svelte team. i make small, fast open source libraries for the web, and write about building them.',
+				sub: 'engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web.',
 				home: true,
 				facts: [{ big: String(p.length), small: 'posts since 2020' }],
 			};

@@ -16,8 +16,8 @@
 
 <svelte:head>
 	<title>puru vijayvargia</title>
-	<meta name="description" content="frontend engineer at schneider electric, on the svelte team. i make small, fast open source libraries for the web." />
-	<Meta title="puru vijayvargia" description="frontend engineer at schneider electric, on the svelte team. i make small, fast open source libraries for the web." image="/og/home.png" />
+	<meta name="description" content="engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web." />
+	<Meta title="puru vijayvargia" description="engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web." image="/og/home.png" />
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>
 
@@ -29,8 +29,7 @@
 			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
 		</h1>
 		<p class="lede intro">
-			frontend engineer at schneider electric, on the svelte team. i make small, fast open source
-			libraries for the web.
+			engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web.
 		</p>
 		<nav class="nav" aria-label="site">
 			<a class="ln" href="/blog">writing</a>
