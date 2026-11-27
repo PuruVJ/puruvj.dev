@@ -1,0 +1,15 @@
+---
+title: neoconfetti
+url: https://npm.im/@neoconfetti/svelte
+stack: svelte, react, solid, vue, vanilla, typescript
+repo:
+  url: https://github.com/puruvj/neoconfetti
+cover_image: ./image.png
+tagline: confetti, without the weight
+date: 2022-06-10
+lines: [neo]
+stats: neoconfetti
+npm: https://npm.im/@neoconfetti/svelte
+---
+
+Tiny framework agnostic confetti library for React, Solid, Vue, Svelte, and vanillaJS! Less than 1.7KB!

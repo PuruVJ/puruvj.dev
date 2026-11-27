@@ -1,0 +1,218 @@
+/* the reading column. one comfortable measure, quiet rhythm, black on paper. */
+.prose {
+	max-width: 36em;
+	font-size: 18px;
+	line-height: 1.62;
+	letter-spacing: -0.003em;
+	color: var(--ink);
+	font-feature-settings: 'ss01', 'kern';
+	hanging-punctuation: first;
+}
+.prose > * + * {
+	margin-top: 1.1em;
+}
+.prose p {
+	text-wrap: pretty;
+}
+.prose :where(h2, h3, h4) {
+	position: relative;
+	font-weight: 600;
+	letter-spacing: -0.025em;
+	line-height: 1.15;
+	text-wrap: balance;
+	scroll-margin-top: 28px;
+}
+.prose h2 {
+	margin-top: 2.2em;
+	padding-top: 0.9em;
+	border-top: 1px solid var(--hair);
+	font-size: 1.62em;
+	font-variation-settings: 'wdth' 85;
+}
+.prose h3 {
+	margin-top: 2em;
+	font-size: 1.22em;
+}
+.prose h4 {
+	margin-top: 1.6em;
+	font-size: 1em;
+}
+.prose :where(h2, h3, h4) + * {
+	margin-top: 0.7em;
+}
+/* the permalink ogygia adds to each heading: a quiet mono mark in the margin */
+.prose :where(h2, h3, h4) > a[aria-hidden],
+.prose :where(h2, h3, h4) > a.heading-anchor,
+.prose :where(h2, h3, h4) > a[class*='anchor'] {
+	position: absolute;
+	left: -1.4em;
+	opacity: 0;
+	color: var(--ink-3);
+	font-family: var(--mono);
+	font-weight: 400;
+	text-decoration: none;
+}
+.prose :where(h2, h3, h4):hover > a {
+	opacity: 1;
+}
+
+.prose a {
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3.5px;
+	text-decoration-color: var(--ink-3);
+}
+.prose a:hover {
+	text-decoration-color: var(--ink);
+}
+.prose strong {
+	font-weight: 600;
+}
+.prose em {
+	font-style: italic;
+}
+
+.prose :where(ul, ol) {
+	padding-left: 1.3em;
+}
+.prose ul {
+	list-style: none;
+}
+.prose ul > li {
+	position: relative;
+}
+.prose ul > li::before {
+	content: '–';
+	position: absolute;
+	left: -1.1em;
+	color: var(--ink-3);
+}
+.prose ol {
+	list-style: decimal;
+}
+.prose ol > li::marker {
+	font-family: var(--mono);
+	font-size: 0.75em;
+	color: var(--ink-3);
+}
+.prose li + li {
+	margin-top: 0.35em;
+}
+.prose li > :where(ul, ol) {
+	margin-top: 0.35em;
+}
+
+.prose blockquote {
+	padding-left: 1.2em;
+	border-left: 2px solid var(--ink);
+	color: var(--ink-2);
+	font-style: normal;
+}
+.prose hr {
+	border: 0;
+	height: 1px;
+	background: var(--hair);
+	margin: 2.6em 0;
+}
+
+.prose table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.82em;
+	line-height: 1.4;
+	font-variant-numeric: tabular-nums;
+	display: block;
+	overflow-x: auto;
+}
+.prose th {
+	text-align: left;
+	font-family: var(--mono);
+	font-size: 0.82em;
+	font-weight: 500;
+	color: var(--ink-3);
+	border-bottom: 1px solid var(--ink);
+	padding: 0.5em 1em 0.5em 0;
+}
+.prose td {
+	border-bottom: 1px solid var(--hair);
+	padding: 0.55em 1em 0.55em 0;
+	vertical-align: top;
+}
+
+/* inline code */
+.prose :not(pre) > code {
+	font-family: var(--mono);
+	font-size: 0.8em;
+	padding: 0.1em 0.32em;
+	background: var(--paper-2);
+	border: 1px solid var(--hair);
+	white-space: break-spaces;
+}
+
+/* code blocks: hairline box, mono, no colour. bleeds a little past the measure on wide screens. */
+.prose pre {
+	margin-top: 1.5em;
+	margin-bottom: 1.5em;
+	padding: 20px 22px;
+	background: var(--paper-2) !important;
+	border: 1px solid var(--hair);
+	overflow-x: auto;
+	font-family: var(--mono);
+	font-size: 13.5px;
+	line-height: 1.65;
+	tab-size: 2;
+	-webkit-font-smoothing: auto;
+}
+.prose pre code {
+	font-family: inherit;
+	font-size: inherit;
+	background: none;
+	border: 0;
+	padding: 0;
+}
+.prose pre span {
+	font-weight: inherit;
+}
+@media (min-width: 1101px) {
+	.prose pre {
+		margin-right: -8ch;
+	}
+}
+.prose pre::-webkit-scrollbar {
+	height: 8px;
+}
+.prose pre::-webkit-scrollbar-thumb {
+	background: var(--hair);
+}
+
+/* a shiki "bold" token: plex mono 600 */
+.prose pre [style*='font-weight:bold'] {
+	font-weight: 600 !important;
+}
+
+.prose .tweet a {
+	font-family: var(--mono);
+	font-size: 12px;
+	text-decoration: none;
+	border: 1px solid var(--hair);
+	padding: 8px 12px;
+	display: inline-block;
+}
+.prose .tweet a:hover {
+	border-color: var(--ink);
+}
+
+@media (max-width: 760px) {
+	.prose {
+		font-size: 17.5px;
+		line-height: 1.6;
+	}
+	.prose pre {
+		margin-left: calc(-1 * var(--pad));
+		margin-right: calc(-1 * var(--pad));
+		border-left: 0;
+		border-right: 0;
+		font-size: 12.5px;
+		padding: 16px var(--pad);
+	}
+}

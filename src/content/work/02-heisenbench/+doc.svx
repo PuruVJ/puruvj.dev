@@ -1,0 +1,15 @@
+---
+title: heisenbench
+url: https://npm.im/heisenbench
+stack: typescript, node
+repo:
+  url: https://github.com/ogygiajs/bench/tree/main/packages/heisenbench
+cover_image: ./image.png
+tagline: counts work, not time
+date: 2026-05-01
+lines: [ogygia]
+stats: heisenbench
+npm: https://npm.im/heisenbench
+---
+
+A benchmark engine that counts the work each function does, line by line, instead of timing it. The count is the same on every run, so one run of a PR against its base tells you exactly which line got slower. Built for ogygia, runs on every ogygia PR.

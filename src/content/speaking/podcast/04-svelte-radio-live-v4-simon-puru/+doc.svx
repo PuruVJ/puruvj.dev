@@ -1,0 +1,8 @@
+---
+title: "Svelte 4 Summer Special with Simon and Puru"
+event: "Svelte Radio Live"
+url: https://youtu.be/72TIVhRtyWE
+date: 2023-07-20
+lines: [talks]
+cover_image: ./image.png
+---

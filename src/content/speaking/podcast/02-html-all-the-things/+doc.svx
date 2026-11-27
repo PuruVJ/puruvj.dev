@@ -1,0 +1,8 @@
+---
+title: "make a project, get a job"
+event: "HTML All The Things"
+url: https://youtu.be/cY0Lgm-09wM
+date: 2022-08-10
+lines: [talks]
+cover_image: ./image.png
+---

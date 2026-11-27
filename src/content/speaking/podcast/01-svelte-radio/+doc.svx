@@ -1,0 +1,8 @@
+---
+title: "using svelte in react"
+event: "Svelte Radio"
+url: https://youtu.be/mb5vBPpyjXU
+date: 2022-10-20
+lines: [talks]
+cover_image: ./image.png
+---

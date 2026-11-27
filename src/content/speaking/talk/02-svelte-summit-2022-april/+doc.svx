@@ -1,0 +1,8 @@
+---
+title: "migrating react libraries to svelte"
+event: "Svelte Summit Spring 2022"
+url: https://youtu.be/JiKbiXdxm00
+date: 2022-04-30
+lines: [talks, svelte]
+cover_image: ./image.png
+---

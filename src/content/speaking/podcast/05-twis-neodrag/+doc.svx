@@ -1,0 +1,8 @@
+---
+title: "Neodrag v3 the rewrite: This week in svelte"
+event: "Svelte Radio Live"
+url: https://youtu.be/Ia8N6S2OkpM?t=2679
+date: 2025-07-05
+lines: [talks, neo]
+cover_image: ./image.png
+---
