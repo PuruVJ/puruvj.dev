@@ -36,7 +36,7 @@
 	{#each data.items as p, i (p.slug)}
 		<article class="b proj" class:lead={i < 3}>
 			<div class="h">
-				<span><span class="n">{pad(i + 3)}</span>{p.date.slice(0, 4)}</span>
+				<span><span class="n">{pad(i + 3)}</span>{p.started.slice(0, 4)}</span>
 				<a href={p.url}>{host(p.url)} ↗</a>
 			</div>
 			<h2><a href={p.url}>{p.title}</a></h2>

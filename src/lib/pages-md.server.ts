@@ -51,7 +51,7 @@ export async function work() {
 		const nums = [n.downloads && `${full(n.downloads)} npm downloads, all time`, n.stars && `${full(n.stars)} github stars`]
 			.filter(Boolean)
 			.join(', ');
-		out += `\n## ${x.title}\n\n${x.tagline}. since ${x.date.slice(0, 4)}.\n\n- site: ${x.url}\n- source: ${x.repo.url}\n${x.npm ? `- npm: ${x.npm}\n` : ''}- stack: ${x.stack}\n${nums ? `- ${nums}\n` : ''}`;
+		out += `\n## ${x.title}\n\n${x.tagline}. since ${x.started.slice(0, 4)}.\n\n- site: ${x.url}\n- source: ${x.repo.url}\n${x.npm ? `- npm: ${x.npm}\n` : ''}- stack: ${x.stack}\n${nums ? `- ${nums}\n` : ''}`;
 	}
 	return out;
 }

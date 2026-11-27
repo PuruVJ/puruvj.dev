@@ -6,7 +6,7 @@ repo:
   url: https://github.com/ogygiajs/ogygia
 cover_image: ./image.png
 tagline: ssr islands for sveltekit
-date: 2026-02-01
+started: 2026-07-30
 lines: [ogygia, svelte]
 stats: ogygia
 npm: https://npm.im/ogygia

@@ -6,7 +6,7 @@ repo:
   url: https://github.com/puruvj/macos-web
 cover_image: ./macos.png
 tagline: a mac desktop in the browser
-date: 2021-02-20
+started: 2021-02-20
 lines: [macos, svelte]
 stats: macos-web
 ---

@@ -6,7 +6,7 @@ repo:
   url: https://github.com/sveltejs/svelte
 cover_image: ./image.png
 tagline: the site, rebuilt
-date: 2023-05-10
+started: 2023-05-10
 lines: [svelte]
 stats: svelte-dev
 ---

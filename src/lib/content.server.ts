@@ -33,7 +33,8 @@ export const work = content({
 		stack: v.string(),
 		repo: v.object({ url: v.string() }),
 		cover_image: v.optional(v.string()),
-		date: day,
+		/** the day the project began (first commit / repo created). every page reads it from here. */
+		started: day,
 		lines,
 		stats: v.string(),
 	}),
@@ -115,7 +116,7 @@ export async function stations(): Promise<Station[]> {
 			label: x.slug === oldest ? 'first post' : undefined,
 			href: `/blog/${x.slug}`,
 		})),
-		...w.map((x) => ({ kind: 'work' as const, date: x.date, title: `${x.title}: ${x.tagline}`, lines: x.lines, label: x.title, href: x.url })),
+		...w.map((x) => ({ kind: 'work' as const, date: x.started, title: `${x.title}: ${x.tagline}`, lines: x.lines, label: x.title, href: x.url })),
 		...t.map((x) => ({ kind: x.kind, date: x.date, title: `${x.title} (${x.event})`, lines: x.lines, label: x.label, href: x.url })),
 	];
 	return all.sort((a, b) => a.date.localeCompare(b.date));

@@ -6,7 +6,7 @@ repo:
   url: https://github.com/puruvj/neodrag
 cover_image: ./neodrag.png
 tagline: drag anything, any framework
-date: 2021-12-05
+started: 2021-12-05
 lines: [neo, svelte]
 stats: neodrag
 npm: https://npm.im/@neodrag/svelte

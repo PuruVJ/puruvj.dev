@@ -6,7 +6,7 @@ repo:
   url: https://github.com/puruvj/neosanitize
 cover_image: ./image.png
 tagline: zero-dep html sanitizer
-date: 2026-04-01
+started: 2026-06-19
 lines: [neo]
 stats: neosanitize
 npm: https://npm.im/neosanitize
