@@ -6,13 +6,16 @@
 	// the server's first guess at the block's size; the island redraws at the real one
 	let W = $state(600);
 	let H = $state(720);
-	let hover = $state<number | null>(null);
+	/** the stop being pointed at, and where its tooltip sits (px inside the map) */
+	let tip = $state<{ i: number; x: number; y: number; left: boolean } | null>(null);
+	let touch = $state(false);
 
 	const svg = $derived(draw(stations, W, H));
 	// the mic stands on the 2024 rule. css works out the height, so it never jumps when the island
 	// measures the block or the fonts arrive
 	const micK = $derived(rule_k(stations, 2024));
-	const cap = $derived(hover === null ? null : stations[hover]);
+	const at = $derived(tip ? stations[tip.i] : null);
+	const KIND = { post: 'writing', work: 'project', talk: 'talk', podcast: 'podcast' } as const;
 
 	/** redraw at the block's real size whenever it changes */
 	function measure(box: HTMLElement) {
@@ -26,13 +29,26 @@
 		return () => ro.disconnect();
 	}
 
-	function over(e: Event) {
-		const g = (e.target as Element).closest?.('.st') as HTMLElement | null;
-		hover = g ? Number(g.dataset.i) : null;
+	function place(g: HTMLElement) {
+		const box = g.closest('.map')!.getBoundingClientRect();
+		const r = g.getBoundingClientRect();
+		const right = r.right - box.left;
+		const left = right > box.width * 0.55;
+		tip = { i: Number(g.dataset.i), x: left ? r.left - box.left : right, y: r.top - box.top + r.height / 2, left };
 	}
-	function go(e: Event) {
+	function over(e: PointerEvent) {
+		if (e.pointerType === 'touch') return;
 		const g = (e.target as Element).closest?.('.st') as HTMLElement | null;
-		const href = g && stations[Number(g.dataset.i)]?.href;
+		if (g) place(g);
+		else tip = null;
+	}
+	function go(e: MouseEvent) {
+		const g = (e.target as Element).closest?.('.st') as HTMLElement | null;
+		if (!g) return void (tip = null);
+		const i = Number(g.dataset.i);
+		// on a touch screen the first tap shows what the stop is; the second one opens it
+		if (touch && tip?.i !== i) return place(g);
+		const href = stations[i]?.href;
 		if (href) location.href = href;
 	}
 </script>
@@ -41,33 +57,24 @@
 	class="map"
 	{@attach measure}
 	onpointerover={over}
-	onpointerleave={() => (hover = null)}
+	onpointerdown={(e) => (touch = e.pointerType === 'touch')}
+	onpointerleave={(e) => e.pointerType !== 'touch' && (tip = null)}
 	onclick={go}
 	role="presentation"
 >
 	{@html svg}
 	<i class="clay mic" aria-hidden="true" style="top: calc(6px + {micK.toFixed(5)} * (100% - 70px) - 94px)"></i>
-</div>
-<div class="cap" aria-live="polite">
-	{#if cap}
-		<b>{ym(cap.date)}</b>&nbsp;&nbsp;{cap.title.toLowerCase()}
-	{:else}
-		<b>{stations.length} stops</b>&nbsp;&nbsp;<span class="hint-fine">hover</span><span class="hint-touch">tap</span> one to read it
+	{#if tip && at}
+		<div class="tip" class:left={tip.left} style="left: {tip.x}px; top: {tip.y}px" role="status">
+			<span class="k">{KIND[at.kind]} · {ym(at.date)}</span>
+			<b>{at.title.toLowerCase()}</b>
+			{#if at.href}<span class="go">{touch ? 'tap again to open' : 'click to open'} →</span>{/if}
+		</div>
 	{/if}
 </div>
 
+
 <style>
-	.hint-touch {
-		display: none;
-	}
-	@media (hover: none) {
-		.hint-fine {
-			display: none;
-		}
-		.hint-touch {
-			display: inline;
-		}
-	}
 	.map {
 		flex: 1;
 		min-height: 0;
@@ -100,22 +107,38 @@
 			display: none;
 		}
 	}
-	.cap {
-		margin-top: 18px;
-		font-family: var(--mono);
-		font-size: 11px;
-		color: var(--ink-3);
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		min-height: 1.4em;
-	}
-	.cap b {
-		font-weight: 500;
-		color: var(--ink);
-	}
 	.map :global(.st) {
 		cursor: pointer;
+	}
+	/* the tooltip: a small paper card beside the stop, pointing at it */
+	.tip {
+		position: absolute;
+		z-index: 4;
+		transform: translate(12px, -50%);
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		max-width: 230px;
+		padding: 8px 11px 9px;
+		background: var(--paper);
+		border: 1px solid var(--ink);
+		box-shadow: 3px 3px 0 var(--ink);
+		pointer-events: none;
+		font-size: 13px;
+		line-height: 1.25;
+	}
+	.tip.left {
+		transform: translate(calc(-100% - 12px), -50%);
+	}
+	.tip .k,
+	.tip .go {
+		font-family: var(--mono);
+		font-size: 10.5px;
+		color: var(--ink-3);
+	}
+	.tip b {
+		font-weight: 500;
+		letter-spacing: -0.01em;
 	}
 	.map :global(.st:hover .mark) {
 		stroke-width: 2.4;

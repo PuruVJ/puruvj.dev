@@ -253,6 +253,17 @@ a.ext::after {
 	background-repeat: no-repeat;
 	background-size: 400% 100%;
 	pointer-events: auto;
+	/* black and white until pointed at, like the shelf */
+	filter: grayscale(1);
+}
+.clay:hover,
+.clay:active {
+	filter: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.clay {
+		transition: filter 0.4s ease;
+	}
 }
 @media (prefers-color-scheme: dark) {
 	:root:not([data-pref-theme='light']) .clay {

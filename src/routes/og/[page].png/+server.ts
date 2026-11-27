@@ -17,7 +17,7 @@ async function card(page: string): Promise<Card | null> {
 			return {
 				kicker: '01  puruvj.dev',
 				title: 'puru vijayvargia',
-				sub: 'on the svelte core team. i make small, fast open source libraries for the web, and write about building them.',
+				sub: 'on the svelte team. i make small, fast open source libraries for the web, and write about building them.',
 				home: true,
 				facts: [{ big: String(p.length), small: 'posts since 2020' }],
 			};
@@ -47,7 +47,7 @@ async function card(page: string): Promise<Card | null> {
 			return {
 				kicker: 'puruvj.dev / career',
 				title: 'career',
-				sub: 'frontend all the way down. product teams, developer tools, a database company, and the svelte core team.',
+				sub: 'frontend all the way down. product teams, developer tools, a database company, and the svelte team.',
 				facts: CAREER.slice(0, 2).map((j) => ({ big: j.org, small: `${j.role}, ${span(j)}` })),
 				size: 104,
 			};

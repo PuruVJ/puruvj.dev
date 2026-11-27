@@ -12,14 +12,12 @@
 
 	let { data } = $props();
 	const jobs = CAREER.slice(0, 3);
-	const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
-	const years = WORDS[new Date().getFullYear() - 2020] ?? String(new Date().getFullYear() - 2020);
 </script>
 
 <svelte:head>
 	<title>puru vijayvargia</title>
-	<meta name="description" content="frontend engineer at schneider electric, on the svelte core team. i make small, fast open source libraries for the web." />
-	<Meta title="puru vijayvargia" description="frontend engineer at schneider electric, on the svelte core team. i make small, fast open source libraries for the web." image="/og/home.png" />
+	<meta name="description" content="frontend engineer at schneider electric, on the svelte team. i make small, fast open source libraries for the web." />
+	<Meta title="puru vijayvargia" description="frontend engineer at schneider electric, on the svelte team. i make small, fast open source libraries for the web." image="/og/home.png" />
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>
 
@@ -31,7 +29,7 @@
 			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
 		</h1>
 		<p class="lede intro">
-			frontend engineer at schneider electric, on the svelte core team. i make small, fast open source
+			frontend engineer at schneider electric, on the svelte team. i make small, fast open source
 			libraries for the web.
 		</p>
 		<nav class="nav" aria-label="site">
@@ -45,7 +43,7 @@
 
 	<section class="b b-map">
 		<header class="h">
-			<span><span class="n">02</span>{years} years, as a line map</span><span>time runs down ↓</span>
+			<span><span class="n">02</span>timeline</span><span>2020 – now</span>
 		</header>
 		<LineMap stations={data.stations} />
 	</section>

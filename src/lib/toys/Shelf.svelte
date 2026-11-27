@@ -113,13 +113,25 @@
 	@media (prefers-reduced-motion: no-preference) {
 		.toys :global(.toys-canvas),
 		.poster {
-			transition: opacity 0.5s ease;
+			transition:
+				opacity 0.5s ease,
+				filter 0.5s ease;
 		}
 	}
 	.poster {
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
+	}
+	/* black and white like the rest of the page; the colour comes up when you reach for them */
+	.toys :global(.toys-canvas),
+	.poster {
+		filter: grayscale(1);
+	}
+	.toys:hover :global(.toys-canvas),
+	.toys:hover .poster,
+	.toys:focus-within :global(.toys-canvas) {
+		filter: none;
 	}
 	/* where the toys will come alive, the stills never show: the live toys sit in slightly
 	   different spots, so swapping one for the other looked like everything jumped. the shelf

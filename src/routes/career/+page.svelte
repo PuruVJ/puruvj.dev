@@ -33,7 +33,7 @@
 		<h1 class="display">career</h1>
 		<p class="lede">
 			frontend all the way down. product teams, developer tools, a database company, and the svelte
-			core team on the side since 2023.
+			team on the side since 2023.
 		</p>
 	</header>
 	<aside class="b note">
