@@ -240,8 +240,6 @@ ul {
 	background-image: var(--day);
 	background-repeat: no-repeat;
 	background-size: 400% 100%;
-	/* wiggle for ~2.5s after load, then rest until someone pokes it */
-	animation: boil 0.3333s steps(4) 8;
 	pointer-events: auto;
 }
 @media (prefers-color-scheme: dark) {
@@ -252,9 +250,15 @@ ul {
 :root[data-pref-theme='dark'] .clay {
 	background-image: var(--night);
 }
-.clay:hover,
-.clay:active {
-	animation: boil 0.3333s steps(4) infinite;
+/* wiggle for ~2.5s after load, then rest until someone pokes it. never with reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+	.clay {
+		animation: boil 0.3333s steps(4) 8;
+	}
+	.clay:hover,
+	.clay:active {
+		animation: boil 0.3333s steps(4) infinite;
+	}
 }
 @keyframes boil {
 	from {
@@ -262,12 +266,6 @@ ul {
 	}
 	to {
 		background-position: 133.333% 0;
-	}
-}
-@media (prefers-reduced-motion: reduce) {
-	.clay,
-	.clay:hover {
-		animation: none;
 	}
 }
 .clay.computer {
@@ -311,6 +309,28 @@ ul {
 	:root {
 		--pad: 20px;
 		--sheet: 10px;
+	}
+}
+
+/* reduced motion: nothing moves. every animation above is already opt-in behind
+   no-preference; this is the net under them, for anything added later. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	::before,
+	::after {
+		animation-duration: 0s !important;
+		animation-delay: 0s !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0s !important;
+		transition-delay: 0s !important;
+		scroll-behavior: auto !important;
+	}
+}
+/* its own rule: a browser that can't parse these would drop the whole list above */
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-old(root),
+	::view-transition-new(root) {
+		animation: none !important;
 	}
 }
 
