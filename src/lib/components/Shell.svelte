@@ -27,7 +27,7 @@
 	</header>
 	<nav class="b top-nav" aria-label="site">
 		{#each NAV as item (item.href)}
-			<a href={item.href} aria-current={here === item.href ? 'page' : undefined}>{item.name}</a>
+			<a class="ln" href={item.href} aria-current={here === item.href ? 'page' : undefined}>{item.name}</a>
 		{/each}
 	</nav>
 	<div class="b top-meta">
@@ -44,8 +44,8 @@
 	<div class="b foot-links">
 		<div class="h"><span>elsewhere</span></div>
 		<div class="links">
-			{#each ELSEWHERE as l (l.href)}<a href={l.href}>{l.name}</a>{/each}
-			<a href="/llms.txt">llms.txt</a>
+			{#each ELSEWHERE as l (l.href)}<a class="ln" href={l.href}>{l.name}</a>{/each}
+			<a class="ln" href="/llms.txt">llms.txt</a>
 		</div>
 	</div>
 	<div class="b foot-note">
@@ -100,13 +100,6 @@
 	.top-nav a {
 		color: var(--ink-2);
 	}
-	.top-nav a:hover,
-	.top-nav a[aria-current] {
-		color: var(--ink);
-		text-decoration: underline;
-		text-underline-offset: 5px;
-		text-decoration-thickness: 1px;
-	}
 	.top-meta {
 		justify-content: space-between;
 		font-family: var(--mono);
@@ -137,9 +130,6 @@
 		font-family: var(--mono);
 		font-size: 11px;
 		color: var(--ink-3);
-	}
-	.links a:hover {
-		color: var(--ink);
 	}
 	.foot-note p {
 		margin-top: 18px;

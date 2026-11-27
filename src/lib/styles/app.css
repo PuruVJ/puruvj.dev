@@ -164,6 +164,23 @@ ul {
 	text-decoration-thickness: 1px;
 }
 
+/* nav and link lists: a hairline underline at rest says "link"; it goes solid on hover and on
+   the current page. keyboard focus gets the global ring above. */
+.ln {
+	text-decoration: underline;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 0.32em;
+	text-decoration-color: color-mix(in srgb, currentColor 30%, transparent);
+	transition:
+		text-decoration-color 0.15s,
+		color 0.15s;
+}
+.ln:hover,
+.ln[aria-current] {
+	color: var(--ink);
+	text-decoration-color: currentColor;
+}
+
 /* big display type, shared by every page title */
 .display {
 	font-size: clamp(56px, 6.4vw, 96px);

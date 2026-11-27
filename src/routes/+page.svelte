@@ -27,11 +27,11 @@
 		<h1 class="display">puru<br />vijayvargia</h1>
 		<p class="lede intro">small, fast things for the web.<br />on the svelte team.</p>
 		<nav class="nav" aria-label="site">
-			<a href="/blog">writing</a>
-			<a href="/work">work</a>
-			<a href="/career">career</a>
-			<a href="/speaking">talks</a>
-			<a href="/stats">stats</a>
+			<a class="ln" href="/blog">writing</a>
+			<a class="ln" href="/work">work</a>
+			<a class="ln" href="/career">career</a>
+			<a class="ln" href="/speaking">talks</a>
+			<a class="ln" href="/stats">stats</a>
 		</nav>
 	</section>
 
@@ -81,7 +81,7 @@
 		<header class="h"><span><span class="n">06</span>say hi</span></header>
 		<a class="mail" href="mailto:{EMAIL}">{EMAIL}</a>
 		<div class="elsewhere">
-			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a href={l.href}>{l.name}</a>{/each}
+			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a class="ln" href={l.href}>{l.name}</a>{/each}
 		</div>
 		<i class="clay duck" aria-hidden="true"></i>
 	</section>
@@ -146,7 +146,6 @@
 		font-size: 15px;
 		font-weight: 500;
 	}
-	.nav a:hover,
 	.posts a:hover .t,
 	.mail:hover,
 	.list a:hover b {
@@ -251,9 +250,6 @@
 		font-family: var(--mono);
 		font-size: 11px;
 		color: var(--ink-3);
-	}
-	.elsewhere a:hover {
-		color: var(--ink);
 	}
 
 	.duck {
