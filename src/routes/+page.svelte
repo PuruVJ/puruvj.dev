@@ -22,7 +22,7 @@
 
 <main class="sheet home">
 	<section class="b b-id">
-		<header class="h"><span><span class="n">01</span>puruvj.dev</span><Clock /></header>
+		<header class="h"><span><span class="n">01</span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
 		<Mountain />
 		<h1 class="display">puru<br />vijayvargia</h1>
 		<p class="lede intro">small, fast things for the web.<br />on the svelte team.</p>
@@ -78,7 +78,7 @@
 	</section>
 
 	<section class="b b-mail">
-		<header class="h"><span><span class="n">06</span>say hi</span><ThemeSwitch /></header>
+		<header class="h"><span><span class="n">06</span>say hi</span></header>
 		<a class="mail" href="mailto:{EMAIL}">{EMAIL}</a>
 		<div class="elsewhere">
 			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a href={l.href}>{l.name}</a>{/each}
@@ -156,6 +156,7 @@
 	}
 	.hl {
 		display: inline-flex;
+		align-items: baseline;
 		gap: 18px;
 	}
 
@@ -255,10 +256,6 @@
 		color: var(--ink);
 	}
 
-	.computer {
-		right: 40px;
-		bottom: 0;
-	}
 	.duck {
 		right: 40px;
 		bottom: 0;
@@ -330,7 +327,6 @@
 			font-size: 20px;
 			padding-bottom: 40px;
 		}
-		.computer,
 		.duck {
 			right: 22px;
 		}

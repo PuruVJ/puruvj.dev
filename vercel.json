@@ -1,4 +1,15 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
-	"installCommand": "npx --yes pnpm@10.22.0 install --frozen-lockfile"
+	"installCommand": "npx --yes pnpm@10.22.0 install --frozen-lockfile",
+	"redirects": [{ "source": "/works", "destination": "/work", "permanent": true }],
+	"headers": [
+		{
+			"source": "/(.*)\\.md",
+			"headers": [{ "key": "content-type", "value": "text/markdown; charset=utf-8" }]
+		},
+		{
+			"source": "/clay/(.*)",
+			"headers": [{ "key": "cache-control", "value": "public, max-age=604800" }]
+		}
+	]
 }

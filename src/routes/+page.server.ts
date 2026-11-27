@@ -10,6 +10,6 @@ export const load = async () => {
 		count: all.length,
 		work: work.map((w) => ({ title: w.title, tagline: w.tagline, url: w.url })),
 		stations: await stations(),
-		downloads: stats?.npm.total ?? null,
+		downloads: stats?.npm?.total ?? null,
 	};
 };

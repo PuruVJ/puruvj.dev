@@ -1,4 +1,4 @@
-import { preference } from 'ogygia';
+import { preference, script } from 'ogygia';
 
 export const SITE = 'https://puruvj.dev';
 export const EMAIL = 'devpuruvj@gmail.com';
@@ -20,6 +20,23 @@ export const NAV = [
 
 /** light / dark / follow the system. lives on <html data-pref-theme>, set before paint. */
 export const theme = preference({ name: 'theme', values: ['auto', 'light', 'dark'], default: 'auto' });
+
+/** the one theme button: flip whatever is showing now (the system's choice, until the first click) */
+export const theme_toggle = () =>
+	script(() => {
+		document.addEventListener('click', (e) => {
+			const t = e.target as Element | null;
+			if (!t?.closest?.('[data-theme-toggle]')) return;
+			const root = document.documentElement;
+			const cur = root.getAttribute('data-pref-theme');
+			const dark = cur === 'dark' || (cur !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+			const next = dark ? 'light' : 'dark';
+			try {
+				localStorage.setItem('og-pref-theme', next);
+			} catch {}
+			root.setAttribute('data-pref-theme', next);
+		});
+	});
 
 /** 2026-06-05 -> 2026.06 */
 export const ym = (d: string) => d.slice(0, 7).replace('-', '.');
