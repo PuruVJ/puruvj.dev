@@ -7,9 +7,18 @@ const OWN = /^https?:\/\/(www\.)?puruvj\.dev(\/|$)/;
 /** every link that leaves the site opens in a new tab, and gets a small ↗ unless it already has one.
  *  done once on the finished html, so markdown posts and components all follow the same rule. */
 function outward(html: string) {
-	return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/g, (whole, attrs: string, inner: string) => {
+	return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/g, (_whole, attrs: string, inner: string) => {
+		// every arrow in a link gets a span, so css can lean it forward on hover
+		inner = inner.replace(
+			/(^|>)([^<]*)/g,
+			(_m: string, gt: string, txt: string) =>
+				gt +
+				txt
+					.replace(/→/g, '<span class="arr">→</span>')
+					.replace(/↗/g, '<span class="arr ne">↗</span>'),
+		);
 		const href = /\bhref="([^"]*)"/.exec(attrs)?.[1];
-		if (!href || !/^https?:/.test(href) || OWN.test(href)) return whole;
+		if (!href || !/^https?:/.test(href) || OWN.test(href)) return `<a${attrs}>${inner}</a>`;
 		let a = attrs;
 		if (!/\btarget=/.test(a)) a += ' target="_blank"';
 		if (!/\brel=/.test(a)) a += ' rel="noopener"';

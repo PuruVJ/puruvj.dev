@@ -73,7 +73,7 @@
 		<div class="h"><span>colophon</span><span>© 2020 – {new Date().getFullYear()}</span></div>
 		<p>
 			plain html, a few islands. built with <a class="u" href="https://ogygiajs.dev">ogygia</a> on
-			sveltekit. set in instrument sans and ibm plex mono.<span data-fl-only="colophon">
+			sveltekit. set in instrument sans and ibm plex mono.<span>
 			{" "}this copy printed {printed}.</span>
 		</p>
 	</div>
