@@ -17,4 +17,4 @@ jobs:
           run_install: true
 
       - name: Test
-        run: pnpm astro check
+        run: pnpm check
