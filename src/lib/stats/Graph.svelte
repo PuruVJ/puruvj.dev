@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { Graph } from './graph.ts';
 
-	let { g }: { g: Graph } = $props();
+	let { g, inline = false }: { g: Graph; inline?: boolean } = $props();
 
 	/** draw once, the first time the block scrolls into view. css does the drawing. */
 	function reveal(svg: SVGSVGElement) {
@@ -18,7 +18,7 @@
 	}
 </script>
 
-<svg class="graph" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" {@attach reveal}>
+<svg class="graph" class:inline viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" {@attach reveal}>
 	<path class="area" d={g.area} />
 	<path class="line" d={g.line} vector-effect="non-scaling-stroke" />
 </svg>
@@ -36,6 +36,12 @@
 		overflow: visible;
 		color: var(--ink-3);
 		mask-image: linear-gradient(to right, rgb(0 0 0 / 0.5), #000);
+	}
+	/* a sparkline in a row: sits in the flow at the row's height, full width of its cell */
+	.graph.inline {
+		position: relative;
+		width: 100%;
+		height: 100%;
 	}
 	.area {
 		fill: currentColor;

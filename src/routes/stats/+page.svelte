@@ -5,9 +5,6 @@
 
 	let { data } = $props();
 	const s = $derived(data.stats);
-	const max = $derived(Math.max(...data.rows.map((r) => r.downloads ?? 0), 1));
-	// a log scale keeps 3.6k visible next to 389m
-	const bar = (n: number) => (Math.log10(Math.max(n, 1)) / Math.log10(max)) * 100;
 </script>
 
 <Shell
@@ -34,7 +31,7 @@
 			{#each data.rows as r (r.title)}
 				<li>
 					<a href={r.url} class="name">{r.title}</a>
-					<span class="track"><b style="width: {bar(r.downloads ?? 0)}%"></b></span>
+					<span class="spark">{#if r.graph}<Graph g={r.graph} inline />{/if}</span>
 					<span class="n2 num">{short(r.downloads ?? 0)}</span>
 					<span class="exact mono num">{full(r.downloads ?? 0)}</span>
 				</li>
@@ -121,15 +118,11 @@
 		text-underline-offset: 4px;
 		text-decoration-thickness: 1px;
 	}
-	.track {
-		height: 10px;
-		background: repeating-linear-gradient(to right, var(--hair) 0 1px, transparent 1px 10%);
-		position: relative;
-	}
-	.track b {
-		position: absolute;
-		inset: 2px auto 2px 0;
-		background: var(--ink);
+	/* each project's downloads over its own lifetime, first download to now */
+	.spark {
+		height: 40px;
+		align-self: stretch;
+		display: block;
 	}
 	.n2 {
 		font-size: 24px;
@@ -173,7 +166,7 @@
 			grid-template-columns: minmax(0, 1fr) auto;
 			gap: 8px 16px;
 		}
-		.track {
+		.spark {
 			grid-column: 1 / -1;
 			grid-row: 2;
 		}

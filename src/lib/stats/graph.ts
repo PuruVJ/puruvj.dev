@@ -18,10 +18,12 @@ function month_range(keys: string[]) {
 }
 
 /** a running total over time, thinned to at most `max` points */
-function path(values: number[], max = 100): Graph | null {
-	if (values.length < 3) return null;
+function path(values: number[], max = 100, min = 3): Graph | null {
 	let run = 0;
 	let pts = values.map((v) => (run += v));
+	// short series start from zero, so even a single month draws a rise
+	if (min < 3) pts.unshift(0);
+	if (pts.length < min) return null;
 	const top = pts.at(-1)!;
 	if (!top) return null;
 	if (pts.length > max) {
@@ -40,6 +42,13 @@ export function monthly(series: Record<string, number> | null | undefined): Grap
 	const keys = Object.keys(series).sort();
 	if (keys.length < 3) return null;
 	return path(month_range(keys).map((k) => series[k] ?? 0));
+}
+
+/** one project's per-month downloads from `from` to `to` (yyyy-mm), quiet months as zero.
+ *  a curve needs only two points here, so a one-month-old package still gets its line. */
+export function monthly_on(series: Record<string, number> | null | undefined, from: string, to: string): Graph | null {
+	if (!series || !Object.keys(series).length) return null;
+	return path(month_range([from, to]).map((k) => series[k] ?? 0), 100, 2);
 }
 
 /** per-week rows (yyyy-mm-dd -> [a, d, c]) as a cumulative curve of one column */
