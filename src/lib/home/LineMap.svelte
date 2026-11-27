@@ -50,11 +50,22 @@
 	{#if cap}
 		<b>{ym(cap.date)}</b>&nbsp;&nbsp;{cap.title.toLowerCase()}
 	{:else}
-		<b>{stations.length} stops</b>&nbsp;&nbsp;hover one to read it
+		<b>{stations.length} stops</b>&nbsp;&nbsp;<span class="hint-fine">hover</span><span class="hint-touch">tap</span> one to read it
 	{/if}
 </div>
 
 <style>
+	.hint-touch {
+		display: none;
+	}
+	@media (hover: none) {
+		.hint-fine {
+			display: none;
+		}
+		.hint-touch {
+			display: inline;
+		}
+	}
 	.map {
 		flex: 1;
 		min-height: 0;

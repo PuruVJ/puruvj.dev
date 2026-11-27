@@ -116,7 +116,9 @@
 			top: 48px;
 			bottom: auto;
 			width: 100%;
-			height: 210px;
+			height: 230px;
+			/* no hard floor under the hills: their feet melt into the page */
+			mask-image: linear-gradient(to bottom, #000 62%, transparent);
 		}
 	}
 </style>

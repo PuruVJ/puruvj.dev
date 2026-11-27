@@ -306,7 +306,7 @@
 			grid-template-areas: 'id' 'map' 'work' 'career' 'write' 'mail' 'shelf';
 		}
 		.b-id {
-			min-height: 600px;
+			min-height: 540px;
 		}
 		.b-id h1 {
 			font-size: 72px;

@@ -4,11 +4,11 @@
 	// the shelf shows still sprites of the same toys.
 
 	const POSTER = [
-		{ id: 'duck', at: 6, w: 114, h: 80, phone: true },
-		{ id: 'dice', at: 16.5, w: 96, h: 51, phone: true },
-		{ id: 'banana', at: 29, w: 134, h: 46, phone: true },
+		{ id: 'duck', at: 6, pat: 13, w: 114, h: 80, phone: true },
+		{ id: 'dice', at: 16.5, pat: 37, w: 96, h: 51, phone: true },
+		{ id: 'banana', at: 29, pat: 61, w: 134, h: 46, phone: true },
 		{ id: 'mic', at: 47, w: 67, h: 94 },
-		{ id: 'computer', at: 59, w: 130, h: 98, phone: true },
+		{ id: 'computer', at: 59, pat: 86, w: 130, h: 98, phone: true },
 		{ id: 'papers', at: 71, w: 123, h: 43 },
 	];
 
@@ -76,7 +76,7 @@
 <div class="toys" {@attach toys}>
 	<div class="poster" aria-hidden="true">
 		{#each POSTER as p (p.id)}
-			<span class="still" class:desk={!p.phone} style="left: {p.at}%; width: {p.w}px; height: {p.h}px">
+			<span class="still" class:desk={!p.phone} style="--at: {p.at}%; --pat: {p.pat ?? p.at}%; width: {p.w}px; height: {p.h}px">
 				<img src="/clay/{p.id}.webp" alt="" loading="lazy" decoding="async" class="day" />
 				<img src="/clay/{p.id}-dark.webp" alt="" loading="lazy" decoding="async" class="night" />
 			</span>
@@ -119,6 +119,7 @@
 	}
 	.still {
 		position: absolute;
+		left: var(--at);
 		bottom: 0;
 		overflow: hidden;
 		transform: translateX(-50%);
@@ -194,7 +195,9 @@
 		.desk {
 			display: none;
 		}
+		/* the phone row spreads its four stills across the whole width, like the live toys */
 		.still {
+			left: var(--pat);
 			scale: 0.8;
 			transform-origin: bottom center;
 		}
