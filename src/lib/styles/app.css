@@ -17,8 +17,8 @@
 	--hair: rgba(13, 13, 12, 0.12);
 	--hill-2: #cfccc4;
 	--hill-3: #b0ada5;
-	--sans: 'Instrument Sans Variable', 'Instrument Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-	--mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+	--sans: 'Instrument Sans Variable', 'Instrument Sans', 'Instrument Sans Fallback', Arial, sans-serif;
+	--mono: 'IBM Plex Mono', 'Plex Mono Fallback', 'Plex Mono Fallback 2', ui-monospace, monospace;
 	--pad: 28px;
 	--sheet: 16px;
 	color-scheme: light;
@@ -48,6 +48,33 @@
 	--hill-2: #2e2e2b;
 	--hill-3: #4a4a46;
 	color-scheme: dark;
+}
+
+/* stand-ins sized like the real faces, so nothing moves when the web fonts swap in.
+   measured against arial / menlo / courier new over a line of the site's own text. */
+@font-face {
+	font-family: 'Instrument Sans Fallback';
+	src: local('Arial'), local('Helvetica'), local('Liberation Sans');
+	size-adjust: 101.83%;
+	ascent-override: 95.26%;
+	descent-override: 24.55%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Plex Mono Fallback';
+	src: local('Menlo');
+	size-adjust: 99.66%;
+	ascent-override: 102.35%;
+	descent-override: 27.09%;
+	line-gap-override: 0%;
+}
+@font-face {
+	font-family: 'Plex Mono Fallback 2';
+	src: local('Courier New');
+	size-adjust: 99.98%;
+	ascent-override: 102.02%;
+	descent-override: 27.01%;
+	line-gap-override: 0%;
 }
 
 /* the theme switch crossfades the whole page (see theme_toggle in $lib/site.ts) */

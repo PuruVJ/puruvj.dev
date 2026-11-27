@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { draw, rule_y, ym, type Station } from './map.ts';
+	import { draw, rule_k, ym, type Station } from './map.ts';
 
 	let { stations }: { stations: Station[] } = $props();
 
@@ -9,7 +9,9 @@
 	let hover = $state<number | null>(null);
 
 	const svg = $derived(draw(stations, W, H));
-	const micTop = $derived(rule_y(stations, H, 2024));
+	// the mic stands on the 2024 rule. css works out the height, so it never jumps when the island
+	// measures the block or the fonts arrive
+	const micK = $derived(rule_k(stations, 2024));
 	const cap = $derived(hover === null ? null : stations[hover]);
 
 	/** redraw at the block's real size whenever it changes */
@@ -42,7 +44,7 @@
 	role="presentation"
 >
 	{@html svg}
-	<i class="clay mic" aria-hidden="true" style="top: {micTop - 94}px"></i>
+	<i class="clay mic" aria-hidden="true" style="top: calc(6px + {micK.toFixed(5)} * (100% - 70px) - 94px)"></i>
 </div>
 <div class="cap" aria-live="polite">
 	{#if cap}

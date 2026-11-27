@@ -167,6 +167,11 @@ export function draw(stations: Station[], W: number, H: number): string {
 
 /** y of a year's rule, for things that want to sit on one (the clay mic) */
 export function rule_y(stations: Station[], H: number, year: number) {
+	return 6 + rule_k(stations, year) * (H - 64 - 6);
+}
+
+/** how far down the drawable height a year's rule sits (0..1); rule_y = 6 + k * (H - 70) */
+export function rule_k(stations: Station[], year: number) {
 	const times = stations.map((s) => T(s.date));
 	const t0 = times[0];
 	const t1 = times.at(-1)!;
@@ -176,5 +181,5 @@ export function rule_y(stations: Station[], H: number, year: number) {
 	if (i < 0) i = times.length - 1;
 	let rank = i;
 	if (i > 0 && times[i] > t) rank = i - 1 + (t - times[i - 1]) / (times[i] - times[i - 1]);
-	return 6 + (0.3 * lin + (0.7 * rank) / (times.length - 1)) * (H - 64 - 6);
+	return 0.3 * lin + (0.7 * rank) / (times.length - 1);
 }
