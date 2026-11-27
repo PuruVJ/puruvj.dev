@@ -1,0 +1,246 @@
+/* ---------- flourishes: small, quiet extras, each one switchable ----------
+   every rule here hangs off a word in <html data-fl="...">, set before paint by flourish_lab()
+   in $lib/site.ts. drop a word and that flourish is gone, nothing else moves. */
+
+/* marks: a tiny register cross in the top-left corner of every block, like a print sheet */
+:root[data-fl~='marks'] .b::before {
+	content: '';
+	position: absolute;
+	top: 7px;
+	left: 7px;
+	width: 7px;
+	height: 7px;
+	background:
+		linear-gradient(var(--ink-3), var(--ink-3)) center / 100% 1px no-repeat,
+		linear-gradient(var(--ink-3), var(--ink-3)) center / 1px 100% no-repeat;
+	opacity: 0.55;
+	pointer-events: none;
+	z-index: 2;
+}
+
+/* wipe: links keep their hairline, and on hover a solid line runs in from the left over it */
+:root[data-fl~='wipe'] .ln {
+	text-decoration: none;
+	background:
+		linear-gradient(currentColor, currentColor) 0 calc(100% - 0.02em) / 0% 1px no-repeat,
+		linear-gradient(color-mix(in srgb, currentColor 30%, transparent), color-mix(in srgb, currentColor 30%, transparent))
+			0 calc(100% - 0.02em) / 100% 1px no-repeat;
+	padding-bottom: 0.18em;
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
+}
+:root[data-fl~='wipe'] .ln:hover,
+:root[data-fl~='wipe'] .ln[aria-current] {
+	background-size:
+		100% 1px,
+		100% 1px;
+}
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-fl~='wipe'] .ln {
+		transition:
+			background-size 0.35s cubic-bezier(0.3, 0.7, 0.2, 1),
+			color 0.15s;
+	}
+}
+
+/* tick: the colon in the india clock breathes, once a second */
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-fl~='tick'] .clock .colon {
+		animation: colon 2s steps(1) infinite;
+	}
+}
+@keyframes colon {
+	50% {
+		opacity: 0.25;
+	}
+}
+
+/* settle: on first paint the blocks arrive one after another, a soft fade, nothing slides */
+@media (prefers-reduced-motion: no-preference) {
+	:root.js[data-fl~='settle'] .b {
+		animation: settle 0.6s cubic-bezier(0.3, 0.7, 0.2, 1) both;
+		animation-delay: calc(var(--i, 0) * 45ms);
+	}
+}
+/* stagger order: the block's place among its siblings */
+.b:nth-child(1) {
+	--i: 0;
+}
+.b:nth-child(2) {
+	--i: 1;
+}
+.b:nth-child(3) {
+	--i: 2;
+}
+.b:nth-child(4) {
+	--i: 3;
+}
+.b:nth-child(5) {
+	--i: 4;
+}
+.b:nth-child(6) {
+	--i: 5;
+}
+.b:nth-child(7) {
+	--i: 6;
+}
+.b:nth-child(8) {
+	--i: 7;
+}
+.b:nth-child(9) {
+	--i: 8;
+}
+.b:nth-child(10) {
+	--i: 9;
+}
+.b:nth-child(11) {
+	--i: 10;
+}
+.b:nth-child(12) {
+	--i: 11;
+}
+.b:nth-child(13) {
+	--i: 12;
+}
+.b:nth-child(14) {
+	--i: 13;
+}
+@keyframes settle {
+	from {
+		opacity: 0;
+	}
+}
+
+/* label: point at a block and its number turns into a small inked tab */
+:root[data-fl~='label'] .h .n {
+	display: inline-block;
+	padding: 0 3px;
+	margin-left: -3px;
+	transition:
+		background-color 0.2s,
+		color 0.2s;
+}
+:root[data-fl~='label'] .b:hover .h .n {
+	background: var(--ink);
+	color: var(--paper);
+}
+:root[data-fl~='label'] .b:hover > .h {
+	color: var(--ink-2);
+}
+
+/* grain: a faint paper tooth over everything. static, never animated */
+:root[data-fl~='grain'] body::after {
+	content: '';
+	position: fixed;
+	inset: 0;
+	z-index: 50;
+	pointer-events: none;
+	opacity: 0.05;
+	mix-blend-mode: multiply;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -.3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-pref-theme='light'])[data-fl~='grain'] body::after {
+		mix-blend-mode: screen;
+		opacity: 0.06;
+		filter: invert(1);
+	}
+}
+:root[data-pref-theme='dark'][data-fl~='grain'] body::after {
+	mix-blend-mode: screen;
+	opacity: 0.06;
+	filter: invert(1);
+}
+
+/* nudge: every "→" leans forward a few pixels when its link is pointed at */
+:root[data-fl~='nudge'] .arr {
+	display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+	:root[data-fl~='nudge'] .arr {
+		transition: translate 0.25s cubic-bezier(0.3, 0.7, 0.2, 1);
+	}
+}
+:root[data-fl~='nudge'] a:hover .arr {
+	translate: 3px 0;
+}
+:root[data-fl~='nudge'] a:hover .arr.ne {
+	translate: 2px -2px;
+}
+
+/* type: balanced headings, no lonely last words, real hanging quotes, old-style figures in prose */
+:root[data-fl~='type'] :is(h1, h2, h3, .t, .display) {
+	text-wrap: balance;
+}
+:root[data-fl~='type'] :is(p, li, .lede) {
+	text-wrap: pretty;
+}
+:root[data-fl~='type'] .prose {
+	hanging-punctuation: first allow-end;
+}
+:root[data-fl~='type'] .prose p {
+	font-variant-numeric: oldstyle-nums proportional-nums;
+}
+
+/* colophon: the footer says when this copy of the site was printed */
+[data-fl-only] {
+	display: none;
+}
+:root[data-fl~='colophon'] [data-fl-only='colophon'] {
+	display: inline;
+}
+
+/* ---------- the lab panel itself (only on this experiment branch) ---------- */
+.fl-lab {
+	position: fixed;
+	left: 12px;
+	bottom: 12px;
+	z-index: 60;
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--ink);
+	background: var(--paper);
+	border: 1px solid var(--rule);
+}
+.fl-lab summary {
+	list-style: none;
+	cursor: pointer;
+	padding: 7px 10px;
+	user-select: none;
+}
+.fl-lab summary::-webkit-details-marker {
+	display: none;
+}
+.fl-lab[open] summary {
+	border-bottom: 1px solid var(--hair);
+}
+.fl-lab label {
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+	padding: 5px 10px;
+	cursor: pointer;
+}
+.fl-lab label:hover {
+	background: var(--paper-2);
+}
+.fl-lab small {
+	color: var(--ink-3);
+	font-size: 10.5px;
+}
+.fl-lab input {
+	accent-color: var(--ink);
+}
+.fl-lab .row {
+	display: flex;
+	gap: 14px;
+	padding: 6px 10px 8px;
+	border-top: 1px solid var(--hair);
+}
+.fl-lab button {
+	all: unset;
+	cursor: pointer;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	color: var(--ink-2);
+}

@@ -6,6 +6,10 @@
 	import { NAV, ELSEWHERE, DM } from '$lib/site.ts';
 	import Meta from './Meta.svelte';
 
+	const printed = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
+		.format(new Date())
+		.toLowerCase();
+
 	let {
 		here = '',
 		title,
@@ -69,7 +73,8 @@
 		<div class="h"><span>colophon</span><span>© 2020 – {new Date().getFullYear()}</span></div>
 		<p>
 			plain html, a few islands. built with <a class="u" href="https://ogygiajs.dev">ogygia</a> on
-			sveltekit. set in instrument sans and ibm plex mono.
+			sveltekit. set in instrument sans and ibm plex mono.<span data-fl-only="colophon">
+			{" "}this copy printed {printed}.</span>
 		</p>
 	</div>
 </div>
