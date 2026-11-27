@@ -184,30 +184,31 @@ ul {
 	font-feature-settings: 'tnum';
 }
 
-/* ---------- clay objects: the only colour on the site ---------- */
+/* ---------- clay objects: the only colour on the site ----------
+   each is a 4-frame boil strip, shot twice: in the room's daylight, and in a dark room with one
+   warm lamp. both carry their own shadow on the table, and the theme picks one (no js). */
 .clay {
 	position: absolute;
 	z-index: 3;
 	display: block;
+	background-image: var(--day);
 	background-repeat: no-repeat;
 	background-size: 400% 100%;
 	/* wiggle for ~2.5s after load, then rest until someone pokes it */
 	animation: boil 0.3333s steps(4) 8;
 	pointer-events: auto;
 }
+@media (prefers-color-scheme: dark) {
+	:root:not([data-pref-theme='light']) .clay {
+		background-image: var(--night);
+	}
+}
+:root[data-pref-theme='dark'] .clay {
+	background-image: var(--night);
+}
 .clay:hover,
 .clay:active {
 	animation: boil 0.3333s steps(4) infinite;
-}
-.clay::after {
-	content: '';
-	position: absolute;
-	left: 14%;
-	right: 14%;
-	bottom: -3px;
-	height: 6px;
-	background: radial-gradient(closest-side, rgba(0, 0, 0, 0.28), rgba(0, 0, 0, 0));
-	z-index: -1;
 }
 @keyframes boil {
 	from {
@@ -224,34 +225,40 @@ ul {
 	}
 }
 .clay.computer {
-	width: 94px;
+	width: 130px;
 	height: 98px;
-	background-image: url(/clay/computer.png);
+	--day: url(/clay/computer.webp);
+	--night: url(/clay/computer-dark.webp);
 }
 .clay.papers {
-	width: 116px;
-	height: 41px;
-	background-image: url(/clay/papers.png);
+	width: 127px;
+	height: 44px;
+	--day: url(/clay/papers.webp);
+	--night: url(/clay/papers-dark.webp);
 }
 .clay.duck {
-	width: 82px;
-	height: 70px;
-	background-image: url(/clay/duck.png);
+	width: 114px;
+	height: 89px;
+	--day: url(/clay/duck.webp);
+	--night: url(/clay/duck-dark.webp);
 }
 .clay.mic {
-	width: 62px;
-	height: 95px;
-	background-image: url(/clay/mic.png);
+	width: 101px;
+	height: 94px;
+	--day: url(/clay/mic.webp);
+	--night: url(/clay/mic-dark.webp);
 }
 .clay.dice {
-	width: 80px;
-	height: 50px;
-	background-image: url(/clay/dice.png);
+	width: 96px;
+	height: 51px;
+	--day: url(/clay/dice.webp);
+	--night: url(/clay/dice-dark.webp);
 }
 .clay.banana {
-	width: 112px;
-	height: 38px;
-	background-image: url(/clay/banana.png);
+	width: 139px;
+	height: 47px;
+	--day: url(/clay/banana.webp);
+	--night: url(/clay/banana-dark.webp);
 }
 
 @media (max-width: 760px) {
