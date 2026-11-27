@@ -19,6 +19,8 @@
 		const ro = new ResizeObserver(() => {
 			W = box.clientWidth;
 			H = box.clientHeight;
+			// the first real-size drawing lands on the next frame; only then does the map show
+			if (!box.classList.contains('ready')) requestAnimationFrame(() => box.classList.add('ready'));
 		});
 		ro.observe(box);
 		return () => ro.disconnect();
@@ -72,6 +74,16 @@
 		position: relative;
 		margin-top: 28px;
 		color: var(--ink);
+	}
+	/* the server can only guess the block's size, so with js the map stays hidden until the island
+	   has drawn it at the real size, then fades in. without js the guess is shown as is. */
+	:global(:root.js) .map:not(:global(.ready)) :global(svg) {
+		opacity: 0;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.map :global(svg) {
+			transition: opacity 0.35s ease;
+		}
 	}
 	.map :global(svg) {
 		position: absolute;

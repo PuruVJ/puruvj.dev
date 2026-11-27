@@ -16,7 +16,7 @@
 
 <svelte:head>
 	<title>puru vijayvargia</title>
-	<meta name="description" content="i make small, fast things for the web. on the svelte team." />
+	<meta name="description" content="frontend engineer at schneider electric, on the svelte core team. i make small, fast open source libraries for the web." />
 	<meta property="og:title" content="puru vijayvargia" />
 	<link rel="alternate" type="text/markdown" href="/index.md" />
 </svelte:head>
@@ -25,8 +25,13 @@
 	<section class="b b-id">
 		<header class="h"><span><span class="n">01</span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
 		<Mountain />
-		<h1 class="display">puru<br />vijayvargia</h1>
-		<p class="lede intro">small, fast things for the web.<br />on the svelte team.</p>
+		<h1 class="display">
+			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru, in a hat and blue sunglasses, waving" /><br />vijayvargia
+		</h1>
+		<p class="lede intro">
+			frontend engineer at schneider electric, on the svelte core team. i make small, fast open source
+			libraries for the web.
+		</p>
 		<nav class="nav" aria-label="site">
 			<a class="ln" href="/blog">writing</a>
 			<a class="ln" href="/work">work</a>
@@ -139,11 +144,33 @@
 		padding: 0;
 	}
 
+	/* the one photo on the site: in black and white like everything else, in colour when pointed at */
+	/* set into the headline like a word: a cap-height square after "puru" */
+	.me {
+		display: inline-block;
+		width: 0.74em;
+		height: 0.74em;
+		margin-left: 0.14em;
+		vertical-align: -0.02em;
+		object-fit: cover;
+		filter: grayscale(1) contrast(1.05);
+		outline: 1px solid var(--rule);
+		outline-offset: -1px;
+	}
+	.me:hover {
+		filter: none;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.me {
+			transition: filter 0.4s ease;
+		}
+	}
 	.b-id h1 {
 		margin-top: auto;
 	}
 	.intro {
 		margin-top: 20px;
+		max-width: 58ch;
 	}
 	.nav {
 		display: flex;

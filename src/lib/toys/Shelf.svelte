@@ -54,7 +54,11 @@
 
 	/** wake the toys: after load, fonts, an idle moment and a short pause, and only near the screen */
 	function toys(el: HTMLElement) {
-		if (!can_play()) return;
+		if (!can_play()) {
+			// no 3d here: show the still toys instead
+			el.classList.add('still-only');
+			return;
+		}
 		let dead = false;
 		let stop: (() => void) | undefined;
 		(async () => {
@@ -116,6 +120,14 @@
 		position: absolute;
 		inset: 0;
 		pointer-events: none;
+	}
+	/* where the toys will come alive, the stills never show: the live toys sit in slightly
+	   different spots, so swapping one for the other looked like everything jumped. the shelf
+	   stays empty for a moment, then the real toys fade in. */
+	@media (prefers-reduced-motion: no-preference) {
+		:global(:root.js) .toys:not(:global(.still-only)) .poster {
+			opacity: 0;
+		}
 	}
 	.still {
 		position: absolute;
