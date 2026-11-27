@@ -8,7 +8,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"stats": "node scripts/stats.ts"
+		"stats": "node scripts/stats.ts",
+		"stats:seed": "node scripts/stats.ts && cp node_modules/.cache/puru-stats/stats.json src/lib/stats/seed.json"
 	},
 	"dependencies": {
 		"@fontsource-variable/instrument-sans": "^5.3.0",

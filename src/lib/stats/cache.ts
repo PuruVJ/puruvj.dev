@@ -9,6 +9,9 @@ import { compute, type Stats } from './compute.ts';
 export const TTL = 24 * 60 * 60 * 1000;
 const KEY = 'stats/stats.json';
 const FILE = resolve('node_modules/.cache/puru-stats/stats.json');
+/** a checked-in snapshot (refresh it with `pnpm stats:seed`). a build with no cache starts from
+ *  here and only counts the days since, instead of every npm download since 2020. */
+const SEED = resolve('src/lib/stats/seed.json');
 
 type Store = { name: string; read(): Promise<Stats | null>; write(s: Stats): Promise<void> };
 
@@ -51,7 +54,19 @@ const blob: Store = {
 	},
 };
 
-const stores = (): Store[] => (process.env.BLOB_READ_WRITE_TOKEN ? [blob, file] : [file]);
+const seed: Store = {
+	name: 'seed',
+	async read() {
+		try {
+			return JSON.parse(await readFile(SEED, 'utf8'));
+		} catch {
+			return null;
+		}
+	},
+	async write() {},
+};
+
+const stores = (): Store[] => (process.env.BLOB_READ_WRITE_TOKEN ? [blob, file, seed] : [file, seed]);
 
 const fresh = (s: Stats | null) => !!s && Date.now() - Date.parse(s.fetchedAt) < TTL;
 

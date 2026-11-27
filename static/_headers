@@ -1,0 +1,2 @@
+/clay/*
+  cache-control: public, max-age=604800

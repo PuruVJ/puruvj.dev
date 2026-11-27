@@ -1,0 +1,12 @@
+// cloudflare workers: the whole site is prerendered, so the worker only serves the static files
+// the build writes (sveltekit's vercel adapter puts them in .vercel/output/static).
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "puruvj-dev",
+	"compatibility_date": "2026-11-01",
+	"assets": {
+		"directory": ".vercel/output/static",
+		"html_handling": "drop-trailing-slash",
+		"not_found_handling": "404-page"
+	}
+}
