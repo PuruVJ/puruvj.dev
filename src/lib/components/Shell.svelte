@@ -35,7 +35,7 @@
 		<ThemeSwitch />
 	</div>
 
-	{@render children()}
+	<main class="main">{@render children()}</main>
 
 	<footer class="b foot-mail">
 		<div class="h"><span>say hi</span></div>
@@ -58,10 +58,24 @@
 </div>
 
 <style>
+	/* header, the page, footer. the page row takes whatever height is left, so a short page
+	   still ends with the footer on the bottom edge of the window */
 	.page {
+		min-height: 100vh;
+		min-height: 100dvh;
 		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+		grid-template-rows: auto 1fr auto;
+	}
+	/* the page's own blocks sit on the same three columns; when there is spare height, every
+	   row of blocks grows a little, so the ruled lines run straight down to the footer */
+	.main {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: subgrid;
 		grid-auto-rows: auto;
-		align-content: start;
+		align-content: stretch;
+		gap: 1px;
+		min-width: 0;
 	}
 	.top-id,
 	.top-nav,
@@ -138,6 +152,7 @@
 	@media (max-width: 760px) {
 		.page {
 			grid-template-columns: minmax(0, 1fr) auto;
+			grid-template-rows: auto auto 1fr;
 		}
 		.top-id {
 			grid-column: 1;

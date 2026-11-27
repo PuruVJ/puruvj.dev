@@ -38,8 +38,6 @@
 <style>
 	.err {
 		grid-column: 1 / 3;
-		/* fill the screen between the header and footer rows */
-		min-height: calc(100vh - 2 * var(--sheet) - 182px);
 	}
 	.lean {
 		margin-top: auto;
