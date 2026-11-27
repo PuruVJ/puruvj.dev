@@ -100,8 +100,6 @@ export type Card = {
 	aside?: string;
 	title: string;
 	sub?: string;
-	/** the right-hand column: up to three facts, each a big line over a small one */
-	facts?: { big: string; small: string }[];
 	/** the home card: photo after the first word of the title, and the mountain behind */
 	home?: boolean;
 	/** long titles step down a size */
@@ -161,7 +159,7 @@ export async function render(c: Card): Promise<Buffer> {
 					lineHeight: 0.94,
 					letterSpacing: '-0.04em',
 					color: INK,
-					maxWidth: 780,
+					maxWidth: 980,
 				},
 				title,
 			);
@@ -178,7 +176,7 @@ export async function render(c: Card): Promise<Buffer> {
 			minHeight: 0,
 		},
 		// the hills come first and everything after sits on top of them
-		...(c.home ? [hills(600, 450)] : []),
+		...(c.home ? [hills(720, 540)] : []),
 		el('div', { position: 'relative' }, head),
 		el(
 			'div',
@@ -192,65 +190,12 @@ export async function render(c: Card): Promise<Buffer> {
 							fontSize: 27,
 							lineHeight: 1.3,
 							color: INK2,
-							maxWidth: c.home ? 470 : 720,
+							maxWidth: c.home ? 520 : 820,
 							letterSpacing: '-0.01em',
 						},
 						short_sub(clean(c.sub)),
 					)
 				: el('div', {}),
-		),
-	);
-
-	const facts = (c.facts ?? []).slice(0, 3);
-	const side = el(
-		'div',
-		{ flexDirection: 'column', width: 300, gap: 1 },
-		...facts.map((f) =>
-			el(
-				'div',
-				{
-					flexDirection: 'column',
-					flex: 1,
-					background: PAPER,
-					padding: '28px 30px',
-					justifyContent: 'flex-end',
-				},
-				text(
-					{
-						fontFamily: 'display',
-						fontSize: 52,
-						letterSpacing: '-0.035em',
-						color: INK,
-						lineHeight: 1,
-					},
-					f.big,
-				),
-				text({ marginTop: 10, fontFamily: 'mono', fontSize: 17, color: INK3 }, f.small),
-			),
-		),
-		el(
-			'div',
-			{
-				background: PAPER,
-				padding: '22px 30px',
-				justifyContent: 'space-between',
-				alignItems: 'center',
-			},
-			text(
-				{ fontFamily: 'sans', fontWeight: 500, fontSize: 22, color: INK, letterSpacing: '-0.02em' },
-				'puruvj.dev',
-			),
-			c.home
-				? el('div', {})
-				: {
-						type: 'img',
-						props: {
-							src: me(),
-							width: 44,
-							height: 44,
-							style: { border: `1.5px solid ${INK}`, objectFit: 'cover' },
-						},
-					},
 		),
 	);
 
@@ -262,7 +207,6 @@ export async function render(c: Card): Promise<Buffer> {
 			'div',
 			{ width: W - 32, height: H - 32, background: INK, gap: 1, padding: 1, overflow: 'hidden' },
 			main,
-			side,
 		),
 	);
 

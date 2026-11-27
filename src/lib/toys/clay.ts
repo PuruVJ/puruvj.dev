@@ -76,7 +76,7 @@ const physPars = THREE.ShaderChunk.lights_physical_pars_fragment
 	);
 
 const FRAG_HEAD = /* glsl */ `
-uniform float uPrint, uBump, uSpeck, uMottle, uPattern, uBoilPhase, uFine, uLint; uniform vec3 uSpeckColor, uBoilOff, uSeedF;
+uniform float uPrint, uBump, uSpeck, uMottle, uPattern, uBoilPhase, uFine, uLint, uOil; uniform vec3 uSpeckColor, uBoilOff, uSeedF;
 varying vec3 vWPos; varying float vDisp;
 ${NOISE}
 float fingerprint(vec3 p){
@@ -92,8 +92,23 @@ float fingerprint(vec3 p){
   float mask = smoothstep(0.62, 0.18, best) * step(0.42, bh.x);
   return ring*mask;
 }
+// thick oil paint, like the mountain on the home page: short raised strokes laid side by side.
+// each patch of surface has its own stroke direction; across a stroke the paint rises in a soft
+// ridge, along it the stroke starts and stops, so the marks read as separate dabs of a brush.
+float impasto(vec3 p){
+  float a = snoise(p*1.4 + uSeedF.yzx)*1.4 + 0.7;
+  vec2 d = vec2(cos(a), sin(a));
+  vec3 q = p*6.0;
+  float u = dot(q.xz, d) + q.y*0.45;
+  float v = dot(q.xz, vec2(-d.y, d.x)) + q.y*0.85;
+  float lane = floor(v);
+  float across = 1.0 - smoothstep(0.0, 0.5, abs(fract(v) - 0.5));
+  float on = smoothstep(-0.15, 0.35, snoise(vec3(u*0.22, lane*7.13, lane*1.7) + uSeedF));
+  return across*across*on;
+}
 float clayHeight(vec3 p){
   float h = fingerprint(p)*uPrint;
+  h += impasto(p)*uOil;
   h += (snoise(p*40.0 + uBoilOff*0.37)*0.16 + snoise(p*110.0 + uBoilOff)*0.035)*uFine;
   h += snoise(p*12.0 + uSeedF)*0.35*uFine;
   h += snoise(vec3(p.x*9.0, p.y*30.0, p.z*9.0) + uSeedF.zyx)*0.18*uFine;
@@ -111,6 +126,8 @@ vec3 clayPerturb(vec3 surf_pos, vec3 surf_norm, vec2 dHdxy, float faceDir){
 
 /** shared per-frame state: the boil offsets step at 12fps, and only while the toys are played with */
 export const G = {
+	/** how much oil-paint relief sits on every toy (0 = plain clay) */
+	uOil: { value: 2.0 },
 	uBoilOff: { value: new THREE.Vector3() },
 	uBoilPhase: { value: 0 },
 	uBoilAmp: { value: 0 },

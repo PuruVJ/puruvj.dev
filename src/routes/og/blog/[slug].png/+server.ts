@@ -12,13 +12,9 @@ export const GET = async ({ params }) => {
 	if (!p) error(404);
 	const png = await render({
 		kicker: `puruvj.dev / writing`,
-		aside: dotted(p.date),
+		aside: `${dotted(p.date)} · ${p.minutes} min`,
 		title: p.title,
 		sub: p.description,
-		facts: [
-			{ big: `${p.minutes} min`, small: 'to read' },
-			{ big: dotted(p.date).slice(0, 7), small: 'published' },
-		],
 	});
 	return new Response(new Uint8Array(png), { headers: { 'content-type': 'image/png' } });
 };
