@@ -1,16 +1,20 @@
 // the pizza line, with its physics on. a small hand-made sim, no library:
 //
-// - the wire is a rope of N+1 points tied to two nails, joined by stiff springs that are already
-//   stretched (that is the wire's tension). each point also feels a fixed force that holds the rope
-//   in exactly the sag the page draws without js, so waking up moves nothing: the sim only acts
-//   when someone touches it, and the rope always comes back to the same curve.
-// - each print hangs from a peg that sits at a spot along the rope and rides it. the print is a
+// - the wire is a string of N+1 points tied to two nails. each point only moves up and down, away
+//   from the sag the page draws without js, and the string's tension pulls every point toward the
+//   middle of its two neighbours. so the wire is always one line across, left to right: it can be
+//   pulled down into two straight runs to the nails, it can ring, but it can never fold back on
+//   itself or kink. with nothing pulling it, it is exactly the drawn sag, so waking up moves nothing.
+// - each print hangs from a peg that sits at a spot along the wire and rides it. the print is a
 //   pendulum on its string; it swings when its peg is shoved, slid or bounced. its weight sits on
-//   the rope, so the rope is heavier, and slower, where prints hang.
-// - grab a print: sideways slides its peg along the wire, down pulls the wire down to the hand.
-//   pegs keep their order with a gap, so a print slid into another shoves it along.
+//   the wire, so the wire is heavier, and slower, where prints hang.
+// - grab a print: sideways slides its peg along the wire, down pulls the wire down to the hand,
+//   less far the nearer the nail. pegs keep their order with a gap, so a print slid into another
+//   shoves it along.
+// - when the line first scrolls into view the prints are already swaying a little, as if a breeze
+//   had been at them, and settle.
 // - when nothing moves any more the loop stops.
-// - it makes small sounds (see line-sound.ts), only once someone has dragged a print.
+// - it makes small sounds (see line-sound.ts), only once someone has picked up a print.
 
 import { line_sound } from './line-sound.ts';
 
@@ -28,7 +32,7 @@ type Opts = {
 const N = 40; // segments
 const DT = 1 / 900; // fixed sim step
 const G = 6000; // gravity for the pendulums, px/s²
-const M = 3; // a print's mass against one rope point's 1
+const M = 3; // a print's mass against one wire point's 1
 const DEG = 180 / Math.PI;
 
 export function clothesline(line: HTMLElement, o: Opts) {
@@ -41,19 +45,17 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
 	const f64 = (k: number) => new Float64Array(k);
-	// the rope: rest shape, now, velocity, mass, the holding force, and the springs' rest lengths
-	const rx = f64(N + 1), ry = f64(N + 1), x = f64(N + 1), y = f64(N + 1);
-	const vx = f64(N + 1), vy = f64(N + 1), m = f64(N + 1);
-	const hx = f64(N + 1), hy = f64(N + 1), fx = f64(N + 1), fy = f64(N + 1), l0 = f64(N);
-	let W = 0, K = 0;
-	// the prints: spot on the rope (in segments), last spot, swing and its speed, pendulum length,
+	// the wire: its rest height at each point, how far each is off it now and a step ago, its mass
+	const ry = f64(N + 1), u = f64(N + 1), u0 = f64(N + 1), m = f64(N + 1);
+	let W = 0, h = 1, k2 = 0;
+	// the prints: spot on the wire (in segments), last spot, swing and its speed, pendulum length,
 	// and the peg's last position and velocity, to feel how it is being shoved
 	const s = f64(n), sp = f64(n), th = f64(n), om = f64(n), L = f64(n);
 	const qx = f64(n), qy = f64(n), qvx = f64(n), qvy = f64(n);
 	const s0 = o.at.map((a) => a * N);
 	const fs = f64(n); // each peg's spot at the last frame, to hear how fast it slides
-	const touch: boolean[] = [];
-	let gap = 1, pull = 0; // the pegs' gap, and how far down the hand has the wire
+	const hard: boolean[] = []; // is this print swinging hard (for the paper's flap as it settles)
+	let gap = 1, pull = 0, was = 0; // the pegs' gap, how far down the hand has the wire, and last frame
 	const sound = line_sound(o.muted, () => calm.matches);
 	let moved = false; // has anything left its rest place since load
 	let z = 20;
@@ -66,24 +68,13 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	function build() {
 		W = line.clientWidth;
-		const h = W / N;
+		h = W / N;
 		// the wire's tension: a wave crosses and comes back in about half a second
 		const c = (2 * W) / 0.5;
-		const T = (c * c) / h;
-		K = T / (0.3 * h);
+		k2 = (c * c) / (h * h);
 		for (let j = 0; j <= N; j++) {
-			rx[j] = x[j] = (j / N) * W;
-			ry[j] = y[j] = o.rest(j / N);
-			vx[j] = vy[j] = 0;
-			hx[j] = hy[j] = 0;
-		}
-		for (let j = 0; j < N; j++) {
-			const dx = rx[j + 1] - rx[j], dy = ry[j + 1] - ry[j], len = Math.hypot(dx, dy);
-			l0[j] = len - T / K;
-			// at rest every spring pulls with T; hold each point against that
-			const ux = (T * dx) / len, uy = (T * dy) / len;
-			hx[j] -= ux; hy[j] -= uy;
-			hx[j + 1] += ux; hy[j + 1] += uy;
+			ry[j] = o.rest(j / N);
+			u[j] = u0[j] = 0;
 		}
 		for (let i = 0; i < n; i++) {
 			const print = lis[i].querySelector<HTMLElement>('.print');
@@ -95,22 +86,16 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		}
 	}
 
-	/** the rope at spot u (in segments) */
-	function at(u: number): [number, number] {
-		const j = Math.min(N - 1, Math.floor(u)), w = u - j;
-		return [x[j] + (x[j + 1] - x[j]) * w, y[j] + (y[j + 1] - y[j]) * w];
+	const seg = (v: number) => Math.max(0, Math.min(N - 1, Math.floor(v)));
+	/** the wire at spot v (in segments) */
+	function at(v: number): [number, number] {
+		const j = seg(v), w = v - j;
+		return [v * h, ry[j] + u[j] + (ry[j + 1] + u[j + 1] - ry[j] - u[j]) * w];
 	}
-	const rest_at = (u: number) => {
-		const j = Math.min(N - 1, Math.floor(u)), w = u - j;
-		return [rx[j] + (rx[j + 1] - rx[j]) * w, ry[j] + (ry[j + 1] - ry[j]) * w];
+	const rest_at = (v: number): [number, number] => {
+		const j = seg(v);
+		return [v * h, ry[j] + (ry[j + 1] - ry[j]) * (v - j)];
 	};
-	/** the spot on the rope right above px across */
-	function spot(px: number) {
-		let j = 0;
-		while (j < N - 1 && x[j + 1] < px) j++;
-		const w = (px - x[j]) / (x[j + 1] - x[j] || 1);
-		return j + Math.max(0, Math.min(1, w));
-	}
 
 	/** keep pegs in order with a gap, inside the line. the held one wins, the rest give way */
 	function order() {
@@ -125,51 +110,50 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	function step() {
 		const slow = calm.matches;
-		const damp = 1 - (slow ? 25 : 3.2) * DT; // the rope's
+		const damp = 1 - (slow ? 25 : 6) * DT; // the wire's
 		const grip = 1 - (slow ? 60 : 7) * DT; // a peg's grip on the wire, as it slides
 		const swing = slow ? 11 : 2.4; // how fast a swing dies
 
 		m.fill(1);
 		for (let i = 0; i < n; i++) {
-			const j = Math.min(N - 1, Math.floor(s[i])), w = s[i] - j;
+			const j = seg(s[i]), w = s[i] - j;
 			m[j] += M * (1 - w);
 			m[j + 1] += M * w;
 		}
-		fx.set(hx);
-		fy.set(hy);
-		for (let j = 0; j < N; j++) {
-			const dx = x[j + 1] - x[j], dy = y[j + 1] - y[j], len = Math.hypot(dx, dy);
-			const f = (K * (len - l0[j])) / len;
-			fx[j] += f * dx; fy[j] += f * dy;
-			fx[j + 1] -= f * dx; fy[j + 1] -= f * dy;
+		// the wire: each point pulled toward the middle of its neighbours (verlet, ends tied)
+		let prev = u[0];
+		for (let j = 1; j < N; j++) {
+			const a = (k2 * (prev + u[j + 1] - 2 * u[j])) / m[j];
+			const next = u[j] + (u[j] - u0[j]) * damp + a * DT * DT;
+			prev = u[j];
+			u0[j] = u[j];
+			u[j] = next;
 		}
 
-		// the hand: lead the peg smoothly toward it, slide it along, pull the wire to it
+		// the hand: lead the peg smoothly toward it, slide it along, hold the wire to it
 		if (held >= 0) {
 			const e = slow ? 0.05 : 0.035;
 			const nx = gx + (tx - gx) * e;
 			gvx = (nx - gx) / DT;
 			gx = nx;
 			gy += (ty - gy) * e;
-			s[held] = spot(gx);
-			const j = Math.min(N - 1, Math.floor(s[held])), w = s[held] - j;
-			const ya = y[j] + (y[j + 1] - y[j]) * w;
-			const va = vy[j] + (vy[j + 1] - vy[j]) * w;
-			// the wire gives a little, then holds: you can only pull it so far
-			const r = rest_at(s[held])[1];
+			s[held] = gx / h;
+			order();
+			const v = s[held], j = seg(v), w = v - j;
+			// the wire gives a little, then holds: you can only pull it so far, and less near a nail
+			const r = rest_at(v)[1];
+			const near = Math.min(v, N - v) * h;
+			const deep = Math.min(240, 18 + near * 0.9), high = Math.min(30, 4 + near * 0.15);
 			const d = gy - r;
-			const want = r + (d > 0 ? 240 * Math.tanh(d / 240) : 30 * Math.tanh(d / 30));
-			const F = 1e6 * (want - ya) - 900 * va;
-			pull = ya - r;
-			fy[j] += F * (1 - w);
-			fy[j + 1] += F * w;
-		}
-
-		for (let j = 1; j < N; j++) {
-			vx[j] = (vx[j] + (fx[j] / m[j]) * DT) * damp;
-			vy[j] = (vy[j] + (fy[j] / m[j]) * DT) * damp;
-			x[j] += vx[j] * DT;
-			y[j] += vy[j] * DT;
+			const want = d > 0 ? deep * Math.tanh(d / deep) : high * Math.tanh(d / high);
+			// put the wire there, shared by the two points either side of the peg (the ends stay tied)
+			const now = u[j] + (u[j + 1] - u[j]) * w;
+			const aj = j > 0 ? 1 - w : 0, aj1 = j + 1 < N ? w : 0;
+			const sum = aj * aj + aj1 * aj1 || 1;
+			const fix = (want - now) / sum;
+			u[j] += fix * aj;
+			u[j + 1] += fix * aj1;
+			pull = Math.max(0, want);
 		}
 
 		// pegs slide on, losing speed to their grip
@@ -205,9 +189,12 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	const f = (v: number) => v.toFixed(1);
 	function draw() {
+		// a smooth line through the points: straight runs stay straight, a corner gets a small round
 		const k = 1000 / W;
-		let d = `M0 ${f(y[0])}`;
-		for (let j = 0; j <= N; j++) d += `L${f(x[j] * k)} ${f(y[j])}`;
+		const X = (j: number) => f(j * h * k), Y = (j: number) => ry[j] + u[j];
+		let d = `M0 ${f(Y(0))}`;
+		for (let j = 1; j < N; j++) d += `Q${X(j)} ${f(Y(j))} ${f((j + 0.5) * h * k)} ${f((Y(j) + Y(j + 1)) / 2)}`;
+		d += `L1000 ${f(Y(N))}`;
 		path!.setAttribute('d', d);
 		for (let i = 0; i < n; i++) {
 			const [px, py] = at(s[i]);
@@ -222,10 +209,11 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	function asleep() {
 		if (held >= 0) return false;
 		let e = 0;
-		for (let j = 1; j < N; j++) e = Math.max(e, Math.abs(vx[j]) + Math.abs(vy[j]), Math.abs(x[j] - rx[j]) + Math.abs(y[j] - ry[j]) * 20);
+		for (let j = 1; j < N; j++) e = Math.max(e, Math.abs(u[j] - u0[j]) / DT, Math.abs(u[j]) * 20);
 		for (let i = 0; i < n; i++) e = Math.max(e, Math.abs(om[i]) * 300, Math.abs(th[i]) * 1500, Math.abs(s[i] - sp[i]) * 3e4);
 		if (e > 2) return false;
-		for (let j = 0; j <= N; j++) { x[j] = rx[j]; y[j] = ry[j]; vx[j] = vy[j] = 0; }
+		u.fill(0);
+		u0.fill(0);
 		for (let i = 0; i < n; i++) { th[i] = om[i] = 0; sp[i] = s[i]; }
 		return true;
 	}
@@ -233,11 +221,10 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	let raf = 0, last = 0, acc = 0;
 	function frame(t: number) {
 		const dt = Math.min(0.05, (t - last) / 1000);
-		acc += dt;
+		acc = Math.min(acc + dt, 0.05);
 		last = t;
 		fs.set(s);
-		let k = 0;
-		while (acc >= DT && k++ < 40) {
+		while (acc >= DT) {
 			step();
 			acc -= DT;
 		}
@@ -246,20 +233,24 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		listen(dt);
 		raf = done ? 0 : requestAnimationFrame(frame);
 	}
-	/** the sounds follow the frame: the fastest peg scrapes, pegs that meet tick */
+	/** the sounds follow the frame: the fastest peg's pulley ticks, the wire creaks as it is pulled,
+	 *  and a print that was swinging hard gives one soft flap as it settles */
 	function listen(dt: number) {
 		if (dt <= 0) return;
-		const px = W / N / dt;
+		const px = h / dt;
 		let fast = 0;
-		for (let i = 0; i < n; i++) {
-			const v = Math.abs(s[i] - fs[i]) * px;
-			fast = Math.max(fast, v);
-			if (i === n - 1) continue;
-			const met = s[i + 1] - s[i] <= gap + 0.02;
-			if (met && !touch[i]) sound.tick(Math.max(v, Math.abs(s[i + 1] - fs[i + 1]) * px));
-			touch[i] = met;
-		}
+		for (let i = 0; i < n; i++) fast = Math.max(fast, Math.abs(s[i] - fs[i]) * px);
 		sound.slide(fast);
+		sound.creak(pull, held >= 0 ? (pull - was) / dt : 0);
+		was = pull;
+		for (let i = 0; i < n; i++) {
+			if (i === held) continue;
+			if (Math.abs(om[i]) > 2.2) hard[i] = true;
+			else if (hard[i] && Math.abs(om[i]) < 0.5 && Math.abs(th[i]) < 0.08) {
+				hard[i] = false;
+				sound.flap(L[i]);
+			}
+		}
 	}
 	function wake() {
 		if (raf) return;
@@ -267,6 +258,23 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		acc = 0;
 		raf = requestAnimationFrame(frame);
 	}
+
+	// a breeze before you got here: the first time the line comes into view, set the prints
+	// swaying a little, each its own way, from where they hang (so nothing jumps), and let them settle
+	let breezed = false;
+	const io = new IntersectionObserver((es) => {
+		if (!es.some((e) => e.isIntersecting) || breezed) return;
+		breezed = true;
+		io.disconnect();
+		if (calm.matches || phone.matches || moved) return;
+		moved = true;
+		for (let i = 0; i < n; i++) {
+			const sway = (0.05 + 0.04 * Math.abs(Math.sin(i * 2.3 + 0.7))) * (i % 2 ? -1 : 1);
+			// a mid-swing start: at rest angle, moving, so the first frame is exactly the page
+			om[i] = sway * Math.sqrt(G / L[i]) * (0.8 + 0.4 * Math.abs(Math.cos(i * 1.7)));
+		}
+		wake();
+	}, { threshold: 0.25 });
 
 	function local(e: PointerEvent) {
 		const b = line.getBoundingClientRect();
@@ -280,7 +288,8 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		e.preventDefault();
 		li.setPointerCapture(e.pointerId);
 		sound.unlock();
-		pull = 0;
+		sound.clack();
+		pull = was = 0;
 		held = i;
 		pointer = e.pointerId;
 		moved = true;
@@ -306,7 +315,8 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		lis[held]?.classList.remove('held');
 		// let go: it keeps the speed it had, so a flick slides it on
 		if (!calm.matches) sp[held] = s[held] - (gvx * DT * N) / W;
-		sound.twang(pull);
+		sound.let_go(pull);
+		pull = 0;
 		held = pointer = -1;
 		wake();
 	}
@@ -329,7 +339,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		cancelAnimationFrame(raf);
 		raf = 0;
 		held = pointer = -1;
-		sound.slide(0);
+		sound.let_go(0);
 		line.classList.remove('live');
 		path!.setAttribute('d', still);
 		for (const li of lis) {
@@ -345,9 +355,10 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	for (let i = 0; i < n; i++) s[i] = sp[i] = s0[i];
 	on();
+	io.observe(line);
 	const flip = () => (off(), on());
 	phone.addEventListener('change', flip);
-	// a new width: start the rope over at rest, the pegs where they were along it
+	// a new width: start the wire over at rest, the pegs where they were along it
 	const ro = new ResizeObserver(() => {
 		if (phone.matches || line.clientWidth === W) return;
 		build();
@@ -358,6 +369,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	return () => {
 		phone.removeEventListener('change', flip);
 		ro.disconnect();
+		io.disconnect();
 		off();
 		sound.close();
 	};
