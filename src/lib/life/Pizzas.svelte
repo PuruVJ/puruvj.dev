@@ -2,15 +2,19 @@
 	import { Img, type ImageDescriptor } from '@ogygia/image';
 
 	// neapolitan pizzas, pinned to a line like prints drying in a darkroom: a wire sags across the
-	// page and each photo hangs off it on a wooden peg, a little crooked. more than five and a
+	// page and each photo hangs off it on a wooden peg, a little crooked. more than four and a
 	// second line starts below. to add one, add a file to src/lib/life and a line to PIZZAS.
 	const PIZZAS: { of: ImageDescriptor; alt: string }[] = [
 		{ of: import.meta.og.image('./pizza-1.jpg'), alt: 'a margherita in its box, leopard-spotted crust, basil on top' },
 		{ of: import.meta.og.image('./pizza-2.jpg'), alt: 'a pizza with rounds of goat cheese, at a café table' },
 		{ of: import.meta.og.image('./pizza-3.jpg'), alt: 'a pizza of grilled aubergine, courgette, peppers and two chillies' },
+		{ of: import.meta.og.image('./pizza-4.jpg'), alt: 'a charred, puffy crust with burrata, basil and chilli flakes, in its box' },
+		{ of: import.meta.og.image('./pizza-5.jpg'), alt: 'a pizza with black olives and peppers' },
+		{ of: import.meta.og.image('./pizza-6.jpg'), alt: 'an oval pizza with feta, olives and green chillies on a wooden board' },
+		{ of: import.meta.og.image('./pizza-7.jpg'), alt: 'a pizza with mushrooms, olives and peppers' },
 	];
 
-	const PER = 5;
+	const PER = 4;
 	const rows = Array.from({ length: Math.ceil(PIZZAS.length / PER) }, (_, i) => PIZZAS.slice(i * PER, i * PER + PER));
 	// seeded tilt, so each print hangs crooked the same way every time
 	const tilt = (i: number) => +(Math.sin(i * 12.9898) * 3.2).toFixed(2);

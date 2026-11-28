@@ -29,13 +29,15 @@ const env = (t: number) => Math.sin(Math.PI * t) ** 2;
 
 type Kind = 'switchback' | 'kink';
 /** walk from t = 0 to 1 along a base x(t), adding the wander, the shake and the incidents */
-function walk(base: (t: number) => number, wander: number, incidents: Kind[], seed: number) {
+function walk(base: (t: number) => number, wander: number, incidents: Kind[], seed: number, lift = 0) {
 	const r = rng(seed);
 	const f1 = wander < 20 ? 0.5 : 1 + r() * 1.2;
 	const f2 = wander < 20 ? 1 : 1.8 + r() * 1.2;
 	const p1 = r() * 6.28;
 	const p2 = r() * 6.28;
 	const a2 = wander * (0.25 + r() * 0.2);
+	const g1 = 1.5 + r() * 1;
+	const g2 = 3.2 + r() * 1.6;
 	const f3 = 2.5 + r() * 1.5;
 	const p3 = r() * 6.28;
 	// a short stretch is squeezed into little height, where any tremor reads as a zigzag: none
@@ -60,7 +62,9 @@ function walk(base: (t: number) => number, wander: number, incidents: Kind[], se
 			if (c.k === 'switchback') x += c.side * 26 * Math.sin(u * Math.PI) * bell;
 			if (c.k === 'kink') x += c.side * 20 * bell;
 		}
-		const y = t * 100;
+		// and it rises and dips as it goes, like ground that isn't flat: on a crossing, where the
+		// line runs mostly sideways, this is what keeps it from reading as a ruled diagonal
+		const y = t * 100 + env(t) * lift * (Math.sin(Math.PI * 2 * g1 * t + p1 * 1.3) + 0.5 * Math.sin(Math.PI * 2 * g2 * t + p2 * 0.7));
 		d += `${pen ? 'L' : 'M'}${f(x)} ${f(y)}`;
 		pen = true;
 	}
@@ -90,7 +94,7 @@ export const bend = (a: number, b: number) => {
 		const m = 1 - t;
 		return m * m * m * A + 3 * m * m * t * A + 3 * m * t * t * B + t * t * t * B;
 	};
-	return walk(base, 10, [], seed);
+	return walk(base, 10, [], seed, 9);
 };
 
 /** where a lane sits, as a left offset in css */
