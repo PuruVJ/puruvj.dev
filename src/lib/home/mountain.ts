@@ -31,7 +31,7 @@ const SHADE: Pt[] = [PEAK.left.at(-1)!, ...PEAK.right.slice(1), PEAK.crease[1], 
 export const SILHOUETTE = PEAK.back.map(poly).join('') + poly([...PEAK.left, ...PEAK.right.slice(1)]);
 
 /** seeded, so the server and every build paint the same strokes */
-function rng(seed: number) {
+export function rng(seed: number) {
 	return () => {
 		seed |= 0;
 		seed = (seed + 0x6d2b79f5) | 0;
@@ -46,7 +46,7 @@ function rng(seed: number) {
  * height into ridges lit from the upper left, with a little wet shine. the paint's colour and the
  * shine come from css (`.tone-*` flood colours, `--oil-sheen`), so one drawing serves both themes.
  */
-function paint(id: string, seed: number, tone: string) {
+export function paint(id: string, seed: number, tone: string) {
 	return `<filter id="${id}" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
 <feTurbulence type="fractalNoise" baseFrequency=".03 .9" numOctaves="3" seed="${seed}" result="br"/>
 <feColorMatrix in="br" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .07 0 0 0 0" result="bra"/>
@@ -60,7 +60,7 @@ function paint(id: string, seed: number, tone: string) {
 </filter>`;
 }
 
-function painter(seed: number) {
+export function painter(seed: number) {
 	const r = rng(seed);
 	type Strokes = { angle: number; cx: number; cy: number; span: number; s: string };
 	// strokes laid level in a face's own frame; the group is then turned to the slope

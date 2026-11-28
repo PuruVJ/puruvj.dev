@@ -1,6 +1,7 @@
 <script lang="ts">
 	// the books i grew up on, standing on a shelf in the same 1px line as the rest of the page:
-	// harry potter in order, the two epics with their names in hindi, a run of agatha christies,
+	// harry potter in order, the two epics with their names in hindi, the maze runner books, and the
+	// agatha christies,
 	// one of them lying across the top. point at a spine and it slides out a little.
 	type Book = { t: string; h: number; w: number; band?: number; hi?: boolean; lean?: number };
 	const HP: Book[] = [
@@ -17,14 +18,22 @@
 		{ t: 'रामायण', h: 208, w: 54, band: 3, hi: true },
 	];
 	const CHRISTIE: Book[] = [
-		{ t: 'agatha christie', h: 178, w: 26, band: 1 },
-		{ t: 'agatha christie', h: 182, w: 24, band: 1 },
-		{ t: 'agatha christie', h: 176, w: 28, band: 1 },
-		{ t: 'agatha christie', h: 180, w: 25, band: 1, lean: -9 },
+		{ t: 'the murder of roger ackroyd', h: 222, w: 30, band: 1 },
+		{ t: 'death on the nile', h: 182, w: 28, band: 1 },
+		{ t: 'five little pigs', h: 178, w: 26, band: 1 },
+		{ t: 'the hollow', h: 184, w: 27, band: 1, lean: -9 },
 	];
+	const MAZE: Book[] = [
+		['the maze runner', 204, 34],
+		['the scorch trials', 206, 36],
+		['the death cure', 204, 34],
+		['the kill order', 200, 32],
+		['the fever code', 202, 33],
+	].map(([t, h, w]) => ({ t: t as string, h: h as number, w: w as number, band: 1 }));
 	const GROUPS = [
 		{ name: 'harry potter', books: HP },
 		{ name: 'the epics', books: EPICS },
+		{ name: 'the maze runner', books: MAZE },
 		{ name: 'agatha christie', books: CHRISTIE },
 	];
 </script>
@@ -158,7 +167,7 @@
 	/* a phone: the same shelf, smaller, on one line */
 	@media (max-width: 1000px) {
 		.shelf {
-			zoom: 0.46;
+			zoom: 0.37;
 		}
 	}
 </style>

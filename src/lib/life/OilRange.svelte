@@ -1,12 +1,12 @@
 <script lang="ts">
-	// the home page's oil-painted mountain, still (no sun, no sky loop): the same strokes and light,
-	// hung on /life where the mountains are. plain svg, painted once.
-	import { terrain, VW, VH } from '$lib/home/mountain.ts';
-	const painting = terrain();
+	// a wide himalayan range in the home page's thick oil (range.ts): the same strokes and light,
+	// its own peaks. plain svg, painted once on the server.
+	import { range, RW, RH } from './range.ts';
+	const painting = range();
 </script>
 
 <div class="oil" aria-hidden="true">
-	<svg viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet">{@html painting}</svg>
+	<svg viewBox="0 0 {RW} {RH}" preserveAspectRatio="xMidYMax slice">{@html painting}</svg>
 </div>
 
 <style>
@@ -19,7 +19,7 @@
 		--oil-sheen: #fff;
 		position: relative;
 		width: 100%;
-		aspect-ratio: 400 / 300;
+		aspect-ratio: 1200 / 300;
 		pointer-events: none;
 	}
 	@media (prefers-color-scheme: dark) {

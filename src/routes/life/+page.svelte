@@ -1034,12 +1034,12 @@
 			0 0 6px var(--paper),
 			0 0 14px var(--paper);
 	}
+	/* the range runs the full width of the page, under the words and over the trek profile */
 	.mountains .range {
-		position: absolute;
-		right: calc(-1 * var(--gut));
-		bottom: -36px;
-		width: 52%;
-		z-index: -1 !important;
+		grid-column: 1 / -1;
+		margin: 36px calc(-1 * var(--gut)) -24px;
+		-webkit-mask: linear-gradient(to right, transparent 0, #000 12%, #000 92%, transparent);
+		mask: linear-gradient(to right, transparent 0, #000 12%, #000 92%, transparent);
 	}
 
 	/* ---------- cinema ---------- */
@@ -1308,10 +1308,12 @@
 		}
 		.mountains .range {
 			position: relative;
+			left: auto;
 			right: auto;
 			bottom: auto;
-			width: 100%;
-			margin: 8px 0 -10px;
+			margin: 8px -20px -10px -50px;
+			-webkit-mask: none;
+			mask: none;
 		}
 		.intro > .me {
 			position: absolute;
