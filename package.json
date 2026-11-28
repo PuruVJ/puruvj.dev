@@ -12,10 +12,10 @@
 		"stats:seed": "node scripts/stats.ts && cp node_modules/.cache/puru-stats/stats.json src/lib/stats/seed.json"
 	},
 	"dependencies": {
+		"@dimforge/rapier3d": "0.19.3",
 		"@fontsource-variable/instrument-sans": "^5.3.0",
 		"@fontsource/ibm-plex-mono": "^5.3.0",
 		"@ogygia/content": "0.16.0",
-		"cannon-es": "0.20.0",
 		"ogygia": "0.16.0",
 		"three": "0.170.0",
 		"valibot": "^1.5.0"

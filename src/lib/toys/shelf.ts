@@ -1,8 +1,9 @@
 // the toy shelf: clay miniatures on the footer's top rule. poke, flick, drag, knock them over.
 // loaded only after the page has settled (see Shelf.svelte). renders on demand: when nothing
-// moves, nothing runs.
+// moves, nothing runs. the physics (rapier, a wasm build) is fetched only when someone reaches
+// for a toy: until then they just sit there, which needs no physics at all.
 import * as THREE from 'three';
-import * as CANNON from 'cannon-es';
+import type * as RAPIER from '@dimforge/rapier3d';
 import { G, PI, mulberry } from './clay.ts';
 import * as T from './toys.ts';
 
@@ -44,10 +45,21 @@ const TILT = 0.2;
 type Toy = Def & {
 	outer: THREE.Group;
 	inner: THREE.Group;
-	body: CANNON.Body;
+	body?: RAPIER.RigidBody;
+	collider?: RAPIER.Collider;
+	/** how long it has been nearly still on something, in seconds */
+	calm: number;
 	size: THREE.Vector3;
-	/** height of the body's origin (its centre of mass) above its base */
+	/** height of the body's origin (the middle of its drawing) above its base */
 	low: number;
+	/** its outline for the physics: the drawing's own points, wrapped tight (a convex hull) */
+	hull: Float32Array;
+	mass: number;
+	/** the physics pose after the last step and the one before, drawn blended between them */
+	pos: THREE.Vector3;
+	quat: THREE.Quaternion;
+	pos0: THREE.Vector3;
+	quat0: THREE.Quaternion;
 	blob: THREE.Mesh;
 	last: number;
 };
@@ -221,54 +233,6 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	const blobMat = new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, depthWrite: false, opacity: 0.32, toneMapped: false });
 	const blobGeo = new THREE.PlaneGeometry(1, 1);
 
-	// ---------- physics ----------
-	// true scale: one unit is about 10 cm, so gravity is 9.8 m/s² = 98 units/s². at this scale
-	// small things fall fast and land hard, which is what makes them read as real objects.
-	const world = new CANNON.World({ gravity: new CANNON.Vec3(0, -98, 0) });
-	world.allowSleep = true;
-	(world.solver as CANNON.GSSolver).iterations = 16;
-	const M = {
-		shelf: new CANNON.Material('shelf'),
-		// the invisible walls (sides, front, back, lid): slick, so a tumbling toy can never wedge
-		// between them and hang in the air
-		wall: new CANNON.Material('wall'),
-		clay: new CANNON.Material('clay'),
-		hard: new CANNON.Material('hard'),
-	};
-	const pair = (a: CANNON.Material, b: CANNON.Material, friction: number, restitution: number) =>
-		world.addContactMaterial(new CANNON.ContactMaterial(a, b, { friction, restitution }));
-	pair(M.shelf, M.clay, 0.62, 0.06);
-	pair(M.shelf, M.hard, 0.4, 0.32);
-	pair(M.clay, M.clay, 0.55, 0.05);
-	pair(M.clay, M.hard, 0.45, 0.12);
-	pair(M.hard, M.hard, 0.3, 0.38);
-	pair(M.wall, M.clay, 0, 0.1);
-	pair(M.wall, M.hard, 0, 0.3);
-	const walls: CANNON.Body[] = [];
-	const plane = (pos: [number, number, number], e: [number, number, number], material = M.wall) => {
-		const b = new CANNON.Body({ mass: 0, shape: new CANNON.Plane(), material });
-		b.position.set(...pos);
-		b.quaternion.setFromEuler(...e);
-		world.addBody(b);
-		walls.push(b);
-		return b;
-	};
-	plane([0, 0, 0], [-PI / 2, 0, 0], M.shelf);
-	plane([0, 0, -DEPTH / 2], [0, 0, 0]);
-	plane([0, 0, DEPTH / 2], [0, PI, 0]);
-	const left = plane([-w / 2, 0, 0], [0, PI / 2, 0]);
-	const right = plane([w / 2, 0, 0], [0, -PI / 2, 0]);
-	const lid = plane([0, h * 1.6, 0], [PI / 2, 0, 0]);
-	const grab = new CANNON.Body({ mass: 0 });
-	grab.collisionFilterGroup = 0;
-	grab.collisionFilterMask = 0;
-	world.addBody(grab);
-	function walls_set() {
-		left.position.x = -w / 2;
-		right.position.x = w / 2;
-		lid.position.y = h * 1.6;
-	}
-
 	// ---------- the toys, built a few at a time so the main thread stays free ----------
 	const toys: Toy[] = [];
 	const pick: THREE.Object3D[] = [];
@@ -287,73 +251,273 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		g.scale.multiplyScalar(d.scale ?? 1);
 		const inner = new THREE.Group();
 		inner.add(g);
-		box.setFromObject(inner);
-		const c = box.getCenter(new THREE.Vector3());
+		box.setFromObject(inner, true);
+		g.position.sub(box.getCenter(new THREE.Vector3()));
+		inner.updateMatrixWorld(true);
+		const hull = hull_points(inner);
+		box.setFromArray(hull);
 		const size = box.getSize(new THREE.Vector3());
-		g.position.sub(c);
-		// the body's origin is its centre of mass: `low` above the base. the box shape and the
-		// drawing both sit above it by the same amount, so a heavy base really is heavy.
-		const low = (d.com ?? 0.5) * size.y;
-		inner.position.y = size.y / 2 - low;
+		const low = -box.min.y;
 		const outer = new THREE.Group();
 		outer.add(inner);
 		scene.add(outer);
-		const shape = new CANNON.Box(new CANNON.Vec3(size.x / 2, size.y / 2, size.z / 2));
-		const mass = clamp(size.x * size.y * size.z * 2.2, 0.3, 2.2);
-		const body = new CANNON.Body({
-			mass,
-			material: M[d.stuff ?? 'clay'],
-			// a little air, a little rolling resistance: enough to settle, never syrupy
-			linearDamping: 0.01,
-			angularDamping: 0.06,
-			allowSleep: true,
-			// under true-scale gravity a resting toy hums a little; below 3 cm/s it is at rest
-			sleepSpeedLimit: 0.3,
-			sleepTimeLimit: 0.3,
-		});
-		body.addShape(shape, new CANNON.Vec3(0, size.y / 2 - low, 0));
 		const x = (d.at - 0.5) * w;
-		body.position.set(x, low + 0.002, (d.z ?? 0) * (DEPTH / 2 - Math.min(size.z, DEPTH) / 2) * 0.8);
-		body.quaternion.setFromEuler(0, d.turn ?? 0, 0);
-		world.addBody(body);
-		body.sleep();
+		const pos = new THREE.Vector3(x, low, (d.z ?? 0) * (DEPTH / 2 - Math.min(size.z, DEPTH) / 2) * 0.8);
+		const quat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, d.turn ?? 0, 0));
 		const blob = new THREE.Mesh(blobGeo, blobMat);
 		blob.rotation.x = -PI / 2;
 		blob.renderOrder = -1;
 		scene.add(blob);
-		const t: Toy = { ...d, outer, inner, body, size, low, blob, last: 0 };
+		const mass = clamp(size.x * size.y * size.z * 2.2, 0.3, 2.2);
+		const t: Toy = { ...d, outer, inner, size, low, hull, mass, pos, quat, pos0: pos.clone(), quat0: quat.clone(), blob, last: 0, calm: 0 };
 		g.traverse((m) => {
 			if ((m as THREE.Mesh).isMesh) {
 				m.userData.toy = t;
 				pick.push(m);
 			}
 		});
-		body.addEventListener('collide', (e: any) => {
-			const iv = Math.abs(e.contact.getImpactVelocityAlongNormal());
-			if (iv < 1.8) return;
-			const now = performance.now();
-			if (now - t.last > 90) {
-				t.last = now;
-				sound.tock(iv, Math.cbrt(size.x * size.y * size.z) * 2);
-			}
-		});
 		toys.push(t);
-		sync(t);
+		sync(t, 1);
 		await yield_();
 	}
 
-	function sync(t: Toy) {
-		const b = t.body;
-		t.outer.position.set(b.position.x, b.position.y, b.position.z);
-		t.outer.quaternion.set(b.quaternion.x, b.quaternion.y, b.quaternion.z, b.quaternion.w);
+	/** every vertex of the drawing, in the toy's own frame, thinned to a few hundred */
+	function hull_points(o: THREE.Object3D) {
+		const all: number[] = [];
+		const v = new THREE.Vector3();
+		o.traverse((m) => {
+			const geo = (m as THREE.Mesh).isMesh && (m as THREE.Mesh).geometry;
+			if (!geo) return;
+			const p = geo.attributes.position;
+			for (let i = 0; i < p.count; i++) {
+				v.fromBufferAttribute(p, i).applyMatrix4(m.matrixWorld);
+				all.push(v.x, v.y, v.z);
+			}
+		});
+		const n = all.length / 3;
+		const every = Math.max(1, Math.floor(n / 600));
+		const out: number[] = [];
+		for (let i = 0; i < n; i += every) out.push(all[i * 3], all[i * 3 + 1], all[i * 3 + 2]);
+		return new Float32Array(out);
+	}
+
+	function sync(t: Toy, a: number) {
+		t.outer.position.lerpVectors(t.pos0, t.pos, a);
+		t.outer.quaternion.slerpQuaternions(t.quat0, t.quat, a);
+		const p = t.outer.position;
 		// the contact shadow stays on the shelf, fading as the toy lifts off it
-		const lift = clamp(b.position.y - t.low, 0, 2);
+		const lift = clamp(p.y - t.low, 0, 2);
 		const k = Math.max(0, 1 - lift * 1.6);
-		t.blob.position.set(b.position.x, 0.003, b.position.z);
+		t.blob.position.set(p.x, 0.003, p.z);
 		t.blob.scale.set(t.size.x * 1.15 * (1 + lift * 0.5), Math.min(t.size.z, DEPTH) * 1.1, 1);
 		t.blob.visible = k > 0.02;
-		(t.blob as any).material = blobMat;
 		t.blob.scale.multiplyScalar(0.6 + 0.4 * k);
+	}
+
+	// ---------- physics: rapier, fetched the first time someone reaches for a toy ----------
+	// true scale: one unit is about 10 cm, so gravity is 9.81 m/s² = 98 units/s². at this scale
+	// small things fall fast and land hard, which is what makes them read as real objects.
+	const GRAVITY = 98.1;
+	// a fixed step, so the toys behave the same at 30fps and at 144fps. the drawing is blended
+	// between the last two steps, so motion stays smooth whatever the screen's own rate.
+	const STEP = 1 / 120;
+	type Phys = {
+		R: typeof RAPIER;
+		world: RAPIER.World;
+		events: RAPIER.EventQueue;
+		walls: Record<'left' | 'right' | 'lid', RAPIER.RigidBody>;
+		by_collider: Map<number, Toy>;
+	};
+	let phys: Phys | null = null;
+	let loading = false;
+	let dead = false;
+	/** things done to the toys before the physics arrived: replayed once it has */
+	let queued: (() => void)[] = [];
+	function need() {
+		if (loading) return;
+		loading = true;
+		import('@dimforge/rapier3d')
+			.then((R) => {
+				if (dead) return;
+				phys = build(R);
+				for (const f of queued) f();
+				queued = [];
+				if (press && press.want) start_drag();
+				wake();
+			})
+			.catch(() => (loading = false));
+	}
+
+	function build(R: typeof RAPIER): Phys {
+		const world = new R.World({ x: 0, y: -GRAVITY, z: 0 });
+		world.timestep = STEP;
+		// a few more solver passes than the default: cheap for ten bodies, and stacks stay put
+		world.numSolverIterations = 8;
+		const Rule = R.CoefficientCombineRule;
+		// the slab the toys stand on, and invisible walls (sides, front, back, lid). the walls are
+		// slick, so a tumbling toy can never wedge between them and hang in the air.
+		const slab = (x: number, y: number, z: number, hx: number, hy: number, hz: number, floor = false) => {
+			const b = world.createRigidBody(R.RigidBodyDesc.fixed().setTranslation(x, y, z));
+			const c = R.ColliderDesc.cuboid(hx, hy, hz);
+			if (floor) c.setFriction(0.6).setRestitution(0.15);
+			else c.setFriction(0).setFrictionCombineRule(Rule.Min).setRestitution(0.1);
+			world.createCollider(c, b);
+			return b;
+		};
+		const T = 2;
+		slab(0, -T, 0, 500, T, 50, true);
+		slab(0, 0, -DEPTH / 2 - T, 500, 500, T);
+		slab(0, 0, DEPTH / 2 + T, 500, 500, T);
+		const walls = {
+			left: slab(-w / 2 - T, 0, 0, T, 500, 50),
+			right: slab(w / 2 + T, 0, 0, T, 500, 50),
+			lid: slab(0, h * 1.6 + T, 0, 500, T, 50),
+		};
+		const by_collider = new Map<number, Toy>();
+		for (const t of toys) {
+			const hard = t.stuff === 'hard';
+			const body = world.createRigidBody(
+				R.RigidBodyDesc.dynamic()
+					.setTranslation(t.pos.x, t.pos.y + 0.001, t.pos.z)
+					.setRotation(t.quat)
+					// a little air, and some rolling resistance: rapier has no rolling friction, so a
+					// round thing would otherwise roll off the end of the shelf
+					.setLinearDamping(0.08)
+					.setAngularDamping(hard ? 0.35 : 0.6)
+					// a hard throw moves further than its own size in one step: sweep it, so it can
+					// never pass through the shelf or a wall
+					.setCcdEnabled(true)
+					.setSleeping(true),
+			);
+			// its weight: where `com` says (a heavy base sits low), with a spin resistance close to
+			// that of a solid block of its size
+			const s = t.size;
+			const m = t.mass;
+			const k = m / 12;
+			const col = (R.ColliderDesc.convexHull(t.hull) ?? R.ColliderDesc.cuboid(s.x / 2, s.y / 2, s.z / 2))
+				.setMassProperties(
+					m,
+					{ x: 0, y: -t.low + (t.com ?? 0.5) * s.y, z: 0 },
+					{ x: k * (s.y * s.y + s.z * s.z), y: k * (s.x * s.x + s.z * s.z), z: k * (s.x * s.x + s.y * s.y) },
+					{ x: 0, y: 0, z: 0, w: 1 },
+				)
+				// clay is soft and dead: grippy, and it barely bounces. the dice and the pebble are
+				// hard: they skid a little and clack back up.
+				.setFriction(hard ? 0.45 : 0.75)
+				.setRestitution(hard ? 0.45 : 0.04)
+				.setRestitutionCombineRule(hard ? Rule.Average : Rule.Min)
+				.setActiveEvents(R.ActiveEvents.CONTACT_FORCE_EVENTS)
+				// only knocks loud enough to hear: resting weight on the shelf stays well below this
+				.setContactForceEventThreshold((m * 1.8) / STEP);
+			const c = world.createCollider(col, body);
+			by_collider.set(c.handle, t);
+			t.body = body;
+			t.collider = c;
+		}
+		return { R, world, events: new R.EventQueue(true), walls, by_collider };
+	}
+
+	function walls_set() {
+		if (!phys) return;
+		phys.walls.left.setTranslation({ x: -w / 2 - 2, y: 0, z: 0 }, true);
+		phys.walls.right.setTranslation({ x: w / 2 + 2, y: 0, z: 0 }, true);
+		phys.walls.lid.setTranslation({ x: 0, y: h * 1.6 + 2, z: 0 }, true);
+	}
+
+	/** put a toy somewhere without it flying there: it lands there, still */
+	function place(t: Toy, x: number, y: number, z: number, still: boolean) {
+		t.pos.set(x, y, z);
+		t.pos0.copy(t.pos);
+		if (!t.body) return;
+		t.body.setTranslation({ x, y, z }, true);
+		if (still) {
+			t.body.setLinvel({ x: 0, y: 0, z: 0 }, true);
+			t.body.setAngvel({ x: 0, y: 0, z: 0 }, true);
+		}
+	}
+
+	// the hand: a spring from the held spot to the pointer, critically damped, that also carries the
+	// toy's own weight. it is a force, not a rigid joint, so a toy jammed against a wall or another
+	// toy pushes back instead of exploding through it.
+	const HAND = 32;
+	const grab = { local: new THREE.Vector3(), target: new THREE.Vector3(), vel: new THREE.Vector3(), at: 0 };
+	const tmpV = new THREE.Vector3();
+	const tmpQ = new THREE.Quaternion();
+	function hold(t: Toy) {
+		const b = t.body!;
+		const r = b.rotation();
+		const p = b.translation();
+		tmpQ.set(r.x, r.y, r.z, r.w);
+		const at = tmpV.copy(grab.local).applyQuaternion(tmpQ).add(p as THREE.Vector3Like);
+		const v = b.velocityAtPoint(at);
+		// the pointer's own speed fades once it stops moving, so a held toy comes to rest
+		if (performance.now() - grab.at > 40) grab.vel.multiplyScalar(0.85);
+		const ax = HAND * HAND * (grab.target.x - at.x) + 2 * HAND * (grab.vel.x - v.x);
+		const ay = HAND * HAND * (grab.target.y - at.y) + 2 * HAND * (grab.vel.y - v.y) + GRAVITY;
+		const az = HAND * HAND * (grab.target.z - at.z) + 2 * HAND * (grab.vel.z - v.z);
+		// no superhuman hands: about ten g at most
+		const a = Math.hypot(ax, ay, az);
+		const cap = a > 1000 ? 1000 / a : 1;
+		const k = t.mass * STEP * cap;
+		b.applyImpulseAtPoint({ x: ax * k, y: ay * k, z: az * k }, at, true);
+	}
+
+	/** what rapier leaves out: a real thing resting on a shelf touches it with a patch, not a point,
+	 *  and that patch resists spinning in place and rolling. without it a banana spins like a top on
+	 *  its curve. it is a steady drag, like friction, so it stops things in a moment, not slowly
+	 *  forever. and once something is barely moving on a surface, it is put to sleep. */
+	function rest(P: Phys, t: Toy) {
+		const b = t.body!;
+		const c = t.collider!;
+		let touching = false;
+		P.world.contactPairsWith(c, (o) => {
+			if (!touching) P.world.contactPair(c, o, (m) => void (touching ||= m.numContacts() > 0));
+		});
+		if (!touching) return void (t.calm = 0);
+		const w = b.angvel();
+		// spin about the vertical, then the roll that is left
+		const spin = w.y;
+		const ds = Math.min(Math.abs(spin), 24 * STEP) * Math.sign(spin);
+		const rx = w.x;
+		const rz = w.z;
+		const roll = Math.hypot(rx, rz);
+		const k = roll > 0 ? Math.max(0, 1 - (5 * STEP) / roll) : 0;
+		b.setAngvel({ x: rx * k, y: spin - ds, z: rz * k }, false);
+		const v = b.linvel();
+		const still = Math.hypot(v.x, v.y, v.z) < 0.25 && Math.hypot(rx * k, spin - ds, rz * k) < 0.5;
+		t.calm = still ? t.calm + STEP : 0;
+		if (t.calm > 0.4) b.sleep();
+	}
+
+	function step() {
+		const P = phys!;
+		if (press?.dragging) hold(press.t);
+		for (const t of toys) {
+			t.pos0.copy(t.pos);
+			t.quat0.copy(t.quat);
+		}
+		P.world.step(P.events);
+		P.events.drainContactForceEvents((e) => {
+			const dv = e.totalForceMagnitude() * STEP;
+			for (const h of [e.collider1(), e.collider2()]) {
+				const t = P.by_collider.get(h);
+				if (!t) continue;
+				const iv = dv / t.mass;
+				const now = performance.now();
+				if (iv < 1.8 || now - t.last < 90) continue;
+				t.last = now;
+				sound.tock(iv, Math.cbrt(t.size.x * t.size.y * t.size.z) * 2);
+			}
+		});
+		for (const t of toys) {
+			const b = t.body!;
+			if (!b.isSleeping() && !(press?.dragging && press.t === t)) rest(P, t);
+			const p = b.translation();
+			const r = b.rotation();
+			t.pos.set(p.x, p.y, p.z);
+			t.quat.set(r.x, r.y, r.z, r.w);
+			if (p.y < -1 || Math.abs(p.x) > w / 2 + 1) place(t, clamp(p.x, -w / 2 + 0.5, w / 2 - 0.5), h, 0, true);
+		}
 	}
 
 	// ---------- labels and the mute toggle ----------
@@ -382,8 +546,18 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	const ndc = new THREE.Vector2();
 	const dragPlane = new THREE.Plane();
 	const hitP = new THREE.Vector3();
-	let press: null | { t: Toy; x: number; y: number; at: number; point: THREE.Vector3; id: number; dragging: boolean; e: PointerEvent } = null;
-	let joint: CANNON.PointToPointConstraint | null = null;
+	let press: null | {
+		t: Toy;
+		x: number;
+		y: number;
+		at: number;
+		point: THREE.Vector3;
+		id: number;
+		dragging: boolean;
+		/** a drag that started before the physics had arrived */
+		want: boolean;
+		e: PointerEvent;
+	} = null;
 	let shown: Toy | null = null;
 	let hideT = 0;
 
@@ -424,13 +598,17 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		label.style.transform = `translate(${x.toFixed(1)}px, ${Math.max(2, y).toFixed(1)}px) translate(-50%, -100%)`;
 	}
 
+	// the physics is fetched the moment a pointer comes onto the shelf: a mouse hovers first, so it
+	// is usually there before the click. a finger's first touch fetches it and is replayed after.
+	canvas.addEventListener('pointerenter', need);
 	canvas.addEventListener('pointerdown', (e) => {
+		need();
 		sound.unlock();
 		const hh = hit(e);
 		if (!hh) return;
 		e.preventDefault();
 		canvas.setPointerCapture(e.pointerId);
-		press = { t: hh.object.userData.toy, x: e.clientX, y: e.clientY, at: performance.now(), point: hh.point.clone(), id: e.pointerId, dragging: false, e };
+		press = { t: hh.object.userData.toy, x: e.clientX, y: e.clientY, at: performance.now(), point: hh.point.clone(), id: e.pointerId, dragging: false, want: false, e };
 		show(press.t);
 		wake();
 	});
@@ -452,45 +630,56 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		if (!press) show(null);
 	});
 	function start_drag() {
-		if (!press) return;
-		const b = press.t.body;
+		if (!press || press.dragging) return;
+		if (!phys) return void (press.want = true);
+		const b = press.t.body!;
 		const p = press.point;
 		press.dragging = true;
-		// never doze off in the hand, or it would hang in the air when let go
-		b.allowSleep = false;
-		b.wakeUp();
 		// drag in a plane facing the viewer, so up and down on screen lift and drop the toy
 		dragPlane.setFromNormalAndCoplanarPoint(fwd.clone().negate(), p);
-		const local = b.pointToLocalFrame(new CANNON.Vec3(p.x, p.y, p.z));
-		grab.position.set(p.x, p.y, p.z);
-		// strong enough to lift it against real gravity; it still swings from where it was held
-		joint = new CANNON.PointToPointConstraint(b, local, grab, new CANNON.Vec3(0, 0, 0), b.mass * 900);
-		world.addConstraint(joint);
-		b.angularDamping = 0.6;
+		// the held spot, in the toy's own frame: it swings from there, like a thing held by a corner
+		const r = b.rotation();
+		const tr = b.translation();
+		grab.local.set(p.x - tr.x, p.y - tr.y, p.z - tr.z).applyQuaternion(tmpQ.set(r.x, r.y, r.z, r.w).invert());
+		grab.target.copy(p);
+		grab.vel.set(0, 0, 0);
+		grab.at = performance.now();
+		// a held thing stops spinning quickly, and never dozes off in the hand
+		b.setAngularDamping(4);
+		b.wakeUp();
 		canvas.style.cursor = 'grabbing';
 		move_drag(press.e);
 	}
 	function move_drag(e: PointerEvent) {
 		set_ray(e);
 		if (!ray.ray.intersectPlane(dragPlane, hitP)) return;
-		grab.position.set(clamp(hitP.x, -w / 2 + 0.3, w / 2 - 0.3), clamp(hitP.y, 0.1, h * 1.3), clamp(hitP.z, -DEPTH / 2 + 0.2, DEPTH / 2 - 0.2));
-		press?.t.body.wakeUp();
+		hitP.set(clamp(hitP.x, -w / 2 + 0.3, w / 2 - 0.3), clamp(hitP.y, 0.1, h * 1.3), clamp(hitP.z, -DEPTH / 2 + 0.2, DEPTH / 2 - 0.2));
+		const now = performance.now();
+		const dt = Math.max((now - grab.at) / 1000, 1 / 240);
+		// the hand's speed, smoothed over a few events: it is what a throw carries away
+		grab.vel.lerp(tmpV.subVectors(hitP, grab.target).divideScalar(dt), 0.5);
+		grab.target.copy(hitP);
+		grab.at = now;
+		press?.t.body?.wakeUp();
 		wake();
 	}
 	function end(e: PointerEvent, cancelled: boolean) {
 		if (!press || e.pointerId !== press.id) return;
 		const t = press.t;
 		if (press.dragging) {
-			if (joint) world.removeConstraint(joint);
-			joint = null;
-			t.body.angularDamping = 0.06;
-			t.body.allowSleep = true;
-			t.body.wakeUp();
-			const v = t.body.velocity;
-			const s = v.length();
-			if (s > 30) v.scale(30 / s, v);
+			const b = t.body!;
+			b.setAngularDamping(t.stuff === 'hard' ? 0.35 : 0.6);
+			// a throw keeps its speed, up to a strong flick of the wrist: 3 m/s
+			const v = b.linvel();
+			const s = Math.hypot(v.x, v.y, v.z);
+			if (s > 30) b.setLinvel({ x: (v.x * 30) / s, y: (v.y * 30) / s, z: (v.z * 30) / s }, true);
+			b.wakeUp();
 			canvas.style.cursor = 'grab';
-		} else if (!cancelled) poke(t, press.point);
+		} else if (!cancelled) {
+			const at = press.point;
+			if (phys) poke(t, at);
+			else queued.push(() => poke(t, at));
+		}
 		press = null;
 		if (e.pointerType !== 'mouse') show(null);
 		wake();
@@ -502,20 +691,20 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	 *  where it lands decides what happens: low on a wide thing slides it, high on a tall thing
 	 *  tips it. no made-up spin. */
 	function poke(t: Toy, at: THREE.Vector3) {
-		const b = t.body;
-		b.wakeUp();
-		const side = clamp((t.outer.position.x - at.x) / Math.max(t.size.x / 2, 0.01), -1, 1);
-		const away = new CANNON.Vec3(side * 2.4 + (at.x < t.outer.position.x ? 0.6 : -0.6), 6.2, -1.2);
-		// cannon wants the point relative to the centre of mass, not in world space
-		b.applyImpulse(away.scale(b.mass), new CANNON.Vec3(at.x - b.position.x, at.y - b.position.y, at.z - b.position.z));
+		const b = t.body!;
+		const c = b.translation();
+		const side = clamp((c.x - at.x) / Math.max(t.size.x / 2, 0.01), -1, 1);
+		const m = t.mass;
+		const away = { x: (side * 2.4 + (at.x < c.x ? 0.6 : -0.6)) * m, y: 6.2 * m, z: -1.2 * m };
+		b.applyImpulseAtPoint(away, at, true);
 	}
 
 	// ---------- the loop: runs only while something moves, on screen, in a visible tab ----------
 	let raf = 0;
 	let last = 0;
+	let acc = 0;
 	let onscreen = true;
 	let frame12 = -1;
-	let calm = 0;
 	const boilR = mulberry(99);
 	function wake() {
 		if (raf || !onscreen || document.hidden) return;
@@ -524,28 +713,27 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	}
 	function moving() {
 		if (press) return true;
-		for (const t of toys) if (t.body.sleepState !== CANNON.Body.SLEEPING) return true;
+		if (!phys) return false;
+		for (const t of toys) if (!t.body!.isSleeping()) return true;
 		return false;
 	}
 	function tick(now: number) {
 		raf = 0;
-		const dt = Math.min((now - last) / 1000, 0.05);
+		const dt = Math.min((now - last) / 1000, 0.1);
 		last = now;
 		if (press && !press.dragging && now - press.at > 220) start_drag();
-		// small, fast, true-scale things need a fine step: 240 a second keeps landings crisp
-		world.step(1 / 240, dt, 16);
-		for (const t of toys) {
-			const b = t.body;
-			if (b.position.y < -1 || Math.abs(b.position.x) > w / 2 + 1) {
-				b.position.set(clamp(b.position.x, -w / 2 + 0.5, w / 2 - 0.5), h, 0);
-				b.velocity.setZero();
-				b.angularVelocity.setZero();
+		let a = 1;
+		if (phys) {
+			acc += dt;
+			while (acc >= STEP) {
+				step();
+				acc -= STEP;
 			}
-			sync(t);
+			a = acc / STEP;
 		}
+		for (const t of toys) sync(t, a);
 		const go = moving();
 		// the clay boils at 12fps while it is played with, then settles still
-		calm = go ? 0 : calm + dt;
 		const f = Math.floor(now / (1000 / 12));
 		if (f !== frame12) {
 			frame12 = f;
@@ -555,7 +743,12 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 				G.uBoilPhase.value = boilR() * 6.28;
 			}
 		}
-		if (!go) G.uBoilAmp.value = 0;
+		if (!go) {
+			G.uBoilAmp.value = 0;
+			// asleep: draw the resting pose itself, not a blend
+			acc = 0;
+			for (const t of toys) (t.pos0.copy(t.pos), t.quat0.copy(t.quat), sync(t, 1));
+		}
 		place_label();
 		draw();
 		if (go) wake();
@@ -580,9 +773,9 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 		size_set();
 		walls_set();
 		for (const t of toys) {
-			const b = t.body;
-			b.position.x = clamp(b.position.x, -w / 2 + t.size.x / 2, w / 2 - t.size.x / 2);
-			sync(t);
+			const x = clamp(t.pos.x, -w / 2 + t.size.x / 2, w / 2 - t.size.x / 2);
+			if (x !== t.pos.x) place(t, x, t.pos.y, t.pos.z, false);
+			sync(t, 1);
 		}
 		draw();
 	});
@@ -605,10 +798,13 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	ro.observe(host);
 	io.observe(host);
 	opts.onReady?.();
-	if (import.meta.env.DEV) (window as any).__shelf = { toys, world, moving };
+	if (import.meta.env.DEV) (window as any).__shelf = { toys, phys: () => phys, moving, need };
 
 	return () => {
+		dead = true;
 		cancelAnimationFrame(raf);
+		phys?.events.free();
+		phys?.world.free();
 		ro.disconnect();
 		io.disconnect();
 		mo.disconnect();
