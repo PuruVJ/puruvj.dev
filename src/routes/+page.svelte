@@ -225,9 +225,23 @@
 	.intro,
 	.nav a {
 		text-shadow:
-			0 0 2px var(--paper),
-			0 0 6px var(--paper),
-			0 0 12px var(--paper);
+			0 0 1px var(--paper),
+			0 0 3px var(--paper),
+			0 0 3px var(--paper),
+			0 0 8px var(--paper),
+			0 0 16px var(--paper),
+			0 0 24px var(--paper);
+	}
+	/* and a knock-out: each letter is cut out of the paint with a thin rim of paper, the way a
+	   printer keeps type clear of an image behind it */
+	.intro,
+	.nav a {
+		-webkit-text-stroke: 5px var(--paper);
+		paint-order: stroke fill;
+	}
+	/* the tagline is set lighter than the name, so over paint it takes a darker grey */
+	.intro {
+		color: color-mix(in srgb, var(--ink) 85%, var(--paper));
 	}
 	.nav a {
 		color: var(--ink);
