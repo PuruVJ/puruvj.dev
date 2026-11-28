@@ -157,17 +157,17 @@
 		display: none !important;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) .day {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) .day {
 			display: none !important;
 		}
-		:global(:root:not([data-pref-theme='light'])) .night {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) .night {
 			display: block !important;
 		}
 	}
-	:global(:root[data-pref-theme='dark']) .day {
+	:global(:root:is([data-pref-theme='dark'], [data-pref-theme='sunset'])) .day {
 		display: none !important;
 	}
-	:global(:root[data-pref-theme='dark']) .night {
+	:global(:root:is([data-pref-theme='dark'], [data-pref-theme='sunset'])) .night {
 		display: block !important;
 	}
 

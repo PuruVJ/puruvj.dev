@@ -21,14 +21,16 @@ export const NAV = [
 	{ name: 'life', href: '/life' },
 ];
 
-/** light / dark / follow the system. lives on <html data-pref-theme>, set before paint. */
+/** follow the system, light, dark, or one of the two hours: sunrise (a light theme) and sunset (a
+ *  dark one). lives on <html data-pref-theme>, set before paint. */
 export const theme = preference({
 	name: 'theme',
-	values: ['auto', 'light', 'dark'],
+	values: ['auto', 'light', 'dark', 'sunrise', 'sunset'],
 	default: 'auto',
 });
 
-/** the one theme button: steps through device → light → dark → device. the icon shows the mode. */
+/** the one theme button: steps through device → light → dark → sunrise → sunset → device. the icon
+ *  shows the mode. */
 export const theme_toggle = () =>
 	script(() => {
 		document.addEventListener('click', (e) => {
@@ -37,7 +39,8 @@ export const theme_toggle = () =>
 			if (!btn) return;
 			const root = document.documentElement;
 			const cur = root.getAttribute('data-pref-theme') ?? 'auto';
-			const next = cur === 'light' ? 'dark' : cur === 'dark' ? 'auto' : 'light';
+			const order = ['auto', 'light', 'dark', 'sunrise', 'sunset'];
+			const next = order[(order.indexOf(cur) + 1) % order.length];
 			try {
 				localStorage.setItem('og-pref-theme', next);
 			} catch {}

@@ -111,7 +111,7 @@
 		overflow: hidden;
 	}
 	@media (prefers-color-scheme: dark) {
-		:root:not([data-pref-theme='light']) .wall {
+		:root:not([data-pref-theme='light'], [data-pref-theme='sunrise']) .wall {
 			--lamp: radial-gradient(120% 90% at 30% 0%, #d9d6cc, #bdb9ae 60%, #8f8c83);
 			--strip-paper: #9d9a91;
 			--tape: rgba(170, 160, 130, 0.6);
@@ -119,7 +119,7 @@
 			--scrap-a: 0.45;
 		}
 	}
-	:root[data-pref-theme='dark'] .wall {
+	:root:is([data-pref-theme='dark'], [data-pref-theme='sunset']) .wall {
 		--lamp: radial-gradient(120% 90% at 30% 0%, #d9d6cc, #bdb9ae 60%, #8f8c83);
 		--strip-paper: #9d9a91;
 		--tape: rgba(170, 160, 130, 0.6);

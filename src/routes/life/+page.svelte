@@ -374,7 +374,7 @@
 		);
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) .life {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) .life {
 			--print: #232321;
 			--shadow: 0 1px 1px rgba(0, 0, 0, 0.4), 0 12px 28px -10px rgba(0, 0, 0, 0.8);
 			--swash: #26251f;
@@ -388,6 +388,22 @@
 		--swash: #26251f;
 		--dusk-hi: #0a0b0d;
 		--dusk-lo: #211c16;
+	}
+	/* sunrise: the page runs from the cold blue of the hour before into a peach morning at the
+	   bottom. sunset: from the wine of the evening into the red of its embers. */
+	:global(:root[data-pref-theme='sunrise']) .life {
+		--print: #f7f8fa;
+		--shadow: 0 1px 1px rgba(20, 28, 44, 0.07), 0 10px 26px -10px rgba(20, 28, 44, 0.3);
+		--swash: #ebd1bc;
+		--dusk-hi: #dde2e9;
+		--dusk-lo: #efdcca;
+	}
+	:global(:root[data-pref-theme='sunset']) .life {
+		--print: #2f2021;
+		--shadow: 0 1px 1px rgba(0, 0, 0, 0.45), 0 12px 28px -10px rgba(0, 0, 0, 0.85);
+		--swash: #45272a;
+		--dusk-hi: #150c0e;
+		--dusk-lo: #3a1c19;
 	}
 	[id] {
 		scroll-margin-top: calc(var(--top-h) + 24px);
@@ -430,7 +446,7 @@
 		--foot: 340px;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(html:not([data-pref-theme='light']):has(.life)) {
+		:global(html:not([data-pref-theme='light'], [data-pref-theme='sunrise']):has(.life)) {
 			--dusk-hi: #0a0b0d;
 			--dusk-lo: #211c16;
 		}
@@ -438,6 +454,14 @@
 	:global(html[data-pref-theme='dark']:has(.life)) {
 		--dusk-hi: #0a0b0d;
 		--dusk-lo: #211c16;
+	}
+	:global(html[data-pref-theme='sunrise']:has(.life)) {
+		--dusk-hi: #dde2e9;
+		--dusk-lo: #efdcca;
+	}
+	:global(html[data-pref-theme='sunset']:has(.life)) {
+		--dusk-hi: #150c0e;
+		--dusk-lo: #3a1c19;
 	}
 	:global(body:has(.life)) {
 		background: linear-gradient(

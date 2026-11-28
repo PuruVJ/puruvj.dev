@@ -12,11 +12,11 @@
 	--paint-dark: 1;
 }
 @media (prefers-color-scheme: dark) {
-	:root:not([data-pref-theme='light']) {
+	:root:not([data-pref-theme='light'], [data-pref-theme='sunrise']) {
 		--paint-dark: 0.72;
 	}
 }
-:root[data-pref-theme='dark'] {
+:root:is([data-pref-theme='dark'], [data-pref-theme='sunset']) {
 	--paint-dark: 0.72;
 }
 

@@ -24,10 +24,12 @@
 	/* height of the pinned header (Shell.svelte), so things that stick or scroll to a heading
 	   land below it */
 	--top-h: 63px;
+	--glow: transparent;
+	--glow-blend: multiply;
 	color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-	:root:not([data-pref-theme='light']) {
+	:root:not([data-pref-theme='light'], [data-pref-theme='sunrise']) {
 		--paper: #0f0f0e;
 		--paper-2: #181817;
 		--ink: #ecebe6;
@@ -40,7 +42,7 @@
 		color-scheme: dark;
 	}
 }
-:root[data-pref-theme='dark'] {
+:root:is([data-pref-theme='dark'], [data-pref-theme='sunset']) {
 	--paper: #0f0f0e;
 	--paper-2: #181817;
 	--ink: #ecebe6;
@@ -51,6 +53,54 @@
 	--hill-2: #2e2e2b;
 	--hill-3: #4a4a46;
 	color-scheme: dark;
+}
+
+/* two themes of the hour, picked by hand (never by the device). each keeps the ink-on-paper feel:
+   the light is in the paper, never in the words.
+   sunrise: blue-grey paper, the cold of the hour before the sun, with a little orange coming up
+   from the bottom of the window (--glow). a light theme.
+   sunset: the deep red after the sun has gone, warm cream ink. a dark theme: it is the door into
+   night, and a pink paper would read as sweets, not as evening. */
+:root[data-pref-theme='sunrise'] {
+	--paper: #e7eaee;
+	--paper-2: #dce1e7;
+	--ink: #10131a;
+	--ink-2: #3b4250;
+	--ink-3: #545b69;
+	--rule: #10131a;
+	--hair: rgba(16, 19, 26, 0.13);
+	--hill-2: #c6ccd5;
+	--hill-3: #a8b0bc;
+	--glow: rgba(240, 150, 90, 0.16);
+	--glow-blend: multiply;
+	color-scheme: light;
+}
+:root[data-pref-theme='sunset'] {
+	--paper: #211416;
+	--paper-2: #2c1b1d;
+	--ink: #f2e5dc;
+	--ink-2: #d6c1b6;
+	--ink-3: #b19a90;
+	--rule: #4d3333;
+	--hair: rgba(242, 229, 220, 0.11);
+	--hill-2: #3b2527;
+	--hill-3: #5a3836;
+	--glow: rgba(214, 72, 48, 0.16);
+	--glow-blend: screen;
+	color-scheme: dark;
+}
+/* the low light: a soft band coming up from the bottom edge, where the horizon would be. it is
+   there in the two themes of the hour, and on the home page while someone holds the sun (the
+   page sets .glow and its own --glow then) */
+:root:is([data-pref-theme='sunrise'], [data-pref-theme='sunset'], .glow) body::before {
+	content: '';
+	position: fixed;
+	inset: auto 0 0 0;
+	height: 55vh;
+	z-index: 49;
+	pointer-events: none;
+	background: radial-gradient(120% 100% at 50% 100%, var(--glow), transparent 70%);
+	mix-blend-mode: var(--glow-blend);
 }
 
 /* stand-ins sized like the real faces, so nothing moves when the web fonts swap in.
@@ -276,11 +326,11 @@ a.ext::after {
 	}
 }
 @media (prefers-color-scheme: dark) {
-	:root:not([data-pref-theme='light']) .clay {
+	:root:not([data-pref-theme='light'], [data-pref-theme='sunrise']) .clay {
 		background-image: var(--night);
 	}
 }
-:root[data-pref-theme='dark'] .clay {
+:root:is([data-pref-theme='dark'], [data-pref-theme='sunset']) .clay {
 	background-image: var(--night);
 }
 /* wiggle for ~2.5s after load, then rest until someone pokes it. never with reduced motion. */

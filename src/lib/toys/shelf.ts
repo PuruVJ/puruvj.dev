@@ -68,7 +68,10 @@ const clamp = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 const rand = (a: number, b: number) => a + Math.random() * (b - a);
 const dark_now = () => {
 	const p = document.documentElement.getAttribute('data-pref-theme');
-	return p === 'dark' || (p !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+	// sunset is a dark theme, sunrise a light one
+	if (p === 'dark' || p === 'sunset') return true;
+	if (p === 'light' || p === 'sunrise') return false;
+	return matchMedia('(prefers-color-scheme: dark)').matches;
 };
 const yield_ = () => new Promise<void>((r) => setTimeout(r, 0));
 
