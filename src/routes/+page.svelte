@@ -51,6 +51,7 @@
 			<a class="ln" href="/career">career</a>
 			<a class="ln" href="/speaking">talks</a>
 			<a class="ln" href="/stats">stats</a>
+			<a class="ln" href="/life">life</a>
 		</nav>
 	</section>
 

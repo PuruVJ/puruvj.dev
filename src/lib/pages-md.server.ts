@@ -5,6 +5,7 @@ import { project_numbers } from './project-stats.ts';
 import { CAREER, span } from './career.ts';
 import { DM, ELSEWHERE, SITE } from './site.ts';
 import { full } from './numbers.ts';
+import * as L from './life.ts';
 
 const link = (l: { name: string; href: string }) => `[${l.name}](${l.href.startsWith('/') ? SITE + l.href : l.href})`;
 
@@ -22,6 +23,7 @@ small, fast things for the web. on the svelte team.
 - career: ${CAREER.slice(0, 3).map((j) => `${j.org}, ${span(j)}`).join('; ')}. all of it: ${SITE}/career.md
 - latest writing: ${p.slice(0, 2).map((x) => `[${x.title}](${SITE}/blog/${x.slug}.md)`).join(', ')}. all ${p.length} posts: ${SITE}/blog.md
 ${s?.npm ? `- ${full(s.npm.total)} npm downloads, all time: ${SITE}/stats.md\n` : ''}- talks: ${SITE}/speaking.md
+- life, away from the keyboard: ${SITE}/life.md
 
 ## say hi
 
@@ -86,4 +88,73 @@ export async function stats() {
 	if (s.code)
 		out += `- lines added: ${full(s.code.additions)}\n- lines deleted: ${full(s.code.deletions)}\n- commits: ${full(s.code.commits)}\n`;
 	return out;
+}
+
+export function life() {
+	const list = (xs: readonly string[]) => xs.map((x) => `- ${x}`).join('\n');
+	return `# life
+
+${L.LIFE_LEDE}
+
+## annecy, oct 2025: 50 km around the lake
+
+${L.ANNECY.join('\n\n')}
+
+## the mountains
+
+${L.TREKS_NOTE}
+
+${L.TREKS.map((t) => `### ${t.name}, ${t.when}\n\n${t.facts.join(' · ')}. ${t.text}`).join('\n\n')}
+
+### next
+
+one more, coming.
+
+### on every trek
+
+${L.ALONE}
+
+### back in jaipur
+
+${L.BAGS}
+
+## solo travel
+
+${L.SOLO} hostels in ${L.CITIES.map((c) => `${c.name} (${c.country})`).join(', ')}.
+
+## cinema
+
+dune: part two. ${L.DUNE}
+
+### how i watch
+
+${L.WATCH_QUOTE}
+
+${list(L.WATCH.map((w) => `${w.k}: ${w.v}`))}
+${list(L.NOTICE)}
+
+## hans zimmer, since 2018
+
+${L.ZIMMER}
+
+${L.TRACKS.map((x, i) => `${i + 1}. ${x.t} (${x.f})`).join('\n')}
+
+${L.DRIVE}
+
+## books
+
+70+ times i've read harry potter, hindi and english combined. ${L.BOOKS}
+
+## always building
+
+${L.BUILDING.join('\n\n')}
+
+## jaipur
+
+${L.HOME.join(' ')}
+
+## what scares me
+
+${L.SCARED.join('\n\n')}
+`;
 }

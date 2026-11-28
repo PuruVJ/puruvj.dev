@@ -18,6 +18,7 @@ export const NAV = [
 	{ name: 'career', href: '/career' },
 	{ name: 'talks', href: '/speaking' },
 	{ name: 'stats', href: '/stats' },
+	{ name: 'life', href: '/life' },
 ];
 
 /** light / dark / follow the system. lives on <html data-pref-theme>, set before paint. */
