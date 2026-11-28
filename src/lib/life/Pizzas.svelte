@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { Img, type ImageDescriptor } from '@ogygia/image';
+	import { clothesline } from './clothesline.ts';
 
 	// neapolitan pizzas, pinned to one line like prints drying in a darkroom, hung in a hurry: a wire
 	// sags across the page and every photo hangs off it on a wooden peg, some on a longer string than
@@ -32,11 +33,18 @@
 	const drop = (i: number) => Math.round(rnd(i, 3) * 54);
 	const size = (i: number) => +(12 + rnd(i, 4) * 6).toFixed(2);
 	const f = (n: number) => +n.toFixed(2);
+	// once awake, the line is a rope you can pull and the prints swing on it (see clothesline.ts)
+	const hang = (el: HTMLElement) =>
+		clothesline(el, {
+			at: PIZZAS.map((_, i) => at(i, PER)),
+			tilt: PIZZAS.map((_, i) => tilt(i)),
+			rest: (x) => 6 + sag(x),
+		});
 	const wire = 'M0 6' + Array.from({ length: 41 }, (_, i) => `L${f(i * 25)} ${f(6 + sag(i / 40))}`).join('');
 </script>
 
 {#each rows as row, r (r)}
-	<div class="line">
+	<div class="line" {@attach hang}>
 		<svg class="wire" viewBox="0 0 1000 60" preserveAspectRatio="none" aria-hidden="true">
 			<path d={wire} />
 		</svg>
@@ -150,6 +158,21 @@
 		display: block;
 		width: 100%;
 		height: auto;
+	}
+
+	/* awake: the prints can be picked up and moved along the wire */
+	.line:global(.live) li {
+		cursor: grab;
+		touch-action: none;
+		user-select: none;
+		-webkit-user-select: none;
+		-webkit-touch-callout: none;
+	}
+	.line:global(.live) li:global(.held) {
+		cursor: grabbing;
+	}
+	.line:global(.live) :global(img) {
+		-webkit-user-drag: none;
 	}
 
 	/* a phone: the line is short, so the prints get bigger and two to a row */
