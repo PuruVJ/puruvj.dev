@@ -1,12 +1,12 @@
 <script lang="ts">
 	// a wide himalayan range in the home page's thick oil (range.ts): the same strokes and light,
 	// its own peaks. plain svg, painted once on the server.
-	import { range, RW, RH } from './range.ts';
+	import { range, GROUND, RW, RH } from './range.ts';
 	const painting = range();
 </script>
 
 <div class="oil" aria-hidden="true">
-	<svg viewBox="0 0 {RW} {RH}" preserveAspectRatio="xMidYMax slice">{@html painting}</svg>
+	<svg viewBox="0 0 {RW} {RH}" preserveAspectRatio="xMidYMax slice"><path class="ground" d={GROUND} />{@html painting}</svg>
 </div>
 
 <style>
@@ -37,6 +37,9 @@
 		--oil-shade: rgb(33 32 29);
 		--oil-snow: rgb(111 110 107);
 		--oil-sheen: #555;
+	}
+	.ground {
+		fill: var(--paper);
 	}
 	svg {
 		position: absolute;

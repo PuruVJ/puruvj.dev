@@ -68,6 +68,11 @@
 	<svg class="trail {cls}" viewBox="0 0 {W} 100" preserveAspectRatio="none" aria-hidden="true"><path {d} /></svg>
 {/snippet}
 
+<svelte:head>
+	<!-- the hindi words' font, fetched with the page, so they never flash in a fallback face -->
+	<link rel="preload" href="/fonts/hindi-words.woff2" as="font" type="font/woff2" crossorigin="anonymous" />
+</svelte:head>
+
 <Shell here="/life" title="life · puru vijayvargia" description={`away from the keyboard: ${L.LIFE_LEDE}`} md="/life.md">
 	<div class="life">
 		<header class="intro">
@@ -138,6 +143,8 @@
 				<h2 id="mountains-h" class="big">the mountains</h2>
 				<p class="lede note">{L.TREKS_NOTE}</p>
 				<div class="range"><OilRange /></div>
+				<!-- the trail goes into the mountain and comes out through a tunnel at its foot -->
+				<span class="tunnel" aria-hidden="true"></span>
 			</section>
 			<div class="climb" aria-hidden="true">
 				<svg class="desk" viewBox="0 0 {W} {PH}" preserveAspectRatio="none">
@@ -391,7 +398,8 @@
 		font-family: 'Hindi Words';
 		src: url('/fonts/hindi-words.woff2') format('woff2');
 		font-weight: 400;
-		font-display: swap;
+		/* a short invisible wait, not a flash of the wrong face: the file is preloaded and small */
+		font-display: block;
 		unicode-range: U+0900-097F, U+200C-200D, U+25CC;
 	}
 	.hi {
@@ -1038,8 +1046,39 @@
 	.mountains .range {
 		grid-column: 1 / -1;
 		margin: 36px calc(-1 * var(--gut)) -24px;
-		-webkit-mask: linear-gradient(to right, transparent 0, #000 12%, #000 92%, transparent);
-		mask: linear-gradient(to right, transparent 0, #000 12%, #000 92%, transparent);
+		-webkit-mask: linear-gradient(to right, transparent 0, #000 4%, #000 94%, transparent);
+		mask: linear-gradient(to right, transparent 0, #000 4%, #000 94%, transparent);
+	}
+	/* the tunnel mouth, at the foot of the range right where the trail runs: a dark arch in a ring
+	   of cut stone. the range is drawn over the trail, so the line is hidden inside the mountain and
+	   walks out of the arch */
+	.mountains .tunnel {
+		position: absolute;
+		left: var(--tx, 8.3333%);
+		bottom: -24px;
+		width: 40px;
+		height: 30px;
+		translate: -50% 0;
+		z-index: 2 !important;
+		border: 1px solid var(--ink-2);
+		border-bottom: 0;
+		border-radius: 20px 20px 0 0;
+		background:
+			radial-gradient(ellipse 60% 85% at 50% 100%, #0d0d0c 0 55%, #2a2926 75%, transparent 76%),
+			var(--paper-2);
+		box-shadow:
+			inset 0 0 0 4px var(--paper-2),
+			inset 0 0 0 5px var(--ink-3);
+	}
+	/* the trail, out of the tunnel's dark: it starts again at the arch's floor */
+	.mountains .tunnel::after {
+		content: '';
+		position: absolute;
+		left: 50%;
+		bottom: -1px;
+		width: 1px;
+		height: 2px;
+		background: var(--trail);
 	}
 
 	/* ---------- cinema ---------- */
@@ -1314,6 +1353,13 @@
 			margin: 8px -20px -10px -50px;
 			-webkit-mask: none;
 			mask: none;
+		}
+		/* on a phone the trail is one line down the left edge, 5px in from the walk */
+		.mountains .tunnel {
+			left: 5.5px;
+			bottom: -10px;
+			width: 30px;
+			height: 22px;
 		}
 		.intro > .me {
 			position: absolute;

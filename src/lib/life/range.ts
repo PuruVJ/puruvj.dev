@@ -60,6 +60,10 @@ const BACK: Pt[] = [
 	[740, 176], [820, 196], [900, 184], [980, 208], [1060, 200], [1140, 214], [1220, 206], [1220, 300],
 ];
 
+/** every mountain's outline, filled with paper under the paint: the oil is a little see-through,
+ *  and the trail must vanish into the rock, not show through it */
+export const GROUND = [BACK, LEFT.sky, RIGHT.sky, HERO.sky].map((pts) => poly(pts)).join('');
+
 export function range(): string {
 	const r = rng(311);
 	const { strokes, face } = painter(59);
