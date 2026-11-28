@@ -132,7 +132,7 @@
 	}
 	.year .y {
 		position: sticky;
-		top: 24px;
+		top: calc(var(--top-h) + 24px);
 		align-self: start;
 	}
 	.year ol {

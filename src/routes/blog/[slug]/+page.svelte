@@ -162,7 +162,7 @@
 	}
 	.stick {
 		position: sticky;
-		top: 28px;
+		top: calc(var(--top-h) + 28px);
 		display: flex;
 		flex-direction: column;
 	}

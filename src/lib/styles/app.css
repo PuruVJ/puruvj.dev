@@ -21,6 +21,9 @@
 	--mono: 'IBM Plex Mono', 'Plex Mono Fallback', 'Plex Mono Fallback 2', ui-monospace, monospace;
 	--pad: 28px;
 	--sheet: 16px;
+	/* height of the pinned header (Shell.svelte), so things that stick or scroll to a heading
+	   land below it */
+	--top-h: 63px;
 	color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
@@ -332,6 +335,7 @@ a.ext::after {
 	:root {
 		--pad: 20px;
 		--sheet: 10px;
+		--top-h: 113px;
 	}
 }
 

@@ -26,7 +26,7 @@
 	letter-spacing: -0.025em;
 	line-height: 1.15;
 	text-wrap: balance;
-	scroll-margin-top: 28px;
+	scroll-margin-top: calc(var(--top-h) + 28px);
 }
 .prose h2 {
 	margin-top: 2.2em;

@@ -40,17 +40,20 @@
 </svelte:head>
 
 <div class="sheet page" class:reading>
-	<header class="b top-id">
-		<a href="/" class="name">puru vijayvargia</a>
-	</header>
-	<nav class="b top-nav" aria-label="site">
-		{#each NAV as item (item.href)}
-			<a class="ln" href={item.href} aria-current={here === item.href ? 'page' : undefined}>{item.name}</a>
-		{/each}
-	</nav>
-	<div class="b top-meta">
-		<Clock />
-		<ThemeSwitch />
+	<!-- the header stays pinned to the top of the window while the page scrolls under it -->
+	<div class="top">
+		<header class="b top-id">
+			<a href="/" class="name">puru vijayvargia</a>
+		</header>
+		<nav class="b top-nav" aria-label="site">
+			{#each NAV as item (item.href)}
+				<a class="ln" href={item.href} aria-current={here === item.href ? 'page' : undefined}>{item.name}</a>
+			{/each}
+		</nav>
+		<div class="b top-meta">
+			<Clock />
+			<ThemeSwitch />
+		</div>
 	</div>
 
 	<main class="main">{@render children()}</main>
@@ -105,6 +108,19 @@
 		align-content: stretch;
 		gap: 1px;
 		min-width: 0;
+	}
+	/* its own row of blocks on the page's three columns, ruled like the rest, with a rule under it
+	   that travels with it */
+	.top {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: subgrid;
+		gap: 1px;
+		background: var(--rule);
+		position: sticky;
+		top: 0;
+		z-index: 40;
+		box-shadow: 0 1px 0 var(--rule);
 	}
 	.top-id,
 	.top-nav,
@@ -181,7 +197,7 @@
 	@media (max-width: 760px) {
 		.page {
 			grid-template-columns: minmax(0, 1fr) auto;
-			grid-template-rows: auto auto 1fr;
+			grid-template-rows: auto 1fr;
 		}
 		.top-id {
 			grid-column: 1;
