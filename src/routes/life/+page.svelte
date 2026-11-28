@@ -3,7 +3,6 @@
 	import Shell from '$lib/components/Shell.svelte';
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
-	import Sandworm from '$lib/life/Sandworm.svelte';
 	import Pizzas from '$lib/life/Pizzas.svelte';
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
@@ -21,6 +20,7 @@
 		lucerne: import.meta.og.image('../../lib/life/lucerne.jpg'),
 		salzburg: import.meta.og.image('../../lib/life/salzburg.jpg'),
 		grindelwald: import.meta.og.image('../../lib/life/grindelwald.jpg'),
+		dune: import.meta.og.image('../../lib/life/dune.jpg'),
 	};
 
 	// this page is not a grid of blocks: it is one line, a trail, walked from annecy down to the
@@ -224,7 +224,12 @@
 					<p class="tag">cinema</p>
 					<h2 id="cinema-h" class="giant">dune:<br />part two</h2>
 					<p class="lede">{L.DUNE}</p>
-					<div class="arrakis"><Sandworm /></div>
+					<figure class="arrakis">
+						<div class="print" style="--r: -1deg">
+							<Photo of={PHOTOS.dune} name="dune" alt="paul, seen from behind on a rock, watching an explosion over the desert" aspect="1400/736" width={640} />
+						</div>
+						<figcaption class="mono">dune: part two (2024) · legendary / warner bros.</figcaption>
+					</figure>
 				</div>
 				<div class="watch">
 					<p class="tag">how i watch</p>
@@ -993,8 +998,13 @@
 	}
 	/* arrakis, in line: a worm breaching the dunes, under the title */
 	.arrakis {
-		margin-top: 48px;
-		width: min(100%, 520px);
+		margin: 48px 0 0;
+		width: min(100%, 560px);
+	}
+	.arrakis figcaption {
+		margin-top: 12px;
+		font-size: 10.5px;
+		color: var(--ink-3);
 	}
 	.watch {
 		grid-column: 9 / 13;
