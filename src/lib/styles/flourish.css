@@ -1,6 +1,6 @@
 /* ---------- flourishes: small, quiet extras on top of the grid ----------
    register marks, a link underline that runs in, the clock's colon, blocks settling in on load,
-   section labels that darken, paper grain, arrows that lean, finer typesetting, a printed date. */
+   section labels that darken, paper grain, arrows that lean, finer typesetting. */
 
 /* marks: a tiny register cross in the top-left corner of every block, like a print sheet */
 :root .b::before {
@@ -186,4 +186,3 @@ a.ext:hover::after {
 	font-variant-numeric: oldstyle-nums proportional-nums;
 }
 
-/* colophon: the footer says when this copy of the site was printed */

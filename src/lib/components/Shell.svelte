@@ -6,10 +6,6 @@
 	import { NAV, ELSEWHERE, DM } from '$lib/site.ts';
 	import Meta from './Meta.svelte';
 
-	const printed = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' })
-		.format(new Date())
-		.toLowerCase();
-
 	let {
 		here = '',
 		title,
@@ -73,11 +69,9 @@
 		</div>
 	</div>
 	<div class="b foot-note">
-		<div class="h"><span>colophon</span><span>© 2020 – {new Date().getFullYear()}</span></div>
+		<div class="h"><span>colophon</span></div>
 		<p>
-			plain html, a few islands. built with <a class="u" href="https://ogygiajs.dev">ogygia</a> on
-			sveltekit. set in instrument sans and ibm plex mono.<span>
-			{" "}this copy printed {printed}.</span>
+			built with <a class="u" href="https://ogygiajs.dev">ogygia</a>. © puru vijay 2020–{new Date().getFullYear()}
 		</p>
 	</div>
 </div>
