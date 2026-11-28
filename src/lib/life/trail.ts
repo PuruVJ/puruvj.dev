@@ -145,23 +145,23 @@ const nearest = (c: number, peaks: { x: number }[]) =>
 	peaks.reduce((a, p) => (Math.abs(p.x - c) < Math.abs(a - c) ? p.x : a), peaks[0].x);
 
 /** the solid line: down the left lane, over the three summits, out down the right lane */
-/** where the trail comes out of the tunnel at the foot of the oil range, and where it settles */
-export const TUNNEL = 1.35;
-const OUTX = 1.65;
+/** where the trail comes out of the tunnel at the foot of the oil range */
+export const TUNNEL = 0.85;
 
-/** the mountains section: the trail comes down, drifts left, and walks into the mountain from
- *  behind (the range is painted over it). under the rock it crosses to the tunnel mouth, down and
- *  to the right of where it went in. */
+/** the mountains section: the trail comes down, drifts right, and walks into the mountain from
+ *  behind its right shoulder (the range is painted over it). under the rock it crosses to the
+ *  tunnel mouth, down and to the left of where it went in. */
 export const into_mountain = () =>
-	`M${u(1)} 0C${u(1.04)} 20 ${u(0.96)} 40 ${u(1)} 52C${u(1.03)} 62 ${u(0.6)} 70 ${u(0.55)} 80L${u(TUNNEL)} 100`;
+	`M${u(1)} 0C${u(1.04)} 20 ${u(0.96)} 40 ${u(1)} 52C${u(0.98)} 62 ${u(1.5)} 70 ${u(1.6)} 80L${u(TUNNEL)} 100`;
 
 export const climb = () => {
 	const pts: string[] = [];
-	for (let c = OUTX; c <= 11.0001; c += 0.05) pts.push(`${u(c)} ${f(ridge_y(c))}`);
-	const join = ridge_y(OUTX);
+	for (let c = 1.15; c <= 11.0001; c += 0.05) pts.push(`${u(c)} ${f(ridge_y(c))}`);
 	return (
-		// out of the tunnel, on down and to the right, then straight down onto the first slope
-		`M${u(TUNNEL)} 0C${u(TUNNEL + 0.05)} 18 ${u(OUTX)} 16 ${u(OUTX)} 42L${u(OUTX)} ${f(join)}` +
+		// out of the tunnel heading down and to the left, then it turns onto the valley floor and
+		// becomes the treks
+		`M${u(TUNNEL)} 0C${u(TUNNEL - 0.06)} ${BASE * 0.45} ${u(TUNNEL - 0.1)} ${BASE - 8} ${u(TUNNEL + 0.05)} ${BASE}` +
+		`L${u(1.15)} ${BASE}` +
 		`L${pts.join('L')}` +
 		`C${u(11.35)} ${BASE} ${u(OUT)} ${BASE + 4} ${u(OUT)} ${PH}`
 	);
