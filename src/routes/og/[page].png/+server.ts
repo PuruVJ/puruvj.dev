@@ -4,10 +4,11 @@ import { posts, projects, talks } from '$lib/content.server.ts';
 import { read_stats } from '$lib/stats/source.server.ts';
 import { CAREER, span } from '$lib/career.ts';
 import { full } from '$lib/numbers.ts';
+import { LIFE_LEDE } from '$lib/life.ts';
 
 export const prerender = true;
 export const entries = () =>
-	['home', 'blog', 'work', 'career', 'speaking', 'stats'].map((page) => ({ page }));
+	['home', 'blog', 'work', 'career', 'speaking', 'stats', 'life'].map((page) => ({ page }));
 
 async function card(page: string): Promise<Card | null> {
 	const [p, s] = await Promise.all([posts(), read_stats()]);
@@ -58,6 +59,13 @@ async function card(page: string): Promise<Card | null> {
 				kicker: 'puruvj.dev / stats',
 				title: s?.npm ? full(s.npm.total) : 'stats',
 				sub: 'every download of every package i maintain on npm, since the very first one.',
+				size: 104,
+			};
+		case 'life':
+			return {
+				kicker: 'puruvj.dev / life',
+				title: 'life',
+				sub: LIFE_LEDE,
 				size: 104,
 			};
 	}

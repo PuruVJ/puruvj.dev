@@ -139,6 +139,7 @@ export const puru = site({
 			{ label: 'career: every job, newest first', href: '/career.md' },
 			{ label: 'talks and podcasts', href: '/speaking.md' },
 			{ label: 'stats: npm downloads, github stars, lines of code', href: '/stats.md' },
+			{ label: 'life: cycling, treks, solo travel, films, hans zimmer, books, jaipur', href: '/life.md' },
 		] },
 		{ label: 'writing', base: 'blog', items: blog },
 	],
