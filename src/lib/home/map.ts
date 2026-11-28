@@ -129,7 +129,8 @@ export function draw(stations: Station[], W: number, H: number): { svg: string; 
 		}
 		l += stroke(id, d);
 		if (lastT < active) l += `<line x1="${x - 6}" x2="${x + 6}" y1="${ye - 0.5}" y2="${ye - 0.5}" stroke-width="2"/>`;
-		l += `<text class="ln-name" transform="translate(${x + 3.5} ${ye + 10}) rotate(90)" stroke="none">${NAMES[id]}</text>`;
+		// read at a slant, like a station name on a metro map, not turned on its side
+		l += `<text class="ln-name" transform="translate(${x - 2} ${ye + 12}) rotate(45)" stroke="none">${NAMES[id]}</text>`;
 		lines.unshift(`<g class="ln" data-ln="${id}">${l}</g>`);
 	}
 	s += lines.join('');
