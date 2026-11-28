@@ -34,20 +34,13 @@
 		outline: 1px solid var(--hair);
 		outline-offset: -1px;
 	}
+	/* the grain, the soft corners and the tone are baked into the photo file itself
+	   (developed once, by hand, before it goes in), so the page only places it */
 	.photo :global(img) {
 		display: block;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		filter: grayscale(1) contrast(1.05);
-	}
-	.photo :global(img:hover) {
-		filter: none;
-	}
-	@media (prefers-reduced-motion: no-preference) {
-		.photo :global(img) {
-			transition: filter 0.4s ease;
-		}
 	}
 	/* ruled in pencil, like the unannounced project on /work */
 	.slot {
