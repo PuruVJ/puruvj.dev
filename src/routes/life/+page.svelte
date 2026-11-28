@@ -19,7 +19,7 @@
 		'dayara bugyal': import.meta.og.image('../../lib/life/dayara-bugyal.jpg'),
 		interlaken: import.meta.og.image('../../lib/life/interlaken.jpg'),
 		lucerne: import.meta.og.image('../../lib/life/lucerne.jpg'),
-		salzburg: null,
+		salzburg: import.meta.og.image('../../lib/life/salzburg.jpg'),
 		grindelwald: import.meta.og.image('../../lib/life/grindelwald.jpg'),
 	};
 
