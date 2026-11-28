@@ -143,13 +143,16 @@ const nearest = (c: number, peaks: { x: number }[]) =>
 
 /** the solid line: down the left lane, over the three summits, out down the right lane */
 /** where the trail comes out of the tunnel, at the left foot of the oil range's first peak */
-export const TUNNEL = 0.65;
+export const TUNNEL = 0.75;
 
 /** the mountains section: the trail comes down, swings right while it is still beside the words,
  *  then runs straight down into the first peak's right flank. the range is painted over it, so it
  *  disappears wherever the rock begins (that point shifts with the window, the look doesn't). */
 export const into_mountain = () =>
-	`M${u(1)} 0C${u(1.04)} 14 ${u(0.97)} 26 ${u(1)} 34C${u(1.03)} 46 ${u(2.3)} 46 ${u(2.3)} 60L${u(2.3)} 100`;
+	// down beside the words, out to the right, then it twists back left and drops into the rock
+	// at a slant (about 40 degrees off vertical in a section this tall), never straight down
+	`M${u(1)} 0C${u(1.04)} 14 ${u(0.97)} 24 ${u(1)} 32C${u(1.04)} 44 ${u(2.7)} 42 ${u(2.8)} 56` +
+	`C${u(2.85)} 64 ${u(2.6)} 70 ${u(2.35)} 76L${u(1.6)} 100`;
 
 export const climb = () => {
 	const pts: string[] = [];
@@ -157,7 +160,7 @@ export const climb = () => {
 	return (
 		// out of the tunnel heading down and to the left, then it turns onto the valley floor and
 		// becomes the treks
-		`M${u(TUNNEL)} 0C${u(TUNNEL - 0.12)} ${BASE * 0.4} ${u(TUNNEL - 0.2)} ${BASE - 12} ${u(TUNNEL + 0.1)} ${BASE}` +
+		`M${u(TUNNEL)} 0L${u(TUNNEL - 0.32)} ${f(BASE * 0.45)}C${u(TUNNEL - 0.45)} ${f(BASE * 0.62)} ${u(TUNNEL - 0.4)} ${BASE - 6} ${u(TUNNEL + 0.1)} ${BASE}` +
 		`L${u(1.15)} ${BASE}` +
 		`L${pts.join('L')}` +
 		`C${u(11.35)} ${BASE} ${u(OUT)} ${BASE + 4} ${u(OUT)} ${PH}`
