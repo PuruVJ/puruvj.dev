@@ -110,10 +110,13 @@
 </main>
 
 <style>
+	/* one screen when the window is big enough; when it isn't (a tablet in landscape, a short
+	   laptop window), the rows grow to their content and the page scrolls instead of cutting off */
 	.home {
-		height: 100vh;
+		min-height: 100vh;
+		min-height: 100dvh;
 		grid-template-columns: minmax(0, 0.62fr) minmax(0, 0.62fr) minmax(0, 1fr);
-		grid-template-rows: minmax(0, 1fr) minmax(0, auto) minmax(0, auto) auto;
+		grid-template-rows: minmax(min-content, 1fr) auto auto auto;
 		grid-template-areas: 'id id map' 'work career map' 'write mail map' 'shelf shelf shelf';
 	}
 	.b {
@@ -355,12 +358,6 @@
 	}
 
 
-	@media (min-width: 761px) {
-		:global(html:has(.home)),
-		:global(body:has(.home)) {
-			overflow: hidden;
-		}
-	}
 	@media (min-width: 761px) and (max-height: 860px) {
 		.b {
 			--pad: 24px;

@@ -1,5 +1,5 @@
-// the pizza line's sounds, made on the fly (no files) and kept quiet: a wooden peg scraping along
-// the wire while it slides, the wire's low twang when it is pulled down and let go, and a paper
+// the pizza line's sounds, made on the fly (no files) and kept quiet: a little metal pulley wheel
+// ticking along the wire while a peg slides (tk tk tk, faster the faster it rolls), the wire's low twang when it is pulled down and let go, and a paper
 // tick when two prints bump. nothing is made until the first drag, and the shelf's sound switch
 // (the same stored choice) silences it all.
 
@@ -11,8 +11,10 @@ const rand = (a: number, b: number) => a + Math.random() * (b - a);
 export function line_sound(muted: () => boolean, calm: () => boolean) {
 	let ac: AudioContext | null = null;
 	let out: GainNode, noise: AudioBuffer;
-	let scrape: GainNode, tone: BiquadFilterNode;
 	let last_twang = 0;
+	// the pulley: how far round it has rolled since its last tick, and when slide() last ran
+	let roll = 0;
+	let last_slide = 0;
 	const ticks: number[] = [];
 
 	/** call on a drag: makes the sound graph the first time, wakes it after that */
@@ -28,30 +30,59 @@ export function line_sound(muted: () => boolean, calm: () => boolean) {
 		const d = noise.getChannelData(0);
 		// a rough grain, not smooth hiss: wood on a twisted wire catches and lets go
 		for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (Math.random() < 0.08 ? 1 : 0.35);
-		// the scrape runs all the time, silent until a peg moves
-		const src = ac.createBufferSource();
-		src.buffer = noise;
-		src.loop = true;
-		tone = ac.createBiquadFilter();
-		tone.type = 'bandpass';
-		tone.Q.value = 0.9;
-		tone.frequency.value = 900;
-		scrape = ac.createGain();
-		scrape.gain.value = 0;
-		src.connect(tone);
-		tone.connect(scrape);
-		scrape.connect(out);
-		src.start();
 	}
 	const live = () => !!ac && ac.state === 'running' && !muted();
 
-	/** how fast the fastest peg slides, px/s; its level and brightness follow */
+	/** one tick of the pulley: a ridge on a small steel wheel clicking over the wire. a sharp,
+	 *  ringing click, high and narrow, with a tiny knock of the axle under it */
+	function click(t: number, k: number) {
+		const amp = (0.035 + 0.05 * k) * rand(0.75, 1.1);
+		const s = ac!.createBufferSource();
+		s.buffer = noise;
+		const ring = ac!.createBiquadFilter();
+		ring.type = 'bandpass';
+		ring.frequency.value = rand(5200, 6400) * (0.92 + 0.12 * k);
+		ring.Q.value = 9;
+		const g = ac!.createGain();
+		g.gain.setValueAtTime(0.0001, t);
+		g.gain.exponentialRampToValueAtTime(amp, t + 0.0008);
+		g.gain.exponentialRampToValueAtTime(0.0001, t + 0.018);
+		s.connect(ring);
+		ring.connect(g);
+		g.connect(out);
+		s.start(t, rand(0, 0.9));
+		s.stop(t + 0.03);
+		const o = ac!.createOscillator();
+		const og = ac!.createGain();
+		o.type = 'sine';
+		o.frequency.value = rand(1900, 2300);
+		og.gain.setValueAtTime(amp * 0.35, t);
+		og.gain.exponentialRampToValueAtTime(0.0001, t + 0.012);
+		o.connect(og);
+		og.connect(out);
+		o.start(t);
+		o.stop(t + 0.02);
+	}
+
+	/** how fast the fastest peg slides, px/s: the pulley rolls that far and ticks once per ridge */
 	function slide(v: number) {
 		if (!ac) return;
 		const t = ac.currentTime;
-		const k = live() ? clamp((v - 25) / 900, 0, 1) : 0;
-		scrape.gain.setTargetAtTime(0.11 * Math.sqrt(k), t, 0.03);
-		tone.frequency.setTargetAtTime(700 + 2600 * k, t, 0.05);
+		const dt = last_slide ? Math.min(0.1, t - last_slide) : 0;
+		last_slide = t;
+		if (!live() || v < 12) return void (roll = 0);
+		// a ridge every 11px of wire; never more than ~45 ticks a second, past that it would buzz
+		const SPACING = Math.max(11, v / 45);
+		roll += v * dt;
+		const k = clamp(v / 900, 0, 1);
+		let n = 0;
+		while (roll >= SPACING && n < 4) {
+			roll -= SPACING;
+			// spread the ticks over the frame that just passed, a hair uneven, like a real wheel
+			click(t + (n * SPACING) / v + rand(0, 0.004), k);
+			n++;
+		}
+		if (roll > SPACING) roll = 0;
 	}
 
 	/** the wire let go after a pull of depth px: a low pluck, higher the tighter it was pulled */
