@@ -1,6 +1,6 @@
 /* ---------- flourishes: small, quiet extras on top of the grid ----------
    register marks, a link underline that runs in, the clock's colon, blocks settling in on load,
-   inked section numbers, paper grain, arrows that lean, finer typesetting, a printed date. */
+   section labels that darken, paper grain, arrows that lean, finer typesetting, a printed date. */
 
 /* marks: a tiny register cross in the top-left corner of every block, like a print sheet */
 :root .b::before {
@@ -115,18 +115,9 @@
 	}
 }
 
-/* label: point at a block and its number turns into a small inked tab */
-:root .h .n {
-	display: inline-block;
-	padding: 0 3px;
-	margin-left: -3px;
-	transition:
-		background-color 0.2s,
-		color 0.2s;
-}
-:root .b:hover .h .n {
-	background: var(--ink);
-	color: var(--paper);
+/* label: point at a block and its label darkens a shade */
+:root .h {
+	transition: color 0.2s;
 }
 :root .b:hover > .h {
 	color: var(--ink-2);
