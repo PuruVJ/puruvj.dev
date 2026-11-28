@@ -15,7 +15,7 @@ export const ORDER = ['life', 'js', 'macos', 'svelte', 'ogygia', 'talks', 'neo']
 const NAMES: Record<string, string> = {
 	life: 'life',
 	js: 'js & ts',
-	neo: 'neo* libs',
+	neo: 'libraries',
 	talks: 'talks',
 	svelte: 'svelte',
 	macos: 'macos web',
