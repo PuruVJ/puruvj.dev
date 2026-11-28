@@ -132,18 +132,21 @@ export type Sky = { day: boolean; x: number; y: number; night: number };
 export function sky(p: number): Sky {
 	const day = p < DAY;
 	const u = day ? p / DAY : (p - DAY) / (1 - DAY);
-	const x = X0 + u * (X1 - X0);
-	// bend time so the top of the arc lands over the peak, not mid-block
-	const w = u < TOP ? (0.5 * u) / TOP : 0.5 + (0.5 * (u - TOP)) / (1 - TOP);
-	const y = 300 - Math.pow(Math.sin(w * Math.PI), 0.55) * 272;
+	// half of a wide ellipse, lying on its long side: it comes up from behind the name, crests over
+	// the middle of the block and goes down just past the panel's right edge. x moves fastest at the
+	// top and slowest at the ends, like a real sun across the sky.
+	const a = Math.PI * (1 - u);
+	const x = (X0 + X1) / 2 + Math.cos(a) * ((X1 - X0) / 2);
+	const y = 300 - Math.sin(a) * 272;
 	let night = 0;
 	if (!day) night = Math.min(1, u / 0.12, (1 - u) / 0.12);
 	else night = Math.max(0, 1 - Math.min(u, 1 - u) / 0.05) * 0.35;
 	return { day, x, y, night };
 }
-const X0 = 200;
-const X1 = 430;
-const TOP = (282 - X0) / (X1 - X0);
+// in the painting's units: the block is wider than the painting, which is pinned to its right, so
+// the name sits at about x -230. the sun rises there and sets just past the panel's edge (400).
+const X0 = -230;
+const X1 = 450;
 
 /** the phase the server paints: mid-morning */
 export const STILL = 0.22;
