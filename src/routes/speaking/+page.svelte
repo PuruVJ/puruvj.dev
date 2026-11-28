@@ -14,12 +14,12 @@
 	md="/speaking.md"
 >
 	<header class="b intro">
-		<div class="h"><span><span class="n">01</span>talks</span></div>
+		<div class="h"><span>talks</span></div>
 		<h1 class="display">talks</h1>
 		<p class="lede">on stage and on air. mostly svelte, sometimes react, always about making the web lighter.</p>
 	</header>
 	<aside class="b count">
-		<div class="h"><span><span class="n">02</span>so far</span></div>
+		<div class="h"><span>so far</span></div>
 		<dl>
 			<div><dt class="num">{data.talks.length}</dt><dd>talks</dd></div>
 			<div><dt class="num">{data.podcasts.length}</dt><dd>podcasts</dd></div>
@@ -27,10 +27,10 @@
 		<i class="clay mic" aria-hidden="true"></i>
 	</aside>
 
-	{#each [{ n: '03', name: 'on stage', list: data.talks }, { n: '04', name: 'on air', list: data.podcasts }] as group (group.n)}
+	{#each [{ name: 'on stage', list: data.talks }, { name: 'on air', list: data.podcasts }] as group (group.name)}
 		<section class="b list">
 			<div class="side">
-				<div class="h"><span><span class="n">{group.n}</span>{group.name}</span></div>
+				<div class="h"><span>{group.name}</span></div>
 			</div>
 			<ol>
 				{#each group.list as t (t.id)}

@@ -16,7 +16,7 @@
 >
 	<header class="b hero">
 		<div class="h">
-			<span><span class="n">01</span>npm downloads, all time</span>
+			<span>npm downloads, all time</span>
 			<span>{data.packages} packages</span>
 		</div>
 		<p class="big num">{s?.npm ? full(s.npm.total) : '–'}</p>
@@ -27,7 +27,7 @@
 	</header>
 
 	<section class="b projects">
-		<div class="h"><span><span class="n">02</span>by project</span></div>
+		<div class="h"><span>by project</span></div>
 		<ol>
 			<li class="soon">
 				<span class="name"><Soon /></span>
@@ -47,13 +47,13 @@
 	</section>
 
 	<section class="b cell">
-		<div class="h"><span><span class="n">03</span>github stars</span></div>
+		<div class="h"><span>github stars</span></div>
 		<p class="mid num">{s?.github ? full(s.github.stars) : '–'}</p>
 		<p class="sub mono">across {s?.github?.repos ?? '–'} repos</p>
 		{#if data.graphs.stars}<Graph g={data.graphs.stars} />{/if}
 	</section>
 	<section class="b cell">
-		<div class="h"><span><span class="n">04</span>lines written</span></div>
+		<div class="h"><span>lines written</span></div>
 		<p class="mid num">{s?.code ? `+${short(s.code.additions)}` : '–'}</p>
 		<p class="sub mono">
 			{#if s?.code}−{short(s.code.deletions)} deleted, net {short(s.code.additions - s.code.deletions)}{/if}
@@ -61,7 +61,7 @@
 		{#if data.graphs.lines}<Graph g={data.graphs.lines} />{/if}
 	</section>
 	<section class="b cell">
-		<div class="h"><span><span class="n">05</span>commits</span></div>
+		<div class="h"><span>commits</span></div>
 		<p class="mid num perch">{s?.code ? full(s.code.commits) : '–'}<i class="clay dice" aria-hidden="true"></i></p>
 		<p class="sub mono">to my own repos</p>
 		{#if data.graphs.commits}<Graph g={data.graphs.commits} />{/if}

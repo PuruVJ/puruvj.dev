@@ -27,7 +27,7 @@
 >
 	<header class="b intro">
 		<div class="h">
-			<span><span class="n">01</span>career</span>
+			<span>career</span>
 			<a href="/resume.pdf">resume.pdf ↗</a>
 		</div>
 		<h1 class="display">career</h1>
@@ -37,7 +37,7 @@
 		</p>
 	</header>
 	<aside class="b note">
-		<div class="h"><span><span class="n">02</span>now</span></div>
+		<div class="h"><span>now</span></div>
 		<p class="now">
 			<b>{CAREER[0].org}</b>, {CAREER[0].role}.<br />still on the <b>svelte team</b>.
 		</p>
@@ -47,7 +47,7 @@
 
 	<section class="b jobs">
 		<div class="row axis" aria-hidden="true">
-			<span class="h"><span><span class="n">03</span>every job, newest first</span></span>
+			<span class="h"><span>jobs</span></span>
 			<div class="track">
 				{#each years as y (y)}<span style="left: {at(`${y}-01`)}%">{y}</span>{/each}
 			</div>

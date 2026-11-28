@@ -30,7 +30,7 @@
 	style="--rise: {rise(DESK)}px; --rise-p: {rise(PHONE)}px; --clip: {clip(DESK)}; --clip-p: {clip(PHONE)}"
 >
 	<section class="b b-id">
-		<header class="h"><span><span class="n">01</span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
+		<header class="h"><span>puruvj.dev</span><span class="hl"><Clock /><ThemeSwitch /></span></header>
 		<Mountain />
 		<!-- the ridge: the line this block is cut along, drawn on its bottom edge -->
 		<svg class="ridge desk" viewBox="0 0 100 {rise(DESK) + 1}" preserveAspectRatio="none" aria-hidden="true">
@@ -57,13 +57,13 @@
 
 	<section class="b b-map">
 		<header class="h">
-			<span><span class="n">02</span>timeline</span><span>2020 – now</span>
+			<span>timeline</span><span>2020 – now</span>
 		</header>
 		<LineMap stations={data.stations} />
 	</section>
 
 	<section class="b b-work">
-		<header class="h"><span><span class="n">03</span>work</span><a href="/work">all →</a></header>
+		<header class="h"><span>work</span><a href="/work">all →</a></header>
 		<ul class="list">
 			<li class="soon"><b><Soon /></b><span>a new library, in the works</span></li>
 			{#each data.work as w (w.url)}
@@ -77,7 +77,7 @@
 
 	<section class="b b-career">
 		<header class="h">
-			<span><span class="n">04</span>career</span>
+			<span>career</span>
 			<span class="hl"><a href="/resume.pdf">resume.pdf ↗</a><a href="/career">all →</a></span>
 		</header>
 		<ul class="list jobs">
@@ -89,7 +89,7 @@
 
 	<section class="b b-write">
 		<header class="h">
-			<span><span class="n">05</span>latest writing</span><a href="/writing">all {data.count} →</a>
+			<span>latest writing</span><a href="/writing">all {data.count} →</a>
 		</header>
 		<ol class="posts">
 			{#each data.latest as p (p.slug)}
@@ -99,7 +99,7 @@
 	</section>
 
 	<section class="b b-mail">
-		<header class="h"><span><span class="n">06</span>say hi</span></header>
+		<header class="h"><span>say hi</span></header>
 		<a class="mail" href={DM}>drop me a dm on x</a>
 		<div class="elsewhere">
 			{#each ELSEWHERE.filter((l) => l.name !== 'dev.to') as l (l.href)}<a class="ln" href={l.href}>{l.name}</a>{/each}

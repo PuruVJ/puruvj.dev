@@ -30,7 +30,7 @@
 	<!-- hero: the title runs across columns 1 and 2, the facts sit in column 3 -->
 	<header class="b head">
 		<div class="h">
-			<span><span class="n">{pad(data.n)}</span>writing</span>
+			<span>writing</span>
 			<a href="/writing">← all writing</a>
 		</div>
 		<h1>{low(data.title)}</h1>

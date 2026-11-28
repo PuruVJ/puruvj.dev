@@ -13,7 +13,7 @@
 	md="/writing.md"
 >
 	<header class="b intro">
-		<div class="h"><span><span class="n">01</span>writing</span><a href="/rss.xml">rss ↗</a></div>
+		<div class="h"><span>writing</span><a href="/rss.xml">rss ↗</a></div>
 		<h1 class="display">writing</h1>
 		<p class="lede">
 			notes from building things for the web. svelte, typescript, small libraries, and now and then
@@ -27,7 +27,7 @@
 	</header>
 
 	<aside class="b series">
-		<div class="h"><span><span class="n">02</span>series</span></div>
+		<div class="h"><span>series</span></div>
 		<ul>
 			{#each data.series as s (s.key)}
 				<li>
@@ -40,7 +40,7 @@
 	{#each data.years as [year, list], i (year)}
 		<section class="b year">
 			<div class="y">
-				<div class="h"><span><span class="n">{String(i + 3).padStart(2, '0')}</span>{list.length} {list.length === 1 ? 'post' : 'posts'}</span></div>
+				<div class="h"><span>{list.length} {list.length === 1 ? 'post' : 'posts'}</span></div>
 				<h2>{year}{#if i === 0}<i class="clay duck" aria-hidden="true"></i>{/if}</h2>
 			</div>
 			<ol>

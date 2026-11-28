@@ -6,7 +6,6 @@
 
 	let { data } = $props();
 	const host = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
-	const pad = (n: number) => String(n).padStart(2, '0');
 </script>
 
 <Shell
@@ -16,12 +15,12 @@
 	md="/work.md"
 >
 	<header class="b intro">
-		<div class="h"><span><span class="n">01</span>work</span><a href="/stats">stats →</a></div>
+		<div class="h"><span>work</span><a href="/stats">stats →</a></div>
 		<h1 class="display">work</h1>
 		<p class="lede">small libraries with large download counts, a few sites, and one framework.</p>
 	</header>
 	<aside class="b totals">
-		<div class="h"><span><span class="n">02</span>all time</span></div>
+		<div class="h"><span>all time</span></div>
 		<dl>
 			<div>
 				<dt class="num">{data.total ? short(data.total) : '–'}</dt>
@@ -38,7 +37,7 @@
 	<!-- the next thing, before it has a name -->
 	<article class="b proj soon">
 		<div class="h">
-			<span><span class="n">03</span>2027</span>
+			<span>2027</span>
 			<span>soon</span>
 		</div>
 		<h2><Soon><span class="redact" title="not yet">██████████</span></Soon></h2>
@@ -51,7 +50,7 @@
 	{#each data.items as p, i (p.slug)}
 		<article class="b proj" class:lead={i < 3}>
 			<div class="h">
-				<span><span class="n">{pad(i + 4)}</span>{p.started.slice(0, 4)}</span>
+				<span>{p.started.slice(0, 4)}</span>
 				<a href={p.url}>{host(p.url)} ↗</a>
 			</div>
 			<h2><a href={p.url}>{p.title}</a></h2>
