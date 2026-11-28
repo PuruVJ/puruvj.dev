@@ -1,7 +1,4 @@
 /works /work 301
-/writing/aibind /writing 301
-/writing/aibind.md /writing.md 301
-/blog/aibind /writing 301
 /blog /writing 301
 /blog.md /writing.md 301
 /blog/* /writing/:splat 301
