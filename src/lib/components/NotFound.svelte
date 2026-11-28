@@ -53,7 +53,6 @@
 			<div class="paper">
 				<h1 id="lost-h">{missing ? 'lost' : 'broken'}</h1>
 				<p class="sub">
-					{missing ? 'one page. answers to' : 'one page. fell over at'}
 					<b data-lost-path>{path}</b>
 				</p>
 
@@ -65,9 +64,9 @@
 
 				<p class="cap">
 					{#if missing}
-						last seen at this exact address. the cat was the last one to see it, and look at it.
+						this page doesn't exist.
 					{:else}
-						something on my side fell over. the cat saw the whole thing, and look at it.
+						something broke on my side.
 					{/if}
 				</p>
 				<p class="fine">
@@ -84,14 +83,14 @@
 	<aside class="b side">
 		<div class="h"><span>if found</span></div>
 		<div class="found">
-			<p class="lede">take a strip. every one of them goes somewhere that exists.</p>
+			<p class="lede">pull a strip to go somewhere that exists.</p>
 			<ul>
 				<li><a class="ln" href="/">home</a></li>
 				<li><a class="ln" href="/writing">writing</a></li>
 				<li><a class="ln" href="/work">work</a></li>
 			</ul>
 			<p class="note">
-				a link on this site sent you here? <a class="u" href={DM}>drop me a dm on x</a> and i will put the page back.
+				a link on this site sent you here? <a class="u" href={DM}>drop me a dm on x</a> and i'll fix it.
 			</p>
 		</div>
 	</aside>
