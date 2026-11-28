@@ -29,7 +29,19 @@ function outward(html: string) {
 	});
 }
 
+/** long inline code (`React.Dispatch<React.SetStateAction<string>>`, or a run like `get`/`map`/`set`)
+ *  has no spaces, so on a phone it pushed the page sideways. give it soft break points after its
+ *  dots, slashes and angle brackets, and after a slash between two code words, so a line breaks
+ *  between names, never inside one. code blocks keep their own lines. */
+function soft_breaks(html: string) {
+	return html
+		.replace(/(<pre\b[^>]*>)?<code>([^<]*)<\/code>/g, (whole, pre: string | undefined, txt: string) =>
+			pre || txt.length < 14 ? whole : `<code>${txt.replace(/([./_,]|&lt;|&gt;|>)(?=.)/g, '$1<wbr>')}</code>`,
+		)
+		.replace(/<\/code>\//g, '</code>/<wbr>');
+}
+
 const external_links: Handle = ({ event, resolve }) =>
-	resolve(event, { transformPageChunk: ({ html }) => outward(html) });
+	resolve(event, { transformPageChunk: ({ html }) => soft_breaks(outward(html)) });
 
 export const handle = sequence(ogygiaHandle(), external_links);
