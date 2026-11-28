@@ -10,7 +10,7 @@
 	// the photos. each is a ruled stand-in until its file is in: to put one in, drop the jpg in
 	// src/lib/life/ and swap its null for import.meta.og.image('../../lib/life/<name>.jpg')
 	const PHOTOS: Record<string, ImageDescriptor | null> = {
-		annecy: null,
+		annecy: import.meta.og.image('../../lib/life/annecy.jpg'),
 		kedarkantha: null,
 		brahmatal: null,
 		'dayara bugyal': null,
