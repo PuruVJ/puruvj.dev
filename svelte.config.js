@@ -10,6 +10,9 @@ const config = {
 	compilerOptions: { experimental: { async: true } },
 	kit: {
 		adapter: adapter(),
+		// absolute asset urls: 404.html is served at every missing address, however deep, and
+		// relative ones (./_app/...) would point under that address and load nothing
+		paths: { relative: false },
 		prerender: {
 			origin: 'https://puruvj.dev',
 			entries: ['*', '/404'],
