@@ -15,7 +15,7 @@
 		VH,
 		type Hand,
 	} from './mountain.ts';
-	import { dusk, theme_vars, body_vars, THEME_KEYS, BODY_KEYS } from './dusk.ts';
+	import { hour_at, hour_of, look, oil_of, HOURS, THEME_KEYS, BODY_KEYS, type Hour } from './dusk.ts';
 
 	// painted once on the server. the paint never moves, so it is drawn (rasterised) once per load,
 	// resize or theme switch, and never while the sun travels.
@@ -23,9 +23,14 @@
 	const sun = body('sun');
 	const moon = body('moon');
 	const s0 = sky(STILL);
-	// the same painting in the other theme's greys, with its own filter ids. it is only made the
-	// first time someone reaches for the sun, and fades in over the first as the page follows it.
-	const twin_paint = () => painting.replace(/(id="|url\(#)oil-/g, '$1oiz-');
+	// the same painting in each hour's tones (night, sunrise, day, sunset), each with its own filter
+	// ids. a copy is only made the first time the sun is held into its hour, and fades in over the
+	// reader's own painting as the page follows the sun.
+	const copy_paint = (h: Hour) => painting.replace(/(id="|url\(#)oil-/g, `$1o${h}-`);
+	const copy_style = (h: Hour) =>
+		Object.entries(oil_of(h))
+			.map(([n, v]) => `${n}: ${v}`)
+			.join('; ');
 
 	/**
 	 * the sky loop lives outside reactivity: it writes straight to the dom, never to $state.
@@ -46,7 +51,10 @@
 		const sunG = svg.querySelector<SVGGElement>('.sun')!;
 		const moonG = svg.querySelector<SVGGElement>('.moon')!;
 		const own = mtn.querySelector<SVGSVGElement>('.paint')!;
-		const twin = mtn.querySelector<SVGSVGElement>('.twin')!;
+		const veil = mtn.querySelector<SVGSVGElement>('.veil')!;
+		const copies = new Map(
+			HOURS.map((h) => [h, mtn.querySelector<SVGSVGElement>(`.copy[data-hour='${h}']`)!]),
+		);
 		const grip = mtn.nextElementSibling!.querySelector<HTMLElement>('.grip')!;
 		// is the sun behind the mountain? then it cannot be picked up
 		const hill = new Path2D(SILHOUETTE);
@@ -116,37 +124,53 @@
 			if (hid !== behind) grip.classList.toggle('behind', (behind = hid));
 		}
 
-		const own_dark = () => {
-			const pref = root.getAttribute('data-pref-theme');
-			return pref === 'dark' ? 1 : pref === 'light' ? 0 : dark_mq.matches ? 1 : 0;
-		};
+		const own_hour = () => hour_of(root.getAttribute('data-pref-theme'), dark_mq.matches);
 
 		function theme() {
-			const base = own_dark();
-			const { d, w } = dusk(p);
-			const de = base + (d - base) * k;
-			for (const [n, v] of theme_vars(de, w * k)) root.style.setProperty(n, v);
-			for (const [n, v] of body_vars(de)) svg.style.setProperty(n, v);
-			root.style.colorScheme = de > 0.5 ? 'dark' : 'light';
-			// the twin fades in over the painting; past halfway the painting fades out under it, so
-			// where the twin thins to nothing at the left edge, the old greys do not show through
-			const t = Math.abs(de - base);
-			twin.style.opacity = t.toFixed(3);
-			own.style.opacity = Math.min(1, 2 - 2 * t).toFixed(3);
+			const L = look(own_hour(), hour_at(p), k);
+			for (const [n, v] of L.vars) root.style.setProperty(n, v);
+			for (const [n, v] of L.body) (n === '--m-dusk' ? veil : svg).style.setProperty(n, v);
+			veil.style.setProperty('--veil', L.veil.toFixed(3));
+			root.style.colorScheme = L.dark ? 'dark' : 'light';
+			// the low light along the bottom of the window: it darkens a light page, lights a dark one
+			root.style.setProperty('--glow-blend', L.dark ? 'screen' : 'multiply');
+			root.classList.add('glow');
+			// the copies are stacked over the reader's own painting, and each is faded so that what
+			// shows of it is its weight. a layer that is mostly covered fades out under the ones above
+			// it, so where they thin to nothing at the left edge, its tones do not show through.
+			let sum = L.own;
+			own.style.opacity = Math.min(1, 2 * sum).toFixed(3);
+			for (const h of HOURS) {
+				const w = L.weights[h] ?? 0;
+				const el = copies.get(h)!;
+				if (w > 0.001 && !el.firstChild) el.innerHTML = copy_paint(h);
+				sum += w;
+				const o = sum > 0 ? (w / sum) * Math.min(1, 2 * sum) : 0;
+				el.style.opacity = o.toFixed(3);
+			}
 			themed = true;
 		}
 
 		function untheme() {
 			for (const n of THEME_KEYS) root.style.removeProperty(n);
 			for (const n of BODY_KEYS) svg.style.removeProperty(n);
+			veil.style.removeProperty('--m-dusk');
+			veil.style.removeProperty('--veil');
 			root.style.colorScheme = '';
-			twin.style.opacity = '';
+			root.style.removeProperty('--glow-blend');
+			root.classList.remove('glow');
+			for (const el of copies.values()) el.style.opacity = '';
 			own.style.opacity = '';
 			themed = false;
 		}
 
+		// the copies for the hours either side of where the sun is now, so the first move is smooth
 		function wake_twin() {
-			if (!twin.firstChild) twin.innerHTML = twin_paint();
+			const h = hour_at(p);
+			for (const x of [h.a, h.b]) {
+				const el = copies.get(x)!;
+				if (!el.firstChild) el.innerHTML = copy_paint(x);
+			}
 		}
 
 		function hold(by: number | 'key', off = 0) {
@@ -236,8 +260,8 @@
 </script>
 
 <div class="mtn" {@attach sky_loop}>
-	<!-- back to front: the sky (sun or moon), the guide it rides on, the painting (and its twin in the
-	     other theme), and a veil that dims it all at night -->
+	<!-- back to front: the sky (sun or moon), the guide it rides on, the painting (and its copies in
+	     each hour's tones), and a veil that dims it all at night -->
 	<svg class="sky" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">
 		<g class="sun" transform="translate({s0.x.toFixed(2)} {s0.y.toFixed(2)})" style:display={s0.day ? null : 'none'}>
 			{@html sun}
@@ -248,7 +272,9 @@
 	</svg>
 	<svg class="orbit" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true"><path d={ORBIT} /></svg>
 	<svg class="paint" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true">{@html painting}</svg>
-	<svg class="paint twin" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true"></svg>
+	{#each HOURS as h (h)}
+		<svg class="paint copy" data-hour={h} style={copy_style(h)} viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true"></svg>
+	{/each}
 	<svg class="veil" viewBox="0 0 {VW} {VH}" preserveAspectRatio="xMaxYMax meet" aria-hidden="true"><path d={SILHOUETTE} /></svg>
 </div>
 <!-- the handle: an invisible ring round the sun that follows it, in a layer of its own over the
@@ -296,7 +322,7 @@
 		z-index: 0;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) .mtn {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) .mtn {
 			--oil-back: rgb(29 28 25);
 			--oil-lit: rgb(50 49 46);
 			--oil-shade: rgb(33 32 29);
@@ -316,6 +342,30 @@
 		--oil-sun: rgb(59 58 55);
 		--oil-moon: rgb(201 200 197);
 		--oil-sheen: #555;
+		--m-dusk: #000;
+		--veil: 0.3;
+	}
+	/* sunrise: a cold blue range, its lit face and snow catching the orange of the low sun */
+	:global(:root[data-pref-theme='sunrise']) .mtn {
+		--oil-back: rgb(212 218 227);
+		--oil-lit: rgb(234 208 188);
+		--oil-shade: rgb(162 172 188);
+		--oil-snow: rgb(253 238 222);
+		--oil-sun: rgb(242 176 122);
+		--oil-moon: rgb(170 177 188);
+		--oil-sheen: #fff3e4;
+		--m-dusk: #5d6b82;
+		--veil: 0.22;
+	}
+	/* sunset: a deep wine range, its lit face and snow red with the last of the light */
+	:global(:root[data-pref-theme='sunset']) .mtn {
+		--oil-back: rgb(46 26 29);
+		--oil-lit: rgb(112 47 39);
+		--oil-shade: rgb(39 22 27);
+		--oil-snow: rgb(198 112 92);
+		--oil-sun: rgb(170 62 42);
+		--oil-moon: rgb(220 198 188);
+		--oil-sheen: #b0604f;
 		--m-dusk: #000;
 		--veil: 0.3;
 	}
@@ -349,30 +399,10 @@
 	.mtn:global(.held) .orbit {
 		opacity: 1;
 	}
-	/* the other theme's greys, faded in as the page follows the sun: an opacity, never a repaint */
-	.twin {
+	/* each hour's tones (set on the copy from dusk.ts), faded in as the page follows the sun: an
+	   opacity, never a repaint */
+	.copy {
 		opacity: 0;
-		--oil-back: rgb(29 28 25);
-		--oil-lit: rgb(50 49 46);
-		--oil-shade: rgb(33 32 29);
-		--oil-snow: rgb(111 110 107);
-		--oil-sheen: #555;
-	}
-	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) .twin {
-			--oil-back: rgb(228 227 224);
-			--oil-lit: rgb(217 216 213);
-			--oil-shade: rgb(184 183 180);
-			--oil-snow: rgb(250 249 246);
-			--oil-sheen: #fff;
-		}
-	}
-	:global(:root[data-pref-theme='dark']) .twin {
-		--oil-back: rgb(228 227 224);
-		--oil-lit: rgb(217 216 213);
-		--oil-shade: rgb(184 183 180);
-		--oil-snow: rgb(250 249 246);
-		--oil-sheen: #fff;
 	}
 	.grip {
 		position: absolute;

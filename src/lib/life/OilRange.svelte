@@ -23,7 +23,7 @@
 		pointer-events: none;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) .oil {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) .oil {
 			--oil-back: rgb(29 28 25);
 			--oil-lit: rgb(50 49 46);
 			--oil-shade: rgb(33 32 29);
@@ -37,6 +37,21 @@
 		--oil-shade: rgb(33 32 29);
 		--oil-snow: rgb(111 110 107);
 		--oil-sheen: #555;
+	}
+	/* the two hours, as on the home page: orange light on a blue range, red light on a wine one */
+	:global(:root[data-pref-theme='sunrise']) .oil {
+		--oil-back: rgb(212 218 227);
+		--oil-lit: rgb(234 208 188);
+		--oil-shade: rgb(162 172 188);
+		--oil-snow: rgb(253 238 222);
+		--oil-sheen: #fff3e4;
+	}
+	:global(:root[data-pref-theme='sunset']) .oil {
+		--oil-back: rgb(46 26 29);
+		--oil-lit: rgb(112 47 39);
+		--oil-shade: rgb(39 22 27);
+		--oil-snow: rgb(198 112 92);
+		--oil-sheen: #b0604f;
 	}
 	.ground {
 		fill: var(--paper);

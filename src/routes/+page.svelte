@@ -137,12 +137,18 @@
 		--night: #e2e0d9;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light'])) {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise'])) {
 			--night: #060606;
 		}
 	}
 	:global(:root[data-pref-theme='dark']) {
 		--night: #060606;
+	}
+	:global(:root[data-pref-theme='sunrise']) {
+		--night: #d3d9e2;
+	}
+	:global(:root[data-pref-theme='sunset']) {
+		--night: #140a0c;
 	}
 	.b-id > :not(:global(.mtn), :global(.hand), .clay, .ridge) {
 		position: relative;

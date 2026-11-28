@@ -107,11 +107,11 @@
 		--strip-paper: #ebe8df;
 	}
 	@media (prefers-color-scheme: dark) {
-		:global(:root:not([data-pref-theme='light']) .strip.loose) {
+		:global(:root:not([data-pref-theme='light'], [data-pref-theme='sunrise']) .strip.loose) {
 			--strip-paper: #9d9a91;
 		}
 	}
-	:global(:root[data-pref-theme='dark'] .strip.loose) {
+	:global(:root:is([data-pref-theme='dark'], [data-pref-theme='sunset']) .strip.loose) {
 		--strip-paper: #9d9a91;
 	}
 	@media (prefers-reduced-motion: reduce) {
