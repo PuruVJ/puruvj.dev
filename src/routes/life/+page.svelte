@@ -15,7 +15,7 @@
 		kedarkantha: import.meta.og.image('../../lib/life/kedarkantha.jpg'),
 		brahmatal: import.meta.og.image('../../lib/life/brahmatal.jpg'),
 		'dayara bugyal': null,
-		interlaken: null,
+		interlaken: import.meta.og.image('../../lib/life/interlaken.jpg'),
 		lucerne: null,
 		salzburg: null,
 	};
