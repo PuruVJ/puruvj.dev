@@ -66,8 +66,9 @@ export const ym = (d: string) => d.slice(0, 7).replace('-', '.');
 export const md = (d: string) => d.slice(5, 10).replace('-', '.');
 export const low = (s: string) => s.toLowerCase();
 
-/** temporary: a small panel to try the paint brushes on the header and footer. the picks live in
- *  localStorage and are set on <html> before paint, so a reload or a new page keeps them */
+/** the paint on the header and footer (paint.css). everyone gets the defaults below. a hidden panel,
+ *  opened with ?paint on any url (and closed with ?paint=0), tries other brushes: its picks are kept
+ *  in this browser only, set on <html> before paint, and never reach anyone else. */
 export const paint_lab = () =>
 	script(() => {
 		const BRUSHES = ['off', 'brush', 'knife', 'dry', 'swirl', 'stipple'];
@@ -76,15 +77,27 @@ export const paint_lab = () =>
 		try {
 			Object.assign(st, JSON.parse(localStorage.getItem('paint') || '{}'));
 		} catch {}
+		const DEFAULT = { ...st };
 		const apply = () => {
 			root.setAttribute('data-paint-corner', st.corner);
 			root.setAttribute('data-paint-salt', st.salt);
 			root.style.setProperty('--paint-k', st.k);
+		};
+		const save = () => {
 			try {
 				localStorage.setItem('paint', JSON.stringify(st));
 			} catch {}
 		};
 		apply();
+
+		let lab = false;
+		try {
+			const q = new URLSearchParams(location.search).get('paint');
+			if (q === '0') sessionStorage.removeItem('paint-lab');
+			else if (q !== null) sessionStorage.setItem('paint-lab', '1');
+			lab = sessionStorage.getItem('paint-lab') === '1';
+		} catch {}
+		if (!lab) return;
 
 		addEventListener('DOMContentLoaded', () => {
 			const d = document.createElement('details');
@@ -112,6 +125,7 @@ export const paint_lab = () =>
 						st[key] = b;
 						bs.forEach((x) => x.setAttribute('aria-pressed', String(x.textContent === b)));
 						apply();
+						save();
 						label();
 					};
 					return el;
@@ -134,10 +148,24 @@ export const paint_lab = () =>
 			r.oninput = () => {
 				st.k = r.value;
 				apply();
+				save();
 				show();
 			};
 			g.append(t, r);
 			d.append(g);
+			const reset = document.createElement('button');
+			reset.type = 'button';
+			reset.className = 'reset';
+			reset.textContent = 'back to what visitors see';
+			reset.onclick = () => {
+				try {
+					localStorage.removeItem('paint');
+				} catch {}
+				Object.assign(st, DEFAULT);
+				apply();
+				location.reload();
+			};
+			d.append(reset);
 			document.body.append(d);
 		});
 	});

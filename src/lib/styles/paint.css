@@ -125,7 +125,7 @@
 	--paint-tex: url(/paint/stipple.jpg);
 }
 
-/* ---------- the paint lab: a small panel to try the brushes (temporary) ---------- */
+/* ---------- the paint lab: a hidden panel to try the brushes, opened with ?paint ---------- */
 .paint-lab {
 	position: fixed;
 	left: 12px;
@@ -179,4 +179,11 @@
 .paint-lab input[type='range'] {
 	width: 100%;
 	accent-color: var(--ink);
+}
+.paint-lab .reset {
+	margin: 6px 10px 8px;
+	padding: 0;
+	border: 0;
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
