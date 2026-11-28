@@ -145,11 +145,23 @@ const nearest = (c: number, peaks: { x: number }[]) =>
 	peaks.reduce((a, p) => (Math.abs(p.x - c) < Math.abs(a - c) ? p.x : a), peaks[0].x);
 
 /** the solid line: down the left lane, over the three summits, out down the right lane */
+/** where the trail comes out of the tunnel at the foot of the oil range, and where it settles */
+export const TUNNEL = 1.35;
+const OUTX = 1.65;
+
+/** the mountains section: the trail comes down, drifts left, and walks into the mountain from
+ *  behind (the range is painted over it). under the rock it crosses to the tunnel mouth, down and
+ *  to the right of where it went in. */
+export const into_mountain = () =>
+	`M${u(1)} 0C${u(1.04)} 20 ${u(0.96)} 40 ${u(1)} 52C${u(1.03)} 62 ${u(0.6)} 70 ${u(0.55)} 80L${u(TUNNEL)} 100`;
+
 export const climb = () => {
 	const pts: string[] = [];
-	for (let c = 1.15; c <= 11.0001; c += 0.05) pts.push(`${u(c)} ${f(ridge_y(c))}`);
+	for (let c = OUTX; c <= 11.0001; c += 0.05) pts.push(`${u(c)} ${f(ridge_y(c))}`);
+	const join = ridge_y(OUTX);
 	return (
-		`M${u(IN)} 0L${u(IN)} ${BASE - 40}C${u(IN)} ${BASE - 10} ${u(IN + 0.04)} ${BASE} ${u(1.15)} ${BASE}` +
+		// out of the tunnel, on down and to the right, then straight down onto the first slope
+		`M${u(TUNNEL)} 0C${u(TUNNEL + 0.05)} 18 ${u(OUTX)} 16 ${u(OUTX)} 42L${u(OUTX)} ${f(join)}` +
 		`L${pts.join('L')}` +
 		`C${u(11.35)} ${BASE} ${u(OUT)} ${BASE + 4} ${u(OUT)} ${PH}`
 	);

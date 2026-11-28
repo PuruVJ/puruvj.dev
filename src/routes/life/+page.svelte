@@ -8,7 +8,7 @@
 	import Pizzas from '$lib/life/Pizzas.svelte' with { wake: 'visible' };
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
-	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
+	import { W, PH, PEAKS, NEXT, TUNNEL, into_mountain, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
 	import * as L from '$lib/life.ts';
 
 	// the photos. each is a pencilled stand-in until its file is in: to put one in, drop the jpg in
@@ -137,14 +137,14 @@
 
 			<!-- the mountains: here the line climbs -->
 			<section class="leg mountains" id="mountains" aria-labelledby="mountains-h">
-				{@render path(lane(1, 0))}
+				{@render path(into_mountain())}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
 				<p class="tag at" style="grid-column: 3 / 9">{@render hi('mountains')} dec 2025 – now</p>
 				<h2 id="mountains-h" class="big">the mountains</h2>
 				<p class="lede note">{L.TREKS_NOTE}</p>
 				<div class="range"><OilRange /></div>
 				<!-- the trail goes into the mountain and comes out through a tunnel at its foot -->
-				<span class="tunnel" aria-hidden="true"></span>
+				<span class="tunnel" style="--tunnel: {TUNNEL}" aria-hidden="true"></span>
 			</section>
 			<div class="climb" aria-hidden="true">
 				<svg class="desk" viewBox="0 0 {W} {PH}" preserveAspectRatio="none">
@@ -1054,21 +1054,18 @@
 	   walks out of the arch */
 	.mountains .tunnel {
 		position: absolute;
-		left: var(--tx, 8.3333%);
-		bottom: -24px;
-		width: 40px;
-		height: 30px;
+		left: calc(var(--tunnel) * 100% / 12);
+		/* tiny, at the very foot of the rock, the size a real tunnel would be on a mountain this
+		   big: a detail for whoever looks. its floor is the range's bottom edge (the range hangs 24px
+		   below the section, which has 8px of padding) */
+		bottom: -16px;
+		width: 11px;
+		height: 8px;
 		translate: -50% 0;
 		z-index: 2 !important;
-		border: 1px solid var(--ink-2);
-		border-bottom: 0;
-		border-radius: 20px 20px 0 0;
-		background:
-			radial-gradient(ellipse 60% 85% at 50% 100%, #0d0d0c 0 55%, #2a2926 75%, transparent 76%),
-			var(--paper-2);
-		box-shadow:
-			inset 0 0 0 4px var(--paper-2),
-			inset 0 0 0 5px var(--ink-3);
+		border-radius: 6px 6px 0 0;
+		background: radial-gradient(ellipse 70% 100% at 50% 100%, #0d0d0c 0 60%, #3a3935 85%, transparent 86%);
+		box-shadow: 0 -1px 0 0 color-mix(in srgb, var(--ink) 35%, transparent);
 	}
 	/* the trail, out of the tunnel's dark: it starts again at the arch's floor */
 	.mountains .tunnel::after {
@@ -1357,9 +1354,7 @@
 		/* on a phone the trail is one line down the left edge, 5px in from the walk */
 		.mountains .tunnel {
 			left: 5.5px;
-			bottom: -10px;
-			width: 30px;
-			height: 22px;
+			bottom: -2px;
 		}
 		.intro > .me {
 			position: absolute;
