@@ -3,7 +3,7 @@
 	import Shell from '$lib/components/Shell.svelte';
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
-	import Pizzas from '$lib/life/Pizzas.svelte';
+	import Pizzas from '$lib/life/Pizzas.svelte' with { wake: 'visible' };
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
 	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
