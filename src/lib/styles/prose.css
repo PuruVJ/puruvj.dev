@@ -209,6 +209,16 @@
 	border-color: var(--ink);
 }
 
+/* a post's pictures: as wide as themselves, never past the column, with a hairline so a white
+   screenshot keeps its edge on paper */
+.prose img {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	outline: 1px solid var(--hair);
+	outline-offset: -1px;
+}
+
 @media (max-width: 760px) {
 	.prose {
 		font-size: 17.5px;

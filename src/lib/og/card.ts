@@ -27,7 +27,7 @@ const load_fonts = () =>
 
 let photo: string | undefined;
 const me = () =>
-	(photo ??= `data:image/jpeg;base64,${readFileSync(resolve('static/photos/puru.jpg')).toString('base64')}`);
+	(photo ??= `data:image/jpeg;base64,${readFileSync(resolve('src/lib/home/puru.jpg')).toString('base64')}`);
 
 type Node = {
 	type: string;

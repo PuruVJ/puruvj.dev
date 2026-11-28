@@ -10,9 +10,12 @@
 	import { DESK, PHONE, rise, clip, line } from '$lib/home/ridge.ts';
 	import { DM, ELSEWHERE, ym, low } from '$lib/site.ts';
 	import { short } from '$lib/numbers.ts';
+	import { Img } from '@ogygia/image';
 
 	let { data } = $props();
 	const jobs = CAREER.slice(0, 3);
+	// at most 0.74 of the 96px headline: files at 72 and 144px, not the 400px original
+	const me = import.meta.og.image('../lib/home/puru.jpg');
 </script>
 
 <svelte:head>
@@ -37,7 +40,7 @@
 			<polyline points={line(PHONE)} />
 		</svg>
 		<h1 class="display">
-			puru<img class="me" src="/photos/puru.jpg" width="400" height="400" alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
+			puru<Img of={me} class="me" layout="fixed" width={72} height={72} priority alt="puru in a dark jacket and sunglasses, smiling, mountains behind" /><br />vijayvargia
 		</h1>
 		<p class="lede intro">
 			engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web.
@@ -187,7 +190,7 @@
 
 	/* the one photo on the site: in black and white like everything else, in colour when pointed at */
 	/* set into the headline like a word: a cap-height square after "puru" */
-	.me {
+	.b-id :global(.me) {
 		display: inline-block;
 		width: 0.74em;
 		height: 0.74em;
@@ -198,11 +201,11 @@
 		outline: 1px solid var(--rule);
 		outline-offset: -1px;
 	}
-	.me:hover {
+	.b-id :global(.me:hover) {
 		filter: none;
 	}
 	@media (prefers-reduced-motion: no-preference) {
-		.me {
+		.b-id :global(.me) {
 			transition: filter 0.4s ease;
 		}
 	}
