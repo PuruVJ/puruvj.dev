@@ -67,6 +67,7 @@ async function card(page: string): Promise<Card | null> {
 				title: 'life',
 				sub: LIFE_LEDE,
 				size: 104,
+				oil: true,
 			};
 	}
 	return null;

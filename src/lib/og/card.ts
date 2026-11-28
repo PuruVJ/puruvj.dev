@@ -102,6 +102,8 @@ export type Card = {
 	sub?: string;
 	/** the home card: photo after the first word of the title, and the mountain behind */
 	home?: boolean;
+	/** the oil-painted mountain behind, without the home card's photo */
+	oil?: boolean;
 	/** long titles step down a size */
 	size?: number;
 };
@@ -176,7 +178,7 @@ export async function render(c: Card): Promise<Buffer> {
 			minHeight: 0,
 		},
 		// the hills come first and everything after sits on top of them
-		...(c.home ? [hills(720, 540)] : []),
+		...(c.home || c.oil ? [hills(720, 540)] : []),
 		el('div', { position: 'relative' }, head),
 		el(
 			'div',
@@ -190,7 +192,7 @@ export async function render(c: Card): Promise<Buffer> {
 							fontSize: 27,
 							lineHeight: 1.3,
 							color: INK2,
-							maxWidth: c.home ? 520 : 820,
+							maxWidth: c.home || c.oil ? 520 : 820,
 							letterSpacing: '-0.01em',
 						},
 						short_sub(clean(c.sub)),
@@ -211,7 +213,7 @@ export async function render(c: Card): Promise<Buffer> {
 	);
 
 	const svg = await satori(tree as never, { width: W, height: H, fonts: load_fonts() });
-	return new Resvg(c.home ? paint_in(svg) : svg, { fitTo: { mode: 'width', value: W } })
+	return new Resvg(c.home || c.oil ? paint_in(svg) : svg, { fitTo: { mode: 'width', value: W } })
 		.render()
 		.asPng();
 }

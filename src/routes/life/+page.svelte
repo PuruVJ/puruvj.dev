@@ -4,6 +4,7 @@
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
 	import Bookshelf from '$lib/life/Bookshelf.svelte';
+	import OilRange from '$lib/life/OilRange.svelte';
 	import Pizzas from '$lib/life/Pizzas.svelte' with { wake: 'visible' };
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
@@ -136,6 +137,7 @@
 				<p class="tag at" style="grid-column: 3 / 9">{@render hi('mountains')} dec 2025 – now</p>
 				<h2 id="mountains-h" class="big">the mountains</h2>
 				<p class="lede note">{L.TREKS_NOTE}</p>
+				<div class="range"><OilRange /></div>
 			</section>
 			<div class="climb" aria-hidden="true">
 				<svg class="desk" viewBox="0 0 {W} {PH}" preserveAspectRatio="none">
@@ -1020,6 +1022,26 @@
 		margin-top: 40px;
 	}
 
+	/* the oil-painted mountain from the home page, standing behind the title, right */
+	.mountains {
+		isolation: isolate;
+	}
+	/* the words stay clear of the paint behind them */
+	.mountains .lede,
+	.mountains h2 {
+		text-shadow:
+			0 0 2px var(--paper),
+			0 0 6px var(--paper),
+			0 0 14px var(--paper);
+	}
+	.mountains .range {
+		position: absolute;
+		right: calc(-1 * var(--gut));
+		bottom: -36px;
+		width: 52%;
+		z-index: -1 !important;
+	}
+
 	/* ---------- cinema ---------- */
 	.dune {
 		grid-column: 1 / 7;
@@ -1283,6 +1305,13 @@
 			display: block;
 			padding-top: 44px;
 			padding-bottom: 36px;
+		}
+		.mountains .range {
+			position: relative;
+			right: auto;
+			bottom: auto;
+			width: 100%;
+			margin: 8px 0 -10px;
 		}
 		.intro > .me {
 			position: absolute;
