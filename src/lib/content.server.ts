@@ -107,11 +107,15 @@ export async function talks() {
 import type { Station } from './home/map.ts';
 
 /** the home page's transit map, from the real content */
+/** posts about projects i've retired: still readable, not on the home map or the home latest list */
+const RETIRED_POSTS = new Set(['aibind']);
+
 export async function stations(): Promise<Station[]> {
 	const [p, w, t] = await Promise.all([posts(), projects(), talks()]);
 	const oldest = p.at(-1)?.slug;
 	const all: Station[] = [
-		...p.map((x) => ({
+		// retired projects keep their posts on /writing, but leave the map
+		...p.filter((x) => !RETIRED_POSTS.has(x.slug)).map((x) => ({
 			kind: 'post' as const,
 			date: x.date,
 			title: x.title,
