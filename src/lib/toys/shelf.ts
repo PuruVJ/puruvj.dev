@@ -559,9 +559,13 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 	function step() {
 		const P = phys!;
 		if (press?.dragging) hold(press.t);
+		// how fast each toy was going into this step: a knock needs a thing to arrive, not just press
+		const speed = new Map<Toy, number>();
 		for (const t of toys) {
 			t.pos0.copy(t.pos);
 			t.quat0.copy(t.quat);
+			const v = t.body!.linvel();
+			speed.set(t, Math.hypot(v.x, v.y, v.z));
 		}
 		P.world.step(P.events);
 		P.events.drainContactForceEvents((e) => {
@@ -571,7 +575,11 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 				if (!t) continue;
 				const iv = dv / t.mass;
 				const now = performance.now();
-				if (iv < 1.8 || now - t.last < 90) continue;
+				// a toy held down against the shelf, or lying on it, pushes steadily: that is silence.
+				// only a real arrival knocks, and one held in the hand only when it hits hard.
+				const held = press?.dragging && press.t === t;
+				if ((speed.get(t) ?? 0) < (held ? 6 : 1.2)) continue;
+				if (iv < 1.8 || now - t.last < (held ? 250 : 90)) continue;
 				t.last = now;
 				sound.tock(iv, Math.cbrt(t.size.x * t.size.y * t.size.z) * 2);
 			}
