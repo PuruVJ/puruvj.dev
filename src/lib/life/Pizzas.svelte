@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { Img, type ImageDescriptor } from '@ogygia/image';
 	import { clothesline } from './clothesline.ts';
+	import { MUTE_KEY } from './line-sound.ts';
 
 	// neapolitan pizzas, pinned to one line like prints drying in a darkroom, hung in a hurry: a wire
 	// sags across the page and every photo hangs off it on a wooden peg, some on a longer string than
@@ -33,13 +34,26 @@
 	const drop = (i: number) => Math.round(rnd(i, 3) * 54);
 	const size = (i: number) => +(12 + rnd(i, 4) * 6).toFixed(2);
 	const f = (n: number) => +n.toFixed(2);
+	// one sound switch for the whole site: the toy shelf's, kept under the same key
+	let muted = $state(false);
+	function toggle() {
+		muted = !muted;
+		try {
+			localStorage.setItem(MUTE_KEY, muted ? '1' : '0');
+		} catch {}
+	}
 	// once awake, the line is a rope you can pull and the prints swing on it (see clothesline.ts)
-	const hang = (el: HTMLElement) =>
-		clothesline(el, {
+	const hang = (el: HTMLElement) => {
+		try {
+			muted = localStorage.getItem(MUTE_KEY) === '1';
+		} catch {}
+		return clothesline(el, {
 			at: PIZZAS.map((_, i) => at(i, PER)),
 			tilt: PIZZAS.map((_, i) => tilt(i)),
 			rest: (x) => 6 + sag(x),
+			muted: () => muted,
 		});
+	};
 	const wire = 'M0 6' + Array.from({ length: 41 }, (_, i) => `L${f(i * 25)} ${f(6 + sag(i / 40))}`).join('');
 </script>
 
@@ -50,6 +64,7 @@
 		</svg>
 		<span class="nail l" aria-hidden="true"></span>
 		<span class="nail r" aria-hidden="true"></span>
+		<button type="button" class="mute" aria-pressed={!muted} onclick={toggle}>{muted ? 'sound off' : 'sound on'}</button>
 		<ul>
 			{#each row as p, i (p.of)}
 				{@const x = at(i, row.length)}
@@ -100,6 +115,27 @@
 	}
 	.nail.r {
 		right: -3px;
+	}
+	/* the sound switch, like the toy shelf's: only there once the line can be pulled */
+	.mute {
+		all: unset;
+		position: absolute;
+		top: -24px;
+		right: 16px;
+		font-family: var(--mono);
+		font-size: 10px;
+		color: var(--ink-3);
+		cursor: pointer;
+	}
+	.mute:hover {
+		color: var(--ink);
+	}
+	.mute:focus-visible {
+		outline: 1.5px solid var(--ink);
+		outline-offset: 2px;
+	}
+	.line:not(:global(.live)) .mute {
+		display: none;
 	}
 	ul {
 		list-style: none;

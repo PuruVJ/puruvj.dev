@@ -124,7 +124,59 @@ function sounds(muted: () => boolean) {
 		s.start(t);
 		s.stop(t + 0.08);
 	};
-	return { unlock, tock, close: () => ac?.close() };
+	/** a rubber duck squeezed: air through its little reed, a pitch that rises then falls back,
+	 *  a breath of noise on top. hard is 0..1; a harder poke squeaks louder and higher */
+	const squeak = (hard: number) => {
+		if (!ac || !noise || ac.state !== 'running' || muted()) return;
+		const t = ac.currentTime;
+		const f0 = rand(880, 1060) * (1 + 0.3 * hard);
+		const dur = rand(0.18, 0.24) + 0.02 * hard;
+		const amp = 0.05 + 0.07 * hard;
+		const mid = t + dur * 0.42;
+		const g = ac.createGain();
+		g.connect(ac.destination);
+		// two parts: "squee" up, a small catch, "eak" back down
+		g.gain.setValueAtTime(0.0001, t);
+		g.gain.exponentialRampToValueAtTime(amp, t + 0.014);
+		g.gain.exponentialRampToValueAtTime(amp * 0.5, mid);
+		g.gain.exponentialRampToValueAtTime(amp * 0.85, mid + 0.025);
+		g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+		const o = ac.createOscillator();
+		o.type = 'sawtooth';
+		o.frequency.setValueAtTime(f0 * 0.78, t);
+		o.frequency.exponentialRampToValueAtTime(f0 * 1.22, mid);
+		o.frequency.exponentialRampToValueAtTime(f0 * rand(0.8, 0.9), t + dur);
+		// the rubber flutters the reed a little
+		const lfo = ac.createOscillator();
+		const lg = ac.createGain();
+		lfo.frequency.value = rand(24, 32);
+		lg.gain.value = f0 * 0.035;
+		lfo.connect(lg);
+		lg.connect(o.frequency);
+		const bp = ac.createBiquadFilter();
+		bp.type = 'bandpass';
+		bp.frequency.value = f0 * 2;
+		bp.Q.value = 1.2;
+		o.connect(bp);
+		bp.connect(g);
+		// the breathy part: noise around the squeak's own pitch
+		const s = ac.createBufferSource();
+		const nf = ac.createBiquadFilter();
+		const ng = ac.createGain();
+		s.buffer = noise;
+		nf.type = 'bandpass';
+		nf.frequency.value = f0 * 2.5;
+		nf.Q.value = 2;
+		ng.gain.value = 0.35;
+		s.connect(nf);
+		nf.connect(ng);
+		ng.connect(g);
+		for (const n of [o, lfo, s]) {
+			n.start(t);
+			n.stop(t + dur + 0.02);
+		}
+	};
+	return { unlock, tock, squeak, close: () => ac?.close() };
 }
 
 export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?: () => void }) {
@@ -677,6 +729,10 @@ export async function mount(host: HTMLElement, opts: { phone: boolean; onReady?:
 			canvas.style.cursor = 'grab';
 		} else if (!cancelled) {
 			const at = press.point;
+			// the duck squeaks when poked: a quick, firm tap is a harder squeeze
+			if (t.id === 'duck') {
+				sound.squeak(clamp(1.15 - (performance.now() - press.at) / 300, 0, 1));
+			}
 			if (phys) poke(t, at);
 			else queued.push(() => poke(t, at));
 		}

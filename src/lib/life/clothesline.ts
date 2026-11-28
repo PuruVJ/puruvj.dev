@@ -10,6 +10,9 @@
 // - grab a print: sideways slides its peg along the wire, down pulls the wire down to the hand.
 //   pegs keep their order with a gap, so a print slid into another shoves it along.
 // - when nothing moves any more the loop stops.
+// - it makes small sounds (see line-sound.ts), only once someone has dragged a print.
+
+import { line_sound } from './line-sound.ts';
 
 type Opts = {
 	/** where each print hangs at rest, 0..1 across */
@@ -18,6 +21,8 @@ type Opts = {
 	tilt: number[];
 	/** the wire at rest, px down from the top at x (0..1 across) */
 	rest: (x: number) => number;
+	/** is sound switched off */
+	muted: () => boolean;
 };
 
 const N = 40; // segments
@@ -46,6 +51,10 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	const s = f64(n), sp = f64(n), th = f64(n), om = f64(n), L = f64(n);
 	const qx = f64(n), qy = f64(n), qvx = f64(n), qvy = f64(n);
 	const s0 = o.at.map((a) => a * N);
+	const fs = f64(n); // each peg's spot at the last frame, to hear how fast it slides
+	const touch: boolean[] = [];
+	let gap = 1, pull = 0; // the pegs' gap, and how far down the hand has the wire
+	const sound = line_sound(o.muted, () => calm.matches);
 	let moved = false; // has anything left its rest place since load
 	let z = 20;
 
@@ -105,7 +114,8 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	/** keep pegs in order with a gap, inside the line. the held one wins, the rest give way */
 	function order() {
-		const gap = Math.max(0.5, (22 / W) * N), lo = 0.9, hi = N - 0.9;
+		gap = Math.max(0.5, (22 / W) * N);
+		const lo = 0.9, hi = N - 0.9;
 		for (let i = 0; i < n; i++) s[i] = Math.max(lo + i * gap, Math.min(hi - (n - 1 - i) * gap, s[i]));
 		const from = held < 0 ? 0 : held;
 		for (let i = from + 1; i < n; i++) if (s[i] < s[i - 1] + gap) s[i] = s[i - 1] + gap;
@@ -150,6 +160,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 			const d = gy - r;
 			const want = r + (d > 0 ? 240 * Math.tanh(d / 240) : 30 * Math.tanh(d / 30));
 			const F = 1e6 * (want - ya) - 900 * va;
+			pull = ya - r;
 			fy[j] += F * (1 - w);
 			fy[j + 1] += F * w;
 		}
@@ -221,8 +232,10 @@ export function clothesline(line: HTMLElement, o: Opts) {
 
 	let raf = 0, last = 0, acc = 0;
 	function frame(t: number) {
-		acc += Math.min(0.05, (t - last) / 1000);
+		const dt = Math.min(0.05, (t - last) / 1000);
+		acc += dt;
 		last = t;
+		fs.set(s);
 		let k = 0;
 		while (acc >= DT && k++ < 40) {
 			step();
@@ -230,7 +243,23 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		}
 		const done = asleep();
 		draw();
+		listen(dt);
 		raf = done ? 0 : requestAnimationFrame(frame);
+	}
+	/** the sounds follow the frame: the fastest peg scrapes, pegs that meet tick */
+	function listen(dt: number) {
+		if (dt <= 0) return;
+		const px = W / N / dt;
+		let fast = 0;
+		for (let i = 0; i < n; i++) {
+			const v = Math.abs(s[i] - fs[i]) * px;
+			fast = Math.max(fast, v);
+			if (i === n - 1) continue;
+			const met = s[i + 1] - s[i] <= gap + 0.02;
+			if (met && !touch[i]) sound.tick(Math.max(v, Math.abs(s[i + 1] - fs[i + 1]) * px));
+			touch[i] = met;
+		}
+		sound.slide(fast);
 	}
 	function wake() {
 		if (raf) return;
@@ -250,6 +279,8 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		if (i < 0) return;
 		e.preventDefault();
 		li.setPointerCapture(e.pointerId);
+		sound.unlock();
+		pull = 0;
 		held = i;
 		pointer = e.pointerId;
 		moved = true;
@@ -275,6 +306,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		lis[held]?.classList.remove('held');
 		// let go: it keeps the speed it had, so a flick slides it on
 		if (!calm.matches) sp[held] = s[held] - (gvx * DT * N) / W;
+		sound.twang(pull);
 		held = pointer = -1;
 		wake();
 	}
@@ -297,6 +329,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		cancelAnimationFrame(raf);
 		raf = 0;
 		held = pointer = -1;
+		sound.slide(0);
 		line.classList.remove('live');
 		path!.setAttribute('d', still);
 		for (const li of lis) {
@@ -326,5 +359,6 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		phone.removeEventListener('change', flip);
 		ro.disconnect();
 		off();
+		sound.close();
 	};
 }

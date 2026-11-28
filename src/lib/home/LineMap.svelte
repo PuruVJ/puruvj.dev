@@ -6,69 +6,160 @@
 	// the server's first guess at the block's size; the island redraws at the real one
 	let W = $state(600);
 	let H = $state(720);
-	/** the stop being pointed at, and where its tooltip sits (px inside the map) */
-	let tip = $state<{ i: number; x: number; y: number; left: boolean } | null>(null);
+	/** the stop being pointed at or focused */
+	let on = $state<number | null>(null);
+	/** it got there from the keyboard, so it wears a stronger ring */
+	let kb = $state(false);
+	/** the one stop in the tab order; the arrow keys move it */
+	let cur = $state(0);
 	let touch = $state(false);
+	let box: HTMLElement;
 
-	const svg = $derived(draw(stations, W, H));
+	const drawn = $derived(draw(stations, W, H));
 	// the mic stands on the 2024 rule. css works out the height, so it never jumps when the island
 	// measures the block or the fonts arrive
 	const micK = $derived(rule_k(stations, 2024));
-	const at = $derived(tip ? stations[tip.i] : null);
+	const at = $derived(on === null ? null : stations[on]);
+	const spot = $derived(on === null ? null : drawn.spots[on]);
+	const left = $derived(!!spot && spot.b > W * 0.55);
 	const KIND = { post: 'writing', work: 'project', talk: 'talk', podcast: 'podcast' } as const;
 
 	/** redraw at the block's real size whenever it changes */
-	function measure(box: HTMLElement) {
+	function measure(el: HTMLElement) {
+		box = el;
 		const ro = new ResizeObserver(() => {
-			W = box.clientWidth;
-			H = box.clientHeight;
+			W = el.clientWidth;
+			H = el.clientHeight;
 			// the first real-size drawing lands on the next frame; only then does the map show
-			if (!box.classList.contains('ready')) requestAnimationFrame(() => box.classList.add('ready'));
+			if (!el.classList.contains('ready')) requestAnimationFrame(() => el.classList.add('ready'));
 		});
-		ro.observe(box);
+		ro.observe(el);
 		return () => ro.disconnect();
 	}
 
-	function place(g: HTMLElement) {
-		const box = g.closest('.map')!.getBoundingClientRect();
-		const r = g.getBoundingClientRect();
-		const right = r.right - box.left;
-		const left = right > box.width * 0.55;
-		tip = { i: Number(g.dataset.i), x: left ? r.left - box.left : right, y: r.top - box.top + r.height / 2, left };
+	/** the stop nearest a point, within r px of its mark: the marks are small, the targets aren't */
+	function near(e: MouseEvent, r: number) {
+		const lb = (e.target as Element).closest?.('.lb') as HTMLElement | null;
+		if (lb) return Number(lb.dataset.i);
+		const b = box.getBoundingClientRect();
+		const x = e.clientX - b.left;
+		const y = e.clientY - b.top;
+		let best: number | null = null;
+		let bd = r;
+		drawn.spots.forEach((p, i) => {
+			const dx = x < p.a ? p.a - x : x > p.b ? x - p.b : 0;
+			const d = Math.hypot(dx, y - p.y);
+			if (d <= bd) (bd = d), (best = i);
+		});
+		return best;
 	}
 	function over(e: PointerEvent) {
 		if (e.pointerType === 'touch') return;
-		const g = (e.target as Element).closest?.('.st') as HTMLElement | null;
-		if (g) place(g);
-		else tip = null;
+		const i = near(e, 16);
+		box.style.cursor = i === null ? '' : 'pointer';
+		if (kb && i === null) return;
+		kb = false;
+		on = i;
 	}
 	function go(e: MouseEvent) {
-		const g = (e.target as Element).closest?.('.st') as HTMLElement | null;
-		if (!g) return void (tip = null);
-		const i = Number(g.dataset.i);
+		const i = near(e, touch ? 22 : 16);
+		if (i === null) return void (on = null);
 		// on a touch screen the first tap shows what the stop is; the second one opens it
-		if (touch && tip?.i !== i) return place(g);
+		if (touch && on !== i) return void ((on = i), (kb = false));
+		open(i);
+	}
+	function open(i: number) {
 		const href = stations[i]?.href;
 		if (href) location.href = href;
 	}
+
+	const stop = (el: EventTarget | null) => (el as Element | null)?.closest?.('.st') as HTMLElement | null;
+	function focus(e: FocusEvent) {
+		const g = stop(e.target);
+		// a click can focus a stop too; only the keyboard's focus counts here
+		if (!g || !g.matches(':focus-visible')) return;
+		cur = on = Number(g.dataset.i);
+		kb = true;
+	}
+	function blur(e: FocusEvent) {
+		if (stop(e.relatedTarget)) return;
+		if (kb) (on = null), (kb = false);
+	}
+	function key(e: KeyboardEvent) {
+		const g = stop(e.target);
+		if (!g) return;
+		const i = Number(g.dataset.i);
+		const n = stations.length;
+		const to = { ArrowDown: i + 1, ArrowRight: i + 1, ArrowUp: i - 1, ArrowLeft: i - 1, Home: 0, End: n - 1 }[e.key];
+		if (to !== undefined) {
+			e.preventDefault();
+			cur = Math.max(0, Math.min(n - 1, to));
+			box.querySelector<SVGElement>(`.st[data-i="${cur}"]`)?.focus();
+		} else if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			open(i);
+		} else if (e.key === 'Escape') {
+			on = null;
+		}
+	}
+
+	// keep exactly one stop in the tab order, across redraws. a redraw replaces the drawing, so a
+	// focused stop is focused again in the new one
+	let had = false;
+	$effect.pre(() => {
+		void drawn;
+		had = !!stop(document.activeElement) && !!box?.contains(document.activeElement);
+	});
+	$effect(() => {
+		void drawn;
+		box?.querySelector('.st[tabindex="0"]')?.setAttribute('tabindex', '-1');
+		const g = box?.querySelector<SVGElement>(`.st[data-i="${cur}"]`);
+		g?.setAttribute('tabindex', '0');
+		if (had && !box.contains(document.activeElement)) g?.focus({ preventScroll: true });
+	});
+	// the stop in hand and its lines stay inked; everything else steps back
+	$effect(() => {
+		void drawn;
+		const svg = box?.querySelector('svg');
+		if (!svg) return;
+		svg.classList.toggle('lit', on !== null);
+		const ln = on === null ? [] : stations[on].lines;
+		for (const el of svg.querySelectorAll<SVGElement>('.ln, .st, .lb')) {
+			const hot =
+				on !== null &&
+				(el.classList.contains('ln')
+					? ln.includes(el.dataset.ln!)
+					: Number(el.dataset.i) === on || (el.classList.contains('st') && el.dataset.ln!.split(' ').some((l) => ln.includes(l))));
+			el.classList.toggle('hot', hot);
+			el.classList.toggle('me', el.classList.contains('st') && Number(el.dataset.i) === on);
+		}
+	});
 </script>
 
 <div
 	class="map"
 	{@attach measure}
-	onpointerover={over}
+	onpointermove={over}
 	onpointerdown={(e) => (touch = e.pointerType === 'touch')}
-	onpointerleave={(e) => e.pointerType !== 'touch' && (tip = null)}
+	onpointerleave={(e) => e.pointerType !== 'touch' && !kb && (on = null)}
 	onclick={go}
+	onfocusin={focus}
+	onfocusout={blur}
+	onkeydown={key}
 	role="presentation"
 >
-	{@html svg}
+	{@html drawn.svg}
+	{#if spot}
+		<svg class="ring" class:kb width={W} height={H} aria-hidden="true">
+			<rect x={spot.a - 8} y={spot.y - 8} width={spot.b - spot.a + 16} height="16" rx="8" />
+		</svg>
+	{/if}
 	<i class="clay mic" aria-hidden="true" style="top: calc(6px + {micK.toFixed(5)} * (100% - 70px) - 94px)"></i>
-	{#if tip && at}
-		<div class="tip" class:left={tip.left} style="left: {tip.x}px; top: {tip.y}px" role="status">
+	{#if spot && at}
+		<div class="tip" class:left style="left: {left ? spot.a - 6 : spot.b + 6}px; top: {spot.y}px" role="status">
 			<span class="k">{KIND[at.kind]} · {ym(at.date)}</span>
 			<b>{at.title.toLowerCase()}</b>
-			{#if at.href}<span class="go">{touch ? 'tap again to open' : 'click to open'} →</span>{/if}
+			{#if at.href}<span class="go">{touch ? 'tap again to open' : kb ? 'enter to open' : 'click to open'} →</span>{/if}
 		</div>
 	{/if}
 </div>
@@ -107,8 +198,44 @@
 			display: none;
 		}
 	}
-	.map :global(.st) {
-		cursor: pointer;
+	.map :global(.st:focus) {
+		outline: none;
+	}
+	/* a stop in hand: its lines and stops keep their ink, the rest of the map steps back */
+	.map :global(svg.lit .ln:not(.hot)),
+	.map :global(svg.lit .st:not(.hot)),
+	.map :global(svg.lit .lb:not(.hot)) {
+		opacity: 0.18;
+	}
+	@media (prefers-reduced-motion: no-preference) {
+		.map :global(.ln),
+		.map :global(.st),
+		.map :global(.lb) {
+			transition: opacity 0.15s ease;
+		}
+	}
+	.map :global(.st.me .mark) {
+		stroke-width: 2.5;
+	}
+	/* the ring round the stop in hand; a stronger one when the keyboard brought it there */
+	.ring {
+		position: absolute;
+		inset: 0;
+		overflow: visible;
+		pointer-events: none;
+		fill: none;
+		stroke: var(--ink);
+		stroke-width: 1.25;
+	}
+	.ring.kb {
+		stroke-width: 2;
+	}
+	/* labels sit on a little paper, so no line ever runs through a word */
+	.map :global(text) {
+		paint-order: stroke;
+		stroke: var(--paper);
+		stroke-width: 3px;
+		stroke-linejoin: round;
 	}
 	/* the tooltip: a small paper card beside the stop, pointing at it */
 	.tip {
@@ -139,9 +266,6 @@
 	.tip b {
 		font-weight: 500;
 		letter-spacing: -0.01em;
-	}
-	.map :global(.st:hover .mark) {
-		stroke-width: 2.4;
 	}
 	/* svg text keeps its ink fill when selected, so the site's solid ink highlight would hide it:
 	   the map's labels get a light highlight instead */
