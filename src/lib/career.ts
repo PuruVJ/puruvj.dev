@@ -12,8 +12,7 @@ export const CAREER: Job[] = [
 	{ org: 'schneider electric', role: 'software engineer', from: '2026-02', to: null, href: 'https://www.se.com' },
 	{ org: 'svelte team', role: 'maintainer', from: '2023-02', to: null, note: 'ongoing, alongside everything else', href: 'https://svelte.dev' },
 	{ org: 'beyonk', role: 'software engineer', from: '2025-04', to: '2025-12', href: 'https://beyonk.com' },
-	{ org: 'contract work', role: 'independent', from: '2024-12', to: '2025-04', note: 'small teams, short projects' },
-	{ org: 'clockwork labs', role: 'senior frontend engineer', from: '2024-02', to: '2024-12', note: 'spacetimedb site: 15× faster, 20× smaller', href: 'https://clockworklabs.io' },
+	{ org: 'clockwork labs', role: 'senior frontend engineer', from: '2024-02', to: '2024-12', note: 'spacetimedb site: 15× faster, 50× smaller', href: 'https://clockworklabs.io' },
 	{ org: 'stackblitz', role: 'senior frontend engineer', from: '2022-01', to: '2023-03', href: 'https://stackblitz.com' },
 	{ org: 'rigo', role: 'senior frontend engineer', from: '2021-08', to: '2021-12' },
 ];

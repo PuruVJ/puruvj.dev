@@ -18,6 +18,10 @@ function outward(html: string) {
 					.replace(/↗/g, '<span class="arr ne">↗</span>'),
 		);
 		const href = /\bhref="([^"]*)"/.exec(attrs)?.[1];
+		// files, not pages (the résumé, the feed, markdown copies): the router's viewport prefetch
+		// would download them just for being on screen
+		if (href && /\.(pdf|xml|txt|md|png)$/.test(href) && !/preload-data/.test(attrs))
+			attrs += ' data-sveltekit-preload-data="off"';
 		if (!href || !/^https?:/.test(href) || OWN.test(href)) return `<a${attrs}>${inner}</a>`;
 		let a = attrs;
 		if (!/\btarget=/.test(a)) a += ' target="_blank"';
