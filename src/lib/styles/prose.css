@@ -161,7 +161,7 @@
 	overflow-wrap: break-word;
 }
 
-/* code blocks: hairline box, mono, a few pigments from ink-theme.ts. bleeds a little past the measure on wide screens. */
+/* code blocks: hairline box, mono, a splash of colour from ink-theme.ts. bleeds a little past the measure on wide screens. */
 .prose pre {
 	margin-top: 1.5em;
 	margin-bottom: 1.5em;
