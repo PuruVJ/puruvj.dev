@@ -1,8 +1,8 @@
 ---
-title: "macos web: react to svelte"
+title: "migrating react libraries to svelte"
 event: "Svelte Summit 2022 Fall"
 url: https://youtu.be/pJcbZr5VlV4?t=18405
 date: 2022-11-19
-lines: [talks, svelte, macos]
+lines: [talks, svelte]
 cover_image: ./image.png
 ---
