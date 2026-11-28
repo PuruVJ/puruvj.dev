@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<title>puru vijayvargia · résumé</title>
+		<meta name="author" content="Puru Vijayvargia" />
+		<meta name="description" content="Résumé of Puru Vijayvargia, software engineer." />
+		<!--
+			the source of static/resume.pdf. `pnpm resume` prints it to pdf (scripts/resume/build.ts).
+			the look is the site's: paper blocks on a 1px ink grid, numbered mono labels, register marks.
+		-->
+		<style>
+			/* ---------- fonts: the one place to swap them ----------
+			   three roles. to change the pairing, point these @font-face rules at new files and
+			   nothing else needs to move. the files are the static ttfs the og cards use. */
+			@font-face {
+				font-family: 'resume display';
+				src: url('../../src/lib/og/fonts/instrument-display.ttf') format('truetype');
+				font-weight: 600;
+			}
+			@font-face {
+				font-family: 'resume text';
+				src: url('../../src/lib/og/fonts/instrument-text.ttf') format('truetype');
+				font-weight: 400;
+			}
+			@font-face {
+				font-family: 'resume text';
+				src: url('../../src/lib/og/fonts/instrument-text-medium.ttf') format('truetype');
+				font-weight: 500 700;
+			}
+			@font-face {
+				font-family: 'resume mono';
+				src: url('../../src/lib/og/fonts/plex-mono-400.ttf') format('truetype');
+				font-weight: 400;
+			}
+			@font-face {
+				font-family: 'resume mono';
+				src: url('../../src/lib/og/fonts/plex-mono-600.ttf') format('truetype');
+				font-weight: 500 700;
+			}
+
+			:root {
+				--display: 'resume display', Arial, sans-serif;
+				--sans: 'resume text', Arial, sans-serif;
+				--mono: 'resume mono', ui-monospace, monospace;
+
+				/* the site's paper and ink (src/lib/styles/app.css). ink-2 and ink-3 stay well
+				   above 4.5:1 on paper, and darker still on white. */
+				--paper: #f4f3ef;
+				--ink: #0d0d0c;
+				--ink-2: #3d3d3a;
+				--ink-3: #5e5d57;
+				--hair: rgba(13, 13, 12, 0.14);
+				--pad: 18px;
+			}
+
+			@page {
+				size: A4;
+				margin: 0;
+			}
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+			html,
+			body {
+				background: var(--paper);
+				color: var(--ink);
+				font-family: var(--sans);
+				font-size: 11.5px;
+				line-height: 1.38;
+				-webkit-print-color-adjust: exact;
+				print-color-adjust: exact;
+				text-rendering: optimizeLegibility;
+			}
+			a {
+				color: inherit;
+				text-decoration: underline;
+				text-decoration-thickness: 0.5px;
+				text-underline-offset: 2px;
+				text-decoration-color: rgba(13, 13, 12, 0.4);
+			}
+			ul {
+				list-style: none;
+			}
+
+			/* ---------- the page: one A4 sheet of blocks ---------- */
+			.page {
+				width: 210mm;
+				height: 297mm;
+				padding: 9mm;
+				break-after: page;
+				overflow: hidden;
+			}
+			.page:last-child {
+				break-after: auto;
+			}
+			.sheet {
+				height: 100%;
+				display: grid;
+				grid-template-columns: repeat(12, minmax(0, 1fr));
+				gap: 1px;
+				padding: 1px;
+				background: var(--ink);
+			}
+			.b {
+				position: relative;
+				background: var(--paper);
+				padding: var(--pad);
+				min-width: 0;
+				display: flex;
+				flex-direction: column;
+			}
+			/* register cross in the top-left corner of every block, like a print sheet */
+			.b::before {
+				content: '';
+				position: absolute;
+				top: 5px;
+				left: 5px;
+				width: 6px;
+				height: 6px;
+				background:
+					linear-gradient(var(--ink-3), var(--ink-3)) center / 100% 0.75px no-repeat,
+					linear-gradient(var(--ink-3), var(--ink-3)) center / 0.75px 100% no-repeat;
+				opacity: 0.7;
+			}
+			.s12 { grid-column: span 12; }
+			.s8 { grid-column: span 8; }
+			.s7 { grid-column: span 7; }
+			.s6 { grid-column: span 6; }
+			.s5 { grid-column: span 5; }
+			.s4 { grid-column: span 4; }
+			.s3 { grid-column: span 3; }
+
+			/* numbered mono label at the top of every block */
+			.h {
+				display: flex;
+				justify-content: space-between;
+				align-items: baseline;
+				gap: 10px;
+				font-family: var(--mono);
+				font-size: 9px;
+				letter-spacing: 0.02em;
+				color: var(--ink-3);
+				white-space: nowrap;
+				margin-bottom: 12px;
+			}
+			.h .n {
+				margin-right: 0.9em;
+			}
+			.h a {
+				text-decoration: none;
+			}
+			.mono {
+				font-family: var(--mono);
+			}
+			.dim {
+				color: var(--ink-3);
+			}
+
+			/* ---------- page 1 ---------- */
+			.p1 {
+				grid-template-rows: auto auto 1fr;
+			}
+			.name {
+				padding-bottom: 20px;
+			}
+			.display {
+				font-family: var(--display);
+				font-weight: 600;
+				font-size: 64px;
+				line-height: 0.86;
+				white-space: nowrap;
+				letter-spacing: -0.045em;
+				font-variation-settings: 'wdth' 80;
+				margin-top: auto;
+				padding-top: 18px;
+			}
+			.lede {
+				margin-top: 14px;
+				font-size: 15px;
+				line-height: 1.28;
+				letter-spacing: -0.012em;
+				color: var(--ink-2);
+				max-width: 60ch;
+				text-wrap: pretty;
+			}
+			.contact ul {
+				margin-top: auto;
+				display: grid;
+				gap: 5px;
+				font-family: var(--mono);
+				font-size: 10px;
+			}
+			.contact li {
+				display: grid;
+				grid-template-columns: 44px 1fr;
+			}
+			.contact .k {
+				color: var(--ink-3);
+			}
+
+			.about p + p {
+				margin-top: 6px;
+			}
+			.about p {
+				color: var(--ink-2);
+				text-wrap: pretty;
+			}
+			.skills dl {
+				display: grid;
+				grid-template-columns: 62px 1.6fr 62px 1fr;
+				column-gap: 6px;
+				row-gap: 5px;
+			}
+			.skills dt {
+				font-family: var(--mono);
+				font-size: 9.5px;
+				color: var(--ink-3);
+				padding-top: 1px;
+			}
+			.skills .wide {
+				grid-column: 2 / -1;
+			}
+			.skills dd {
+				color: var(--ink-2);
+			}
+
+			/* experience: one ruled row per job, like /career */
+			/* the header line comes first and the points sit under it, so any text extractor reads
+			   org, role, dates, then the points, in that order */
+			.job {
+				display: grid;
+				grid-template-columns: 150px minmax(0, 1fr) auto;
+				column-gap: 18px;
+				row-gap: 4px;
+				align-items: baseline;
+				padding: 8px 0;
+				border-top: 1px solid var(--hair);
+			}
+			.job:first-of-type {
+				border-top: 0;
+				padding-top: 0;
+			}
+			.job:last-child {
+				padding-bottom: 0;
+			}
+			.org {
+				font-family: var(--display);
+				font-weight: 600;
+				font-size: 17px;
+				line-height: 1;
+				letter-spacing: -0.03em;
+				font-variation-settings: 'wdth' 80;
+			}
+			.org a {
+				text-decoration: none;
+			}
+			.role {
+				color: var(--ink-2);
+			}
+			.when {
+				font-family: var(--mono);
+				font-size: 9.5px;
+				color: var(--ink-3);
+			}
+			.job .pts {
+				grid-column: 2 / -1;
+			}
+			.edu .role,
+			.edu .when {
+				margin-top: 4px;
+			}
+			/* no position on the points: a positioned box paints after everything else, which would
+			   move every point to the end of the page's text */
+			.pts li {
+				padding-left: 12px;
+				text-indent: -12px;
+				color: var(--ink-2);
+				text-wrap: pretty;
+			}
+			.pts li + li {
+				margin-top: 2px;
+			}
+			.pts li::before {
+				content: '';
+				display: inline-block;
+				vertical-align: 0.3em;
+				width: 5px;
+				height: 1px;
+				margin-right: 7px;
+				background: var(--ink);
+			}
+			.pts .solo {
+				color: var(--ink-3);
+				padding-left: 0;
+			}
+			.pts .solo::before {
+				display: none;
+			}
+
+			/* ---------- page 2 ---------- */
+			.p2 {
+				grid-template-rows: 1fr 1fr auto auto;
+			}
+			.proj h3 {
+				font-family: var(--display);
+				font-weight: 600;
+				font-size: 38px;
+				line-height: 0.9;
+				letter-spacing: -0.04em;
+				font-variation-settings: 'wdth' 80;
+				margin-top: 6px;
+			}
+			.proj h3 a {
+				text-decoration: none;
+			}
+			.proj .tag {
+				margin-top: 6px;
+				font-size: 14.5px;
+				color: var(--ink-2);
+			}
+			.proj .desc {
+				margin-top: 12px;
+				font-size: 13px;
+				line-height: 1.36;
+				color: var(--ink-2);
+				text-wrap: pretty;
+			}
+			.proj .foot {
+				margin-top: auto;
+				padding-top: 12px;
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-end;
+				gap: 12px;
+			}
+			.nums {
+				display: flex;
+				gap: 18px;
+			}
+			.nums dt {
+				font-family: var(--display);
+				font-weight: 600;
+				font-size: 30px;
+				line-height: 0.9;
+				letter-spacing: -0.03em;
+				font-variation-settings: 'wdth' 80;
+			}
+			.nums dd {
+				margin-top: 3px;
+				font-family: var(--mono);
+				font-size: 9px;
+				color: var(--ink-3);
+			}
+			.proj .stack {
+				font-family: var(--mono);
+				font-size: 9px;
+				color: var(--ink-3);
+				text-align: right;
+			}
+
+			.talk + .talk {
+				margin-top: 10px;
+				padding-top: 10px;
+				border-top: 1px solid var(--hair);
+			}
+			.talk .t {
+				font-weight: 500;
+			}
+			.talk .ev {
+				margin-top: 1px;
+				font-family: var(--mono);
+				font-size: 9.5px;
+				color: var(--ink-3);
+			}
+			.talk p {
+				margin-top: 3px;
+				color: var(--ink-2);
+				text-wrap: pretty;
+			}
+			.edu .org,
+			.list .big {
+				font-size: 17px;
+			}
+			.edu p {
+				margin-top: 6px;
+				color: var(--ink-2);
+			}
+			.list li {
+				display: flex;
+				justify-content: space-between;
+				gap: 8px;
+				padding: 3px 0;
+				border-top: 1px solid var(--hair);
+			}
+			.list li:first-child {
+				border-top: 0;
+				padding-top: 0;
+			}
+			.list .v {
+				font-family: var(--mono);
+				font-size: 9.5px;
+				color: var(--ink-3);
+				text-align: right;
+			}
+			.interests ul {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 4px 18px;
+				font-size: 13px;
+				color: var(--ink-2);
+			}
+			.foot-note {
+				margin-top: auto;
+				padding-top: 10px;
+				font-family: var(--mono);
+				font-size: 9px;
+				color: var(--ink-3);
+			}
+		</style>
+	</head>
+	<body>
+		<!-- ================= page 1 ================= -->
+		<div class="page">
+			<div class="sheet p1">
+				<header class="b s8 name">
+					<div class="h"><span><span class="n">00</span>résumé</span><span>nov 2026</span></div>
+					<h1 class="display">puru vijayvargia</h1>
+					<p class="lede">
+						software engineer and svelte team maintainer. full-stack JavaScript, mostly frontend.
+						best at performance work and refactors: making things faster, smaller and simpler.
+					</p>
+				</header>
+
+				<section class="b s4 contact">
+					<div class="h"><span><span class="n">01</span>contact</span></div>
+					<ul>
+						<li><span class="k">email</span><a href="mailto:devpuruvj@gmail.com">devpuruvj@gmail.com</a></li>
+						<li><span class="k">site</span><a href="https://puruvj.dev">puruvj.dev</a></li>
+						<li><span class="k">github</span><a href="https://github.com/puruvj">github.com/puruvj</a></li>
+						<li><span class="k">x</span><a href="https://x.com/puruvjdev">x.com/puruvjdev</a></li>
+						<li><span class="k">bsky</span><a href="https://bsky.app/profile/puruvj.dev">@puruvj.dev</a></li>
+						<li><span class="k">based</span><span>jaipur, india</span></li>
+					</ul>
+				</section>
+
+				<section class="b s12 skills">
+					<div class="h"><span><span class="n">02</span>skills</span></div>
+					<dl>
+						<dt>frontend</dt>
+						<dd class="wide">Svelte, SvelteKit, React, Next.js, React Router 7 (Remix), SolidJS, Vue, Nuxt</dd>
+						<dt>backend</dt>
+						<dd>Node.js, Bun, Deno, Go, Python, PHP</dd>
+						<dt>languages</dt>
+						<dd>TypeScript, JavaScript</dd>
+						<dt>databases</dt>
+						<dd>SQL (SQLite, Postgres, MySQL), NoSQL (MongoDB, Firebase)</dd>
+						<dt>tools</dt>
+						<dd>Docker (intermediate)</dd>
+					</dl>
+				</section>
+
+				<section class="b s12 exp">
+					<div class="h"><span><span class="n">03</span>experience</span></div>
+
+					<article class="job">
+							<h2 class="org"><a href="https://www.se.com">schneider electric</a></h2>
+							<p class="role">software engineer</p>
+							<p class="when">feb 2026 – present</p>
+					</article>
+
+					<article class="job">
+							<h2 class="org"><a href="https://svelte.dev">svelte team</a></h2>
+							<p class="role">maintainer</p>
+							<p class="when">feb 2023 – present</p>
+						<ul class="pts">
+							<li>Rebuilt svelte.dev to match kit.svelte.dev, with dark mode and much faster builds.</li>
+							<li>Moved shared code across all the Svelte org's websites into one place, so they are easier to maintain.</li>
+							<li>Rewrote the REPL to be type-safe and less buggy, and optimized it hard.</li>
+						</ul>
+					</article>
+
+					<article class="job">
+							<h2 class="org"><a href="https://beyonk.com">beyonk</a></h2>
+							<p class="role">software engineer</p>
+							<p class="when">apr 2025 – dec 2025</p>
+						<ul class="pts">
+							<li>Shipped improvements to the customer-facing product.</li>
+							<li>Built features and performance fixes for the provider-facing product.</li>
+							<li>Removed legacy components and simplified the architecture.</li>
+						</ul>
+					</article>
+
+					<article class="job">
+							<h2 class="org">contract work</h2>
+							<p class="role">independent contractor</p>
+							<p class="when">dec 2024 – apr 2025</p>
+						<ul class="pts">
+							<li>Contracts with European companies and institutions.</li>
+							<li>AI startup: shipped features and products on very short notice.</li>
+							<li>Svelte packages: built the first prototype of svelte.dev/packages, with LLM-based filtering, tagging and descriptions, and offline-first search.</li>
+						</ul>
+					</article>
+
+					<article class="job">
+							<h2 class="org"><a href="https://clockworklabs.io">clockwork labs</a></h2>
+							<p class="role">senior frontend engineer</p>
+							<p class="when">feb 2024 – dec 2024</p>
+						<ul class="pts">
+							<li>Made spacetimedb.com 15× faster and 50× smaller (JS bundle from 5,000 KB to 100 KB), which brought it measurably more traffic.</li>
+							<li>Shipped the BitCraft web apps.</li>
+							<li>Streamlined the TypeScript SDK and cut it from 114 KB to 7 KB (min+br).</li>
+						</ul>
+					</article>
+
+					<article class="job">
+							<h2 class="org"><a href="https://stackblitz.com">stackblitz</a></h2>
+							<p class="role">senior frontend engineer</p>
+							<p class="when">jan 2022 – mar 2023</p>
+						<ul class="pts">
+							<li>Brought StackBlitz to Bootstrap's users.</li>
+							<li>Web Publisher: one-click docs editing with live preview.</li>
+							<li>viteconf.org: built the site with the team, to grow Vite's reach across the JavaScript ecosystem.</li>
+							<li>WebContainer docs: wrote the official tutorial, co-wrote guides, and built REPL proofs of concept for Fortune 500 companies.</li>
+						</ul>
+					</article>
+
+					<article class="job">
+							<h2 class="org">rigo</h2>
+							<p class="role">senior frontend engineer</p>
+							<p class="when">aug 2021 – dec 2021</p>
+						<ul class="pts">
+							<li>Built an Apple-style interactive homepage to show off the products.</li>
+							<li>Handled urgent production fixes at critical moments.</li>
+							<li>Optimized the pipeline from development to production.</li>
+						</ul>
+					</article>
+				</section>
+			</div>
+		</div>
+
+		<!-- ================= page 2 ================= -->
+		<div class="page">
+			<div class="sheet p2">
+				<article class="b s6 proj">
+					<div class="h">
+						<span><span class="n">04</span>project · jul 2026</span>
+						<a href="https://ogygiajs.dev">ogygiajs.dev</a>
+					</div>
+					<h3><a href="https://ogygiajs.dev">ogygia</a></h3>
+					<p class="tag">SSR islands for SvelteKit</p>
+					<p class="desc">
+						Pages are plain HTML and nothing hydrates until you say so: mark a component to wake on
+						load, on scroll or on any cue, and only that ships JavaScript. No SvelteKit patches.
+						Comes with content, image and a family of helper packages.
+					</p>
+					<div class="foot">
+						<dl class="nums">
+							<div><dt>42k</dt><dd>npm downloads</dd></div>
+							<div><dt>108</dt><dd>github stars</dd></div>
+						</dl>
+						<p class="stack">svelte · sveltekit<br />typescript · vite</p>
+					</div>
+				</article>
+
+				<article class="b s6 proj">
+					<div class="h">
+						<span><span class="n">05</span>project · jul 2024</span>
+						<a href="https://npm.im/neotraverse">npm.im/neotraverse</a>
+					</div>
+					<h3><a href="https://github.com/puruvj/neotraverse">neotraverse</a></h3>
+					<p class="tag">walk and change any object tree</p>
+					<p class="desc">
+						A tiny (1.38 KB), zero-dependency library for traversing tree data structures. A
+						drop-in replacement for traverse.
+					</p>
+					<div class="foot">
+						<dl class="nums">
+							<div><dt>389M</dt><dd>npm downloads</dd></div>
+							<div><dt>257</dt><dd>github stars</dd></div>
+						</dl>
+						<p class="stack">typescript · vitest</p>
+					</div>
+				</article>
+
+				<article class="b s6 proj">
+					<div class="h">
+						<span><span class="n">06</span>project · nov 2026</span>
+						<a href="https://npm.im/heisenbench">npm.im/heisenbench</a>
+					</div>
+					<h3><a href="https://github.com/ogygiajs/bench/tree/main/packages/heisenbench">heisenbench</a></h3>
+					<p class="tag">counts work, not time</p>
+					<p class="desc">
+						A benchmark engine that counts the work each function does, line by line, instead of
+						timing it. The count is the same on every run, so one run of a PR against its base shows
+						exactly which line got slower. Runs on every ogygia PR.
+					</p>
+					<div class="foot">
+						<dl class="nums">
+							<div><dt>3.6k</dt><dd>npm downloads</dd></div>
+						</dl>
+						<p class="stack">typescript · node</p>
+					</div>
+				</article>
+
+				<article class="b s6 proj">
+					<div class="h">
+						<span><span class="n">07</span>project · nov 2020</span>
+						<a href="https://macos-web.app">macos-web.app</a>
+					</div>
+					<h3><a href="https://github.com/puruvj/macos-web">macos web</a></h3>
+					<p class="tag">a mac desktop in the browser</p>
+					<p class="desc">
+						The macOS desktop, interactive dock and all, on the web. Built with Svelte, in 33 KB of
+						JS and CSS combined.
+					</p>
+					<div class="foot">
+						<dl class="nums">
+							<div><dt>2.7k</dt><dd>github stars</dd></div>
+						</dl>
+						<p class="stack">svelte · typescript · vite</p>
+					</div>
+				</article>
+
+				<section class="b s7 speaking">
+					<div class="h"><span><span class="n">08</span>speaking</span></div>
+					<div class="talk">
+						<p class="t"><a href="https://youtu.be/fEU8wcKBbsI?t=20239">Using Svelte in React</a></p>
+						<p class="ev">react india 2024 · goa, india · oct 2024</p>
+						<p>Flipped the multi-framework idea: brought Svelte's animations and Vue's reactivity into React, as a playground for performance and flexibility.</p>
+					</div>
+					<div class="talk">
+						<p class="t"><a href="https://youtu.be/pJcbZr5VlV4?t=18405">How to migrate React libraries to Svelte</a></p>
+						<p class="ev">svelte summit fall 2022 · stockholm, sweden · nov 2022</p>
+						<p>Rebuilt a React confetti library in Svelte, 9× smaller.</p>
+					</div>
+					<div class="talk">
+						<p class="t"><a href="https://youtu.be/JiKbiXdxm00">macOS web: why I moved from React to Svelte</a></p>
+						<p class="ev">svelte summit spring 2022 · online · apr 2022</p>
+					</div>
+				</section>
+
+				<section class="b s5 edu">
+					<div class="h"><span><span class="n">09</span>education</span></div>
+					<h2 class="org">iiitdm kancheepuram</h2>
+					<p class="role">B.Tech, computer science</p>
+					<p class="when">jul 2020 – jul 2024</p>
+					<p>One of India's Institutes of National Importance.</p>
+				</section>
+
+				<section class="b s6 list">
+					<div class="h"><span><span class="n">10</span>languages</span></div>
+					<ul>
+						<li><span>English</span><span class="v">full professional proficiency</span></li>
+						<li><span>Hindi</span><span class="v">full professional proficiency</span></li>
+						<li><span>French</span><span class="v">working proficiency</span></li>
+					</ul>
+				</section>
+
+				<section class="b s6 interests">
+					<div class="h"><span><span class="n">11</span>interests</span></div>
+					<ul>
+						<li>books</li>
+						<li>sports</li>
+						<li>orchestral music</li>
+						<li>solo travel</li>
+						<li>hobbyist coding</li>
+					</ul>
+				</section>
+			</div>
+		</div>
+	</body>
+</html>
