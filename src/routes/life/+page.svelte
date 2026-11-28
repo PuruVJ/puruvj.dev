@@ -59,6 +59,8 @@
 	const KM = [0, 10, 20, 30, 40, 50];
 </script>
 
+{#snippet hi(k: keyof typeof L.HI)}<span class="hi" lang="hi" title={L.HI[k][1]}>{L.HI[k][0]}</span>{/snippet}
+
 {#snippet path(d: string, cls = 'line')}
 	<svg class="trail {cls}" viewBox="0 0 {W} 100" preserveAspectRatio="none" aria-hidden="true"><path {d} /></svg>
 {/snippet}
@@ -67,7 +69,7 @@
 	<div class="life">
 		<header class="intro">
 			<p class="tag">away from the keyboard</p>
-			<h1 class="display">life</h1>
+			<h1 class="display">life {@render hi('life')}</h1>
 			<p class="lede">{L.LIFE_LEDE}</p>
 			<nav class="route" aria-label="on this page">
 				<ol>
@@ -88,7 +90,7 @@
 			<section class="leg annecy" id="annecy" aria-labelledby="annecy-h">
 				{@render path(lane(1))}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
-				<p class="tag at" style="grid-column: 3 / 9">annecy, france · oct 2025</p>
+				<p class="tag at" style="grid-column: 3 / 9">{@render hi('annecy')} annecy, france · oct 2025</p>
 				<h2 id="annecy-h" class="km">
 					<span class="giant num"><span class="swash" aria-hidden="true"></span>50 km</span>
 					<span class="around">around the lake</span>
@@ -124,7 +126,7 @@
 			<section class="leg mountains" id="mountains" aria-labelledby="mountains-h">
 				{@render path(lane(1, 0))}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
-				<p class="tag at" style="grid-column: 3 / 9">dec 2025 – now</p>
+				<p class="tag at" style="grid-column: 3 / 9">{@render hi('mountains')} dec 2025 – now</p>
 				<h2 id="mountains-h" class="big">the mountains</h2>
 				<p class="lede note">{L.TREKS_NOTE}</p>
 			</section>
@@ -187,7 +189,7 @@
 				{@render path(lane(1))}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
 				<div class="solo-words">
-					<h2 id="solo-h" class="tag at">solo travel · europe</h2>
+					<h2 id="solo-h" class="tag at">{@render hi('solo')} solo travel · europe</h2>
 					<p class="pull">{L.SOLO}</p>
 					<p class="say hostels">
 						hostels in {L.CITIES.map((c) => c.name).join(', ').replace(/, ([^,]*)$/, ' and $1')}.
@@ -221,7 +223,7 @@
 				{@render path(lane(7))}
 				<span class="stop" style={stop(7, 5.7)} aria-hidden="true"></span>
 				<div class="dune">
-					<p class="tag">cinema</p>
+					<p class="tag">{@render hi('cinema')} cinema</p>
 					<h2 id="cinema-h" class="giant">dune:<br />part two</h2>
 					<p class="lede">{L.DUNE}</p>
 					<figure class="arrakis">
@@ -249,7 +251,7 @@
 				<span class="stop" style={stop(7, 8)} aria-hidden="true"></span>
 				<div class="left">
 					<span class="ghost num" aria-hidden="true">2018</span>
-					<p class="tag">since 2018</p>
+					<p class="tag">{@render hi('zimmer')} since 2018</p>
 					<h2 id="zimmer-h" class="big">hans zimmer</h2>
 					<p class="say first">{L.ZIMMER}</p>
 					<ol class="tracks">
@@ -269,7 +271,7 @@
 				<span class="stop" style={stop(11, 9.6)} aria-hidden="true"></span>
 				<p class="giant seventy num" aria-hidden="true"><span class="swash"></span>70+</p>
 				<div class="beside">
-					<h2 id="books-h" class="tag">books</h2>
+					<h2 id="books-h" class="tag">{@render hi('books')} books</h2>
 					<p class="lede">times i've read harry potter, hindi and english combined.</p>
 					<p class="say">{L.BOOKS}</p>
 				</div>
@@ -281,7 +283,7 @@
 			<section class="leg building" id="building" aria-labelledby="building-h">
 				{@render path(lane(11))}
 				<span class="stop" style={stop(11, 10)} aria-hidden="true"></span>
-				<h2 id="building-h" class="tag at r" style="grid-column: 4 / 11">always building · an engineer at heart</h2>
+				<h2 id="building-h" class="tag at r" style="grid-column: 4 / 11">{@render hi('building')} always building · an engineer at heart</h2>
 				{#each L.BUILDING as p, i (p)}<p class="say p{i}">{p}</p>{/each}
 				<div class="draw"><Bridge /></div>
 			</section>
@@ -293,7 +295,7 @@
 				{@render path(lane(1))}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
 				<div class="pizza-words">
-					<h2 id="pizza-h" class="tag at">the favourite</h2>
+					<h2 id="pizza-h" class="tag at">{@render hi('pizza')} the favourite</h2>
 					<p class="pull">{L.PIZZA[0]}</p>
 					<p class="say">{L.PIZZA[1]}</p>
 				</div>
@@ -307,7 +309,7 @@
 				{@render path(lane(4.5))}
 				<span class="stop home" style={stop(4.5, 4)} aria-hidden="true"></span>
 				<div class="words">
-					<p class="tag">home · twilight</p>
+					<p class="tag">{@render hi('jaipur')} home · twilight</p>
 					<h2 id="jaipur-h" class="giant">jaipur</h2>
 					{#each L.HOME as p (p)}<p class="say">{p}</p>{/each}
 				</div>
@@ -324,7 +326,7 @@
 			<section class="leg scared" id="scared" aria-labelledby="scared-h">
 				{@render path(lane(1.5), 'line fade')}
 				<span class="stop" style={stop(1.5, 2)} aria-hidden="true"></span>
-				<h2 id="scared-h" class="tag at" style="grid-column: 3 / 9">what scares me</h2>
+				<h2 id="scared-h" class="tag at" style="grid-column: 3 / 9">{@render hi('human')} what scares me</h2>
 				{#each L.SCARED as p, i (p)}<p class="pull q{i}">{p}</p>{/each}
 			</section>
 		</div>
@@ -374,6 +376,31 @@
 	}
 	[id] {
 		scroll-margin-top: calc(var(--top-h) + 24px);
+	}
+
+	/* hindi, beside the english: tiro devanagari hindi, cut down to just the words on this page */
+	@font-face {
+		font-family: 'Hindi Words';
+		src: url('/fonts/hindi-words.woff2') format('woff2');
+		font-display: swap;
+		unicode-range: U+0900-097F, U+200C-200D, U+25CC;
+	}
+	.hi {
+		font-family: 'Hindi Words', 'Kohinoor Devanagari', 'Noto Serif Devanagari', serif;
+		font-size: 1.9em;
+		line-height: 1;
+		letter-spacing: 0;
+		font-weight: 400;
+		color: var(--ink-2);
+		margin-right: 0.35em;
+		vertical-align: -0.12em;
+		text-transform: none;
+	}
+	.display .hi {
+		font-size: 0.32em;
+		margin: 0 0 0 0.15em;
+		vertical-align: 0.15em;
+		font-variation-settings: normal;
 	}
 
 	/* the dusk doesn't stop at the page's edge: the margins round the sheet, the toy shelf and the

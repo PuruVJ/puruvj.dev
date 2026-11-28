@@ -94,4 +94,19 @@ export const PIZZA = [
 	'one every week, from the same place. i had about 4 on the europe trip alone.',
 ];
 
+/** a word of hindi beside each part of the page: plain hindi, not urdu loanwords */
+export const HI = {
+	life: ['जीवन', 'life'],
+	annecy: ['फिर से', 'again'],
+	mountains: ['पहाड़', 'mountains'],
+	solo: ['यात्रा', 'journey'],
+	cinema: ['सिनेमा', 'cinema'],
+	zimmer: ['संगीत', 'music'],
+	books: ['पुस्तकें', 'books'],
+	building: ['निर्माण', 'building'],
+	pizza: ['पिज़्ज़ा', 'pizza'],
+	jaipur: ['गोधूलि', 'twilight, the hour of cow-dust'],
+	human: ['मनुष्य', 'human'],
+} as const;
+
 export const SCARED = ['in the age of ai, what makes a human a human?'];
