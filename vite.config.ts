@@ -35,10 +35,8 @@ export default defineConfig({
 	optimizeDeps: { exclude: ['@dimforge/rapier3d'] },
 	plugins: [
 		rapier_wasm(),
-		// plain page loads: every page is prerendered html, and hover prefetch (speculation rules in
-		// +layout.svelte) makes them instant. the in-place router swapped pages before their own css
-		// arrived, which flashed unstyled content mid-fade.
-		ogygia({ router: false }),
+		// ogygia's router swaps pages in place, with a view transition
+		ogygia(),
 		// every page is prerendered, so the build makes each image file once, as a static file.
 		// a post's images are as wide as the reading column (40em of 18px), never wider. a gif becomes
 		// an animated webp; at quality 65 it is ~40% lighter than at 80, and the memes are grainy anyway.

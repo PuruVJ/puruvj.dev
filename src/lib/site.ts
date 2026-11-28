@@ -53,11 +53,16 @@ export const js_flag = () =>
 	script(() => {
 		const root = document.documentElement;
 		root.classList.add('js');
-		// the first page of a visit gets the settle-in; every later page shows at once
+		// the first page of a visit gets the settle-in; every later page shows at once. the router
+		// swaps pages without a fresh load, so this script runs once: mark the visit seen as soon as
+		// the settle-in has played, or every swap would replay it from blank (a dark flash, as the
+		// grid's ink shows through the fading blocks)
 		try {
 			if (sessionStorage.getItem('seen')) root.classList.add('seen');
 			else sessionStorage.setItem('seen', '1');
 		} catch {}
+		setTimeout(() => root.classList.add('seen'), 1500);
+		addEventListener('click', () => root.classList.add('seen'), { capture: true, once: true });
 	});
 
 /** 2026-06-05 -> 2026.06 */
@@ -167,5 +172,9 @@ export const paint_lab = () =>
 			};
 			d.append(reset);
 			document.body.append(d);
+			// the router swaps the page under it; put the panel back when it goes
+			new MutationObserver(() => {
+				if (!d.isConnected) document.body.append(d);
+			}).observe(document.documentElement, { childList: true, subtree: true });
 		});
 	});
