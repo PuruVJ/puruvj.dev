@@ -16,7 +16,7 @@
 		annecy: import.meta.og.image('../../lib/life/annecy.jpg'),
 		kedarkantha: import.meta.og.image('../../lib/life/kedarkantha.jpg'),
 		brahmatal: import.meta.og.image('../../lib/life/brahmatal.jpg'),
-		'dayara bugyal': null,
+		'dayara bugyal': import.meta.og.image('../../lib/life/dayara-bugyal.jpg'),
 		interlaken: import.meta.og.image('../../lib/life/interlaken.jpg'),
 		lucerne: import.meta.og.image('../../lib/life/lucerne.jpg'),
 		salzburg: null,
