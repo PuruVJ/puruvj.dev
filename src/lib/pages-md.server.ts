@@ -147,7 +147,7 @@ ${L.DRIVE}
 
 ## books
 
-70+ times i've read harry potter, hindi and english combined. ${L.BOOKS}
+${L.BOOKS}
 
 ## always building
 

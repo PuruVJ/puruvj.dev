@@ -102,7 +102,7 @@ export const at = (x: number) => `${+((x / 12) * 100).toFixed(4)}%`;
 
 /** a stop on the lane at x, with a short leader running sideways to its caption at `to` */
 export const stop = (x: number, to: number) =>
-	`--x: ${at(x)}; --l: ${at(Math.min(x, to))}; --w: ${at(Math.abs(to - x))}`;
+	`--x: ${at(x)}; --l: ${at(Math.min(x, to))}; --w: ${at(Math.abs(to - x))}; --end: ${to < x ? 1 : 0}`;
 
 // ---------- the mountains: the line climbs ----------
 // the band is PH px tall and does not stretch in height, only in width. the line comes down the

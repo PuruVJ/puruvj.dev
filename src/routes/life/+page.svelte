@@ -3,6 +3,7 @@
 	import Shell from '$lib/components/Shell.svelte';
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
+	import Bookshelf from '$lib/life/Bookshelf.svelte';
 	import Pizzas from '$lib/life/Pizzas.svelte' with { wake: 'visible' };
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
@@ -268,13 +269,12 @@
 			<!-- books -->
 			<section class="leg books" id="books" aria-labelledby="books-h">
 				{@render path(lane(11))}
-				<span class="stop" style={stop(11, 9.6)} aria-hidden="true"></span>
-				<p class="giant seventy num" aria-hidden="true"><span class="swash"></span>70+</p>
+				<span class="stop" style={stop(11, 10)} aria-hidden="true"></span>
 				<div class="beside">
 					<h2 id="books-h" class="tag">{@render hi('books')} books</h2>
-					<p class="lede">times i've read harry potter, hindi and english combined.</p>
 					<p class="say">{L.BOOKS}</p>
 				</div>
+				<div class="case"><Bookshelf /></div>
 			</section>
 
 			<div class="bend short">{@render path(lane(11, 0))}</div>
@@ -307,7 +307,7 @@
 			<!-- home, at twilight -->
 			<section class="leg jaipur" id="jaipur" aria-labelledby="jaipur-h">
 				{@render path(lane(4.5))}
-				<span class="stop home" style={stop(4.5, 4)} aria-hidden="true"></span>
+				<span class="stop home" style={stop(4.5, 3.6)} aria-hidden="true"></span>
 				<div class="words">
 					<p class="tag">{@render hi('jaipur')} home · twilight</p>
 					<h2 id="jaipur-h" class="giant">jaipur</h2>
@@ -577,7 +577,7 @@
 		content: '';
 		position: absolute;
 		top: -3px;
-		left: calc(var(--x) - var(--l) - 3px);
+		left: calc(var(--end, 0) * 100% - 3px);
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
@@ -588,7 +588,7 @@
 		content: '';
 		position: absolute;
 		top: -7px;
-		left: calc(var(--x) - var(--l) - 7px);
+		left: calc(var(--end, 0) * 100% - 7px);
 		width: 13px;
 		height: 13px;
 		border: 1px solid var(--trail);
@@ -1144,34 +1144,20 @@
 	}
 
 	/* ---------- books, building ---------- */
-	.seventy {
-		grid-column: 1 / 6;
-		margin-top: 30px;
-		font-size: clamp(140px, 19vw, 300px);
-	}
-	.seventy .swash {
-		left: -8%;
-		right: -4%;
-	}
 	.books .beside {
-		grid-column: 6 / 11;
-		padding-left: 12px;
-		padding-right: 8%;
+		grid-column: 4 / 10;
+		text-align: right;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
-		text-align: right;
-	}
-	.books .beside .lede {
-		margin-top: 40px;
-		font-size: 22px;
-		line-height: 1.2;
-		color: var(--ink);
-		max-width: 22ch;
 	}
 	.books .beside .say {
 		margin-top: 14px;
-		max-width: 40ch;
+		max-width: 44ch;
+	}
+	.case {
+		grid-column: 2 / 11;
+		margin-top: 36px;
 	}
 	.building .p0 {
 		grid-column: 2 / 6;
@@ -1494,18 +1480,9 @@
 			font-size: 26px;
 		}
 
-		.seventy {
-			font-size: clamp(130px, 42vw, 220px);
-			margin-top: 18px;
-		}
-		.books .beside {
-			padding: 0;
-			margin-top: 20px;
-			align-items: flex-start;
-			text-align: left;
-		}
-		.books .beside .lede {
-			margin-top: 12px;
+		.case {
+			margin-top: 24px;
+			overflow: hidden;
 		}
 		.building .p0,
 		.building .p1 {
