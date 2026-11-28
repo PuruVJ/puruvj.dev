@@ -18,6 +18,7 @@
 		interlaken: import.meta.og.image('../../lib/life/interlaken.jpg'),
 		lucerne: null,
 		salzburg: null,
+		grindelwald: import.meta.og.image('../../lib/life/grindelwald.jpg'),
 	};
 
 	// this page is not a grid of blocks: it is one line, a trail, walked from annecy down to the
@@ -195,6 +196,15 @@
 						</li>
 					{/each}
 				</ul>
+				<figure class="grindel">
+					<div class="print" style="--r: 0.8deg">
+						<Photo of={PHOTOS.grindelwald} name="grindelwald" alt="a glacier between two dark ridges above grindelwald" aspect="3/4" width={560} />
+					</div>
+					<figcaption>
+						<span class="tag">{L.GRINDELWALD[0]}</span>
+						<p class="say">{L.GRINDELWALD[1]}</p>
+					</figcaption>
+				</figure>
 			</section>
 
 			<div class="bend">{@render path(bend(1, 7))}</div>
@@ -843,6 +853,19 @@
 	.table .print {
 		position: absolute;
 	}
+	/* grindelwald: a print of its own under the words, with its story beside it */
+	.grindel {
+		grid-column: 3 / 8;
+		margin: 56px 0 0;
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		gap: 28px;
+		align-items: end;
+	}
+	.grindel figcaption .say {
+		margin-top: 10px;
+		max-width: 30ch;
+	}
 	.city {
 		position: absolute;
 		left: 18px;
@@ -1301,6 +1324,12 @@
 		}
 		.table .print:nth-child(3) {
 			margin-top: 28px;
+		}
+		.grindel {
+			grid-column: 1 / -1;
+			grid-template-columns: 1fr;
+			gap: 18px;
+			margin-top: 40px;
 		}
 		.city {
 			left: 10px;

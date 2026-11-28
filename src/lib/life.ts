@@ -41,6 +41,12 @@ export const CITIES = [
 	{ name: 'interlaken', country: 'switzerland' },
 	{ name: 'lucerne', country: 'switzerland' },
 	{ name: 'salzburg', country: 'austria' },
+];
+
+/** a trek in switzerland */
+export const GRINDELWALD = [
+	'grindelwald, switzerland',
+	'i went on a trek despite falling suddenly ill. one step after another, and i got graced with utmost beauty.',
 ] as const;
 
 export const DUNE = 'the greatest film of my lifetime. i hold it in almost religious reverence.';
