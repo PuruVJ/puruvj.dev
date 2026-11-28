@@ -10,7 +10,7 @@ const f = (n: number) => +n.toFixed(2);
 
 // a trail walked by a person, not drawn by a ruler: it meanders in long slow curves, shakes a
 // little all the way, and now and then something happens: a switchback up a steep bit, a kink
-// round a rock, a short stretch where the path is lost in the grass. every piece is seeded, so it
+// round a rock, . every piece is seeded, so it
 // is the same on every load, and every piece still leaves its ends going straight down at the
 // exact lane, so the pieces join without a seam.
 
@@ -27,19 +27,19 @@ function rng(seed: number) {
 /** zero at both ends, with zero slope there too, so the ends stay straight and on the lane */
 const env = (t: number) => Math.sin(Math.PI * t) ** 2;
 
-type Kind = 'switchback' | 'kink' | 'gap';
+type Kind = 'switchback' | 'kink';
 /** walk from t = 0 to 1 along a base x(t), adding the wander, the shake and the incidents */
 function walk(base: (t: number) => number, wander: number, incidents: Kind[], seed: number) {
 	const r = rng(seed);
 	const f1 = wander < 20 ? 0.5 : 1 + r() * 1.2;
-	const f2 = wander < 20 ? 1 : 2.6 + r() * 2.4;
+	const f2 = wander < 20 ? 1 : 1.8 + r() * 1.2;
 	const p1 = r() * 6.28;
 	const p2 = r() * 6.28;
 	const a2 = wander * (0.25 + r() * 0.2);
-	const f3 = 3.5 + r() * 2.5;
+	const f3 = 2.5 + r() * 1.5;
 	const p3 = r() * 6.28;
 	// a short stretch is squeezed into little height, where any tremor reads as a zigzag: none
-	const a3 = wander < 20 ? 0 : Math.min(4, 1 + wander * 0.08);
+	const a3 = wander < 20 ? 0 : 1.5;
 	// incidents sit away from the ends, spread out
 	const at = incidents.map((k, i) => ({ k, t: 0.22 + ((i + 0.3 + r() * 0.4) / incidents.length) * 0.56, side: r() < 0.5 ? -1 : 1 }));
 	const N = 160;
@@ -50,34 +50,25 @@ function walk(base: (t: number) => number, wander: number, incidents: Kind[], se
 		let x = base(t) + env(t) * (wander * Math.sin(Math.PI * 2 * f1 * t + p1) + a2 * Math.sin(Math.PI * 2 * f2 * t + p2));
 		// the hand: a fine, uneven tremor (smooth, not jagged: a pen wobbles, it doesn't buzz)
 		x += env(t) * (a3 * Math.sin(Math.PI * 2 * f3 * t + p3) + a3 * 0.6 * Math.sin(Math.PI * 2 * f3 * 1.9 * t + p2));
-		let gap = false;
 		for (const c of at) {
-			const u = (t - c.t) / 0.09;
+			// wide and soft: a lane is stretched to whatever height its section has, so anything
+			// short or sharp turns into a spike or a squiggle once stretched. a long, slow detour
+			// survives any height and still reads as the path stepping round something.
+			const u = (t - c.t) / 0.2;
 			if (Math.abs(u) > 1) continue;
-			// a soft bell, so every incident eases in and out instead of snapping
 			const bell = (1 + Math.cos(Math.PI * u)) / 2;
-			if (c.k === 'switchback') x += c.side * 30 * Math.sin(u * Math.PI * 1.5) * bell;
-			if (c.k === 'kink') x += c.side * 22 * bell * bell;
-			if (c.k === 'gap') gap = Math.abs(u) < 0.2;
+			if (c.k === 'switchback') x += c.side * 26 * Math.sin(u * Math.PI) * bell;
+			if (c.k === 'kink') x += c.side * 20 * bell;
 		}
 		const y = t * 100;
-		if (gap) {
-			pen = false;
-			continue;
-		}
 		d += `${pen ? 'L' : 'M'}${f(x)} ${f(y)}`;
 		pen = true;
 	}
 	return d;
 }
 
-const pick = (r: () => number, long: boolean): Kind[] => {
-	if (!long) return r() < 0.5 ? ['kink'] : [];
-	const all: Kind[] = ['switchback', 'kink', 'gap'];
-	const k = all[Math.floor(r() * 3)];
-	const k2 = all[Math.floor(r() * 3)];
-	return k === k2 ? [k] : [k, k2];
-};
+// one soft detour per long stretch; the path never breaks (a gap read as a broken line)
+const pick = (r: () => number, long: boolean): Kind[] => (long ? [r() < 0.5 ? 'kink' : 'switchback'] : []);
 
 /** a lane: the line walking down one place on the page, wandering on the way. `wander` is how far
  *  it strays, in 1200ths of the page; a short stretch strays less */
@@ -99,7 +90,7 @@ export const bend = (a: number, b: number) => {
 		const m = 1 - t;
 		return m * m * m * A + 3 * m * m * t * A + 3 * m * t * t * B + t * t * t * B;
 	};
-	return walk(base, 14, ['kink'], seed);
+	return walk(base, 10, [], seed);
 };
 
 /** where a lane sits, as a left offset in css */
