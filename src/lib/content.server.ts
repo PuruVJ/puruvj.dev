@@ -1,5 +1,6 @@
 import { content, dated, dateOf } from '@ogygia/content';
 import * as v from 'valibot';
+import { isImage, type ImageDescriptor } from '@ogygia/image';
 import { SERIES, type SeriesKey } from './series.ts';
 
 /** yaml turns `2024-07-09` into a Date; keep it a plain `yyyy-mm-dd` string. */
@@ -8,6 +9,8 @@ const day = v.pipe(
 	v.transform((x) => (x instanceof Date ? x.toISOString().slice(0, 10) : String(x))),
 );
 const lines = v.optional(v.array(v.string()), ['js']);
+/** a `./cover.png` beside the entry: @ogygia/image reads it at build into a descriptor */
+const cover = v.optional(v.custom<ImageDescriptor>(isImage));
 
 /** posts: `content/blog/2021-08-18-golang-as-javascripter/+doc.svx` -> `golang-as-javascripter` */
 export const blog = content({
@@ -15,7 +18,7 @@ export const blog = content({
 	schema: v.object({
 		title: v.string(),
 		description: v.string(),
-		cover_image: v.optional(v.string()),
+		cover_image: cover,
 		render_cover: v.optional(v.boolean(), true),
 		series: v.optional(v.picklist(Object.keys(SERIES) as SeriesKey[])),
 		lines,
@@ -32,7 +35,7 @@ export const work = content({
 		npm: v.optional(v.string()),
 		stack: v.string(),
 		repo: v.object({ url: v.string() }),
-		cover_image: v.optional(v.string()),
+		cover_image: cover,
 		/** the day the project began (first commit / repo created). every page reads it from here. */
 		started: day,
 		lines,
@@ -48,7 +51,7 @@ export const speaking = content({
 		event: v.string(),
 		url: v.string(),
 		date: day,
-		cover_image: v.optional(v.string()),
+		cover_image: cover,
 		label: v.optional(v.string()),
 		lines,
 	}),

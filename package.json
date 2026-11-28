@@ -15,8 +15,10 @@
 		"@fontsource-variable/instrument-sans": "^5.3.0",
 		"@fontsource/ibm-plex-mono": "^5.3.0",
 		"@ogygia/content": "0.16.0",
+		"@ogygia/image": "0.16.0",
 		"cannon-es": "0.20.0",
 		"ogygia": "0.16.0",
+		"sharp": "^0.35.5",
 		"three": "0.170.0",
 		"valibot": "^1.5.0"
 	},

@@ -1,2 +1,4 @@
 /clay/*
   cache-control: public, max-age=604800
+/_app/immutable/*
+  cache-control: public, max-age=31536000, immutable
