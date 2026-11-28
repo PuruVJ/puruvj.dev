@@ -7,7 +7,7 @@
 </script>
 
 <svg class="hawa" viewBox="0 0 {VW} {VH}" fill="none" role="img" aria-labelledby="hawa-t">
-	<title id="hawa-t">a line drawing of hawa mahal in jaipur at twilight: five storeys of small arched windows and domes stepping up to a crown, the hills behind, a crescent moon</title>
+	<title id="hawa-t">a line drawing of hawa mahal in jaipur at twilight: a thin five storey screen of small domed bay windows rising to a round crown of domes, shops arched below, the hills behind, a crescent moon</title>
 	<defs>
 		<mask id="hawa-hide" maskUnits="userSpaceOnUse" x="0" y="0" width={VW} height={VH}>
 			<rect width={VW} height={VH} fill="#fff" />
