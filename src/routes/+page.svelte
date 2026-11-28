@@ -144,9 +144,13 @@
 	:global(:root[data-pref-theme='dark']) {
 		--night: #060606;
 	}
-	.b-id > :not(:global(.mtn), .clay, .ridge) {
+	.b-id > :not(:global(.mtn), :global(.hand), .clay, .ridge) {
 		position: relative;
 		z-index: 1;
+	}
+	/* the header stays over the sun's handle, so the clock and the theme switch always take the click */
+	.b-id > .h {
+		z-index: 3;
 	}
 	.b-map {
 		grid-area: map;

@@ -147,3 +147,91 @@ const TOP = (282 - X0) / (X1 - X0);
 
 /** the phase the server paints: mid-morning */
 export const STILL = 0.22;
+
+/** the part of the loop that is day */
+export const DAY_PART = DAY;
+
+/** the path both the sun and the moon ride, drawn as a dotted guide while one is held. it is drawn
+ *  under the paint, so wherever it runs behind the mountain the paint hides it. */
+export const ORBIT = (() => {
+	let d = '';
+	for (let i = 0; i <= 96; i++) {
+		const k = sky(Math.min(i / 96, 1 - 1e-9) * DAY);
+		d += `${i ? 'L' : 'M'}${f1(k.x)} ${f1(k.y)}`;
+	}
+	return d;
+})();
+
+/**
+ * holding the sun turns a wheel. the wheel's hub sits inside the arc, low over the mountain; the
+ * pointer's angle around the hub is the time. above the arc's two feet the held body rides the arc
+ * under the pointer. below them (the pointer down over the mountain) the held body has gone behind
+ * it, and the other one crosses the sky: the night if the sun is held, the day if the moon is.
+ */
+const HX = 315;
+const HY = 200;
+const N = 240;
+const ANG: number[] = [];
+for (let i = 0; i <= N; i++) {
+	const k = sky(Math.min(i / N, 1 - 1e-9) * DAY);
+	let a = angle_of(k.x, k.y);
+	// one unbroken sweep: from the left foot (down-left of the hub) over the top to the right foot
+	if (i && a > ANG[i - 1] + 180) a -= 360;
+	if (i && a < ANG[i - 1] - 180) a += 360;
+	ANG.push(a);
+}
+const A0 = ANG[0];
+const A1 = ANG[N];
+const WEDGE = A1 + 360 - A0;
+
+/** the angle (degrees, counterclockwise from the right, y up) of a viewBox point around the hub */
+export function angle_of(x: number, y: number) {
+	return (Math.atan2(HY - y, x - HX) * 180) / Math.PI;
+}
+
+export type Hand = 'sun' | 'moon';
+
+/** the loop phase for a pointer at angle `a`, holding `hand` */
+export function phase_at(a: number, hand: Hand): number {
+	a = A1 + ((((a - A1) % 360) + 360) % 360);
+	let up: boolean;
+	let u: number;
+	if (a <= A0) {
+		up = true;
+		// the sweep runs downhill: binary search for the arc point under the pointer
+		let lo = 0;
+		let hi = N;
+		while (hi - lo > 1) {
+			const m = (lo + hi) >> 1;
+			if (ANG[m] >= a) lo = m;
+			else hi = m;
+		}
+		const t = (ANG[lo] - a) / (ANG[lo] - ANG[hi] || 1);
+		u = (lo + t) / N;
+	} else {
+		up = false;
+		u = (A1 + 360 - a) / WEDGE;
+	}
+	u = Math.min(1, Math.max(0, u));
+	const day = hand === 'sun' ? up : !up;
+	return day ? u * DAY : DAY + u * (1 - DAY);
+}
+
+/** where `hand` is on the wheel at phase `p`: the inverse of phase_at */
+export function angle_at(p: number, hand: Hand): number {
+	const day = p < DAY;
+	const u = day ? p / DAY : (p - DAY) / (1 - DAY);
+	const up = hand === 'sun' ? day : !day;
+	if (!up) return A1 + 360 - u * WEDGE;
+	const i = Math.min(N - 1, Math.floor(u * N));
+	const t = u * N - i;
+	return ANG[i] + (ANG[i + 1] - ANG[i]) * t;
+}
+
+/** the loop as a clock: the sun comes up at six */
+export function clock(p: number) {
+	const m = Math.round(((6 + p * 24) % 24) * 4) * 15;
+	const h = Math.floor(m / 60) % 24;
+	const mm = String(m % 60).padStart(2, '0');
+	return `${h % 12 || 12}:${mm} ${h < 12 ? 'am' : 'pm'}`;
+}
