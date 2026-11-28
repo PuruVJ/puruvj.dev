@@ -12,7 +12,7 @@
 	// src/lib/life/ and swap its null for import.meta.og.image('../../lib/life/<name>.jpg')
 	const PHOTOS: Record<string, ImageDescriptor | null> = {
 		annecy: import.meta.og.image('../../lib/life/annecy.jpg'),
-		kedarkantha: null,
+		kedarkantha: import.meta.og.image('../../lib/life/kedarkantha.jpg'),
 		brahmatal: null,
 		'dayara bugyal': null,
 		interlaken: null,
