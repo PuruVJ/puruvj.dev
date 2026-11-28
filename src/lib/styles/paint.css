@@ -1,0 +1,142 @@
+/* ---------- paint: oil texture sprinkled on the header and footer ----------
+   the same brushwork as the home mountain, baked to small grey tiles in /paint. a tile is mid grey
+   where the paint is flat; `hard-light` leaves that untouched and only shows the ridges and
+   troughs, so one tile works on light paper and dark paper alike.
+   two kinds of marks, each with its own brush, picked on <html>:
+   - data-paint-corner: one patch on the header's top-right corner and the footer's bottom-left
+   - data-paint-salt: a few small soft spots on the other header and footer blocks
+   --paint-k scales how strong both are. */
+
+:root {
+	--paint-k: 1;
+	--paint-dark: 1;
+}
+@media (prefers-color-scheme: dark) {
+	:root:not([data-pref-theme='light']) {
+		--paint-dark: 0.72;
+	}
+}
+:root[data-pref-theme='dark'] {
+	--paint-dark: 0.72;
+}
+
+:root[data-paint-corner]:not([data-paint-corner='off']) :is(.top-meta, .foot-mail),
+:root[data-paint-salt]:not([data-paint-salt='off']) :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	isolation: isolate;
+}
+:root[data-paint-corner]:not([data-paint-corner='off']) :is(.top-meta, .foot-mail)::after,
+:root[data-paint-salt]:not([data-paint-salt='off']) :is(.top-id, .top-nav, .foot-links, .foot-note)::after {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background: var(--paint-tex) 0 0 / 512px 512px;
+	mix-blend-mode: hard-light;
+	opacity: min(1, calc(var(--paint-a) * var(--paint-k) * var(--paint-dark)));
+	-webkit-mask: var(--paint-mask);
+	mask: var(--paint-mask);
+}
+
+/* where the paint goes */
+.top-meta {
+	--paint-a: 0.4;
+	--paint-mask: radial-gradient(farthest-side at 100% 0, #000, transparent 85%) 100% 0 / 260px 100% no-repeat;
+}
+.foot-mail {
+	--paint-a: 0.4;
+	--paint-mask: radial-gradient(farthest-side at 0 100%, #000, transparent 85%) 0 100% / 260px 100% no-repeat;
+}
+:is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-a: 0.45;
+	--paint-mask:
+		radial-gradient(closest-side, #000, transparent) 82% 30% / 140px 60px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 22% 85% / 90px 40px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 55% 10% / 60px 30px no-repeat;
+}
+/* spread the salt a little differently on each block, so it doesn't repeat in a row */
+.top-nav,
+.foot-note {
+	--paint-mask:
+		radial-gradient(closest-side, #000, transparent) 70% 80% / 120px 50px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 12% 20% / 80px 36px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 40% 95% / 64px 28px no-repeat;
+}
+
+/* which brush */
+:root[data-paint-corner='brush'] :is(.top-meta, .foot-mail),
+:root[data-paint-salt='brush'] :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-tex: url(/paint/brush.jpg);
+}
+:root[data-paint-corner='knife'] :is(.top-meta, .foot-mail),
+:root[data-paint-salt='knife'] :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-tex: url(/paint/knife.jpg);
+}
+:root[data-paint-corner='dry'] :is(.top-meta, .foot-mail),
+:root[data-paint-salt='dry'] :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-tex: url(/paint/dry.jpg);
+}
+:root[data-paint-corner='swirl'] :is(.top-meta, .foot-mail),
+:root[data-paint-salt='swirl'] :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-tex: url(/paint/swirl.jpg);
+}
+:root[data-paint-corner='stipple'] :is(.top-meta, .foot-mail),
+:root[data-paint-salt='stipple'] :is(.top-id, .top-nav, .foot-links, .foot-note) {
+	--paint-tex: url(/paint/stipple.jpg);
+}
+
+/* ---------- the paint lab: a small panel to try the brushes (temporary) ---------- */
+.paint-lab {
+	position: fixed;
+	left: 12px;
+	bottom: 12px;
+	z-index: 60;
+	font-family: var(--mono);
+	font-size: 11px;
+	color: var(--ink);
+	background: var(--paper);
+	border: 1px solid var(--rule);
+	min-width: 220px;
+}
+.paint-lab summary {
+	list-style: none;
+	cursor: pointer;
+	padding: 7px 10px;
+	user-select: none;
+}
+.paint-lab summary::-webkit-details-marker {
+	display: none;
+}
+.paint-lab[open] summary {
+	border-bottom: 1px solid var(--hair);
+}
+.paint-lab .grp {
+	padding: 6px 10px 8px;
+	border-bottom: 1px solid var(--hair);
+}
+.paint-lab .grp > span {
+	display: block;
+	color: var(--ink-3);
+	margin-bottom: 5px;
+}
+.paint-lab .opts {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+.paint-lab button {
+	all: unset;
+	cursor: pointer;
+	padding: 2px 6px;
+	border: 1px solid var(--hair);
+	color: var(--ink-2);
+}
+.paint-lab button[aria-pressed='true'] {
+	background: var(--ink);
+	color: var(--paper);
+	border-color: var(--ink);
+}
+.paint-lab input[type='range'] {
+	width: 100%;
+	accent-color: var(--ink);
+}

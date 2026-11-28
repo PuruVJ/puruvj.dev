@@ -1,7 +1,8 @@
 <script lang="ts">
 	import '$lib/styles/app.css';
 	import '$lib/styles/flourish.css';
-	import { theme, theme_toggle, js_flag } from '$lib/site.ts';
+	import '$lib/styles/paint.css';
+	import { theme, theme_toggle, js_flag, paint_lab } from '$lib/site.ts';
 	// the two faces every page paints first. the same files app.css pulls in, so vite gives them
 	// the same hashed url and the preload is the request the css later reuses.
 	import sans from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-standard-normal.woff2?url';
@@ -16,6 +17,7 @@
 	{@html theme.head()}
 	{@html theme_toggle()}
 	{@html js_flag()}
+	{@html paint_lab()}
 	<!-- fetch a page as soon as someone rests on its link (chrome, edge), so the click lands instantly.
 	     prefetch, not prerender: the toys and islands of the next page don't start in the background -->
 	{@html `<script type="speculationrules">${JSON.stringify({ prefetch: [{ where: { and: [{ href_matches: '/*' }, { not: { href_matches: '/*.:ext(png|xml|txt|md|pdf)' } }] }, eagerness: 'moderate' }] })}</script>`}
