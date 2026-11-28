@@ -80,7 +80,14 @@
 	line-gap-override: 0%;
 }
 
-/* the theme switch crossfades the whole page (see theme_toggle in $lib/site.ts) */
+/* moving between pages is a plain page load (the router is off, see vite.config.ts); the browser
+   crossfades the old page into the new one. the pinned header is its own layer and holds still,
+   so only the page under it changes. */
+@view-transition {
+	navigation: auto;
+}
+
+/* the theme switch crossfades the whole page too (see theme_toggle in $lib/site.ts) */
 /* the old page holds still and the new one fades in over it, so text never shows twice */
 ::view-transition-old(root) {
 	animation: none;

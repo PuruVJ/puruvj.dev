@@ -121,6 +121,7 @@
 		top: 0;
 		z-index: 40;
 		box-shadow: 0 1px 0 var(--rule);
+		view-transition-name: top;
 	}
 	.top-id,
 	.top-nav,
