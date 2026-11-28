@@ -21,7 +21,7 @@
 		</div>
 		<p class="lede">
 			{missing ? 'the proof does not go through.' : 'that went wrong.'} try
-			<a class="u" href="/">home</a>, <a class="u" href="/blog">writing</a> or
+			<a class="u" href="/">home</a>, <a class="u" href="/writing">writing</a> or
 			<a class="u" href="/work">work</a>.
 		</p>
 	</section>

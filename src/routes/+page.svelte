@@ -46,7 +46,7 @@
 			engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web.
 		</p>
 		<nav class="nav" aria-label="site">
-			<a class="ln" href="/blog">writing</a>
+			<a class="ln" href="/writing">writing</a>
 			<a class="ln" href="/work">work</a>
 			<a class="ln" href="/career">career</a>
 			<a class="ln" href="/speaking">talks</a>
@@ -89,11 +89,11 @@
 
 	<section class="b b-write">
 		<header class="h">
-			<span><span class="n">05</span>latest writing</span><a href="/blog">all {data.count} →</a>
+			<span><span class="n">05</span>latest writing</span><a href="/writing">all {data.count} →</a>
 		</header>
 		<ol class="posts">
 			{#each data.latest as p (p.slug)}
-				<li><a href="/blog/{p.slug}"><span class="t">{low(p.title)}</span><time>{ym(p.date)}</time></a></li>
+				<li><a href="/writing/{p.slug}"><span class="t">{low(p.title)}</span><time>{ym(p.date)}</time></a></li>
 			{/each}
 		</ol>
 	</section>

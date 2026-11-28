@@ -4,7 +4,7 @@ import { SERIES } from '$lib/series.ts';
 
 export const load = async ({ params }) => {
 	const view = await puru.page<{ title: string; description: string; series?: keyof typeof SERIES }>(
-		`blog/${params.slug}`,
+		`writing/${params.slug}`,
 	);
 	if (!view) error(404, 'no such post');
 	const all = await posts();

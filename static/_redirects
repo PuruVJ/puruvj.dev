@@ -1,1 +1,5 @@
 /works /work 301
+/blog /writing 301
+/blog.md /writing.md 301
+/blog/* /writing/:splat 301
+/og/blog/* /og/writing/:splat 301

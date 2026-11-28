@@ -8,7 +8,7 @@ import { LIFE_LEDE } from '$lib/life.ts';
 
 export const prerender = true;
 export const entries = () =>
-	['home', 'blog', 'work', 'career', 'speaking', 'stats', 'life'].map((page) => ({ page }));
+	['home', 'writing', 'work', 'career', 'speaking', 'stats', 'life'].map((page) => ({ page }));
 
 async function card(page: string): Promise<Card | null> {
 	const [p, s] = await Promise.all([posts(), read_stats()]);
@@ -20,7 +20,7 @@ async function card(page: string): Promise<Card | null> {
 				sub: 'engineer. svelte guy. i make small, reliable, blazing fast open source tools for the web.',
 				home: true,
 			};
-		case 'blog':
+		case 'writing':
 			return {
 				kicker: 'puruvj.dev / writing',
 				title: 'writing',

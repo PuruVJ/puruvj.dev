@@ -44,7 +44,7 @@ npm i --save-dev typescript-plugin-css-modules
 yarn add --save-dev typescript-plugin-css-modules
 ```
 
-> And yeah, in case you were wondering, TypeScript does have its own plugin architecture. Heck, I myself found it only a month back, [when I moved a project of mine to CSS Modules from Styled Components](../blog/move-to-css-modules-from-styled-components) 😅.
+> And yeah, in case you were wondering, TypeScript does have its own plugin architecture. Heck, I myself found it only a month back, [when I moved a project of mine to CSS Modules from Styled Components](../writing/move-to-css-modules-from-styled-components) 😅.
 
 ### Add to tsconfig.json
 

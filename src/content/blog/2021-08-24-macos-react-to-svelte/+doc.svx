@@ -128,7 +128,7 @@ So it was then that I decided to move to the basics, **CSS Modules** (SCSS Modul
 
 So I did that. Took a lot of effort, but the final result was worth it. It took the JS size from around 110KB to <mark>85KB</mark>, and the CSS was <mark>3.3KB</mark>. This was a huge amount of reduction and made the app feel really fast. The burden of supplying CSS was removed from the JS, and that alone made a lot of difference.
 
-Here's an in-detail write-up of moving to CSS Modules: [Why I moved from Styled Components to (S)CSS modules](../blog/move-to-css-modules-from-styled-components)
+Here's an in-detail write-up of moving to CSS Modules: [Why I moved from Styled Components to (S)CSS modules](../writing/move-to-css-modules-from-styled-components)
 
 And, because this process required me to touch the whole project at once, I got the chance to revisit some not-so-good code and improve it, resulting in me getting rid of a lot of dependencies. This is the package.json's `dependencies` field after this change 👇
 
@@ -200,7 +200,7 @@ Until 12th August 2021, when I was so bored I decided to just rebuild the whole 
 
 I began migrating on the morning of 12th August, kept at it the whole day, and got the Dock, the menubar, and the action center working, as it was a matter of copy-pasting only.
 
-As for the dock animation, I had [already done an article about it](../blog/macos-dock-animation-svelte), so all I had to do was just copy-paste stuff, again 😏.
+As for the dock animation, I had [already done an article about it](../writing/macos-dock-animation-svelte), so all I had to do was just copy-paste stuff, again 😏.
 
 I continued on the 13th too, working the whole day, implementing the different apps. Finally completed by the end of the day.
 

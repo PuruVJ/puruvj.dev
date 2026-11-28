@@ -21,7 +21,7 @@ small, fast things for the web. on the svelte team.
 
 - work: ${w.slice(0, 3).map((x) => `${x.title} (${x.tagline})`).join(', ')}. all of it: ${SITE}/work.md
 - career: ${CAREER.slice(0, 3).map((j) => `${j.org}, ${span(j)}`).join('; ')}. all of it: ${SITE}/career.md
-- latest writing: ${p.slice(0, 2).map((x) => `[${x.title}](${SITE}/blog/${x.slug}.md)`).join(', ')}. all ${p.length} posts: ${SITE}/blog.md
+- latest writing: ${p.slice(0, 2).map((x) => `[${x.title}](${SITE}/writing/${x.slug}.md)`).join(', ')}. all ${p.length} posts: ${SITE}/writing.md
 ${s?.npm ? `- ${full(s.npm.total)} npm downloads, all time: ${SITE}/stats.md\n` : ''}- talks: ${SITE}/speaking.md
 - life, away from the keyboard: ${SITE}/life.md
 
@@ -40,7 +40,7 @@ export async function blog() {
 			year = x.date.slice(0, 4);
 			out += `\n## ${year}\n\n`;
 		}
-		out += `- ${x.date} [${x.title}](${SITE}/blog/${x.slug}.md): ${x.description}\n`;
+		out += `- ${x.date} [${x.title}](${SITE}/writing/${x.slug}.md): ${x.description}\n`;
 	}
 	return out;
 }

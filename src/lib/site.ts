@@ -13,7 +13,7 @@ export const ELSEWHERE = [
 ];
 
 export const NAV = [
-	{ name: 'writing', href: '/blog' },
+	{ name: 'writing', href: '/writing' },
 	{ name: 'work', href: '/work' },
 	{ name: 'career', href: '/career' },
 	{ name: 'talks', href: '/speaking' },

@@ -7,10 +7,10 @@
 </script>
 
 <Shell
-	here="/blog"
+	here="/writing"
 	title="writing · puru vijayvargia"
 	description="everything i've written about the web, svelte, typescript and life, since 2020."
-	md="/blog.md"
+	md="/writing.md"
 >
 	<header class="b intro">
 		<div class="h"><span><span class="n">01</span>writing</span><a href="/rss.xml">rss ↗</a></div>
@@ -31,7 +31,7 @@
 		<ul>
 			{#each data.series as s (s.key)}
 				<li>
-					<a href="/blog/{s.first}"><span>{s.name}</span><span class="mono dim">{s.count} parts</span></a>
+					<a href="/writing/{s.first}"><span>{s.name}</span><span class="mono dim">{s.count} parts</span></a>
 				</li>
 			{/each}
 		</ul>
@@ -46,7 +46,7 @@
 			<ol>
 				{#each list as p (p.slug)}
 					<li>
-						<a href="/blog/{p.slug}">
+						<a href="/writing/{p.slug}">
 							<time class="mono" datetime={p.date}>{md(p.date)}</time>
 							<span class="t">{low(p.title)}</span>
 							<span class="m mono">{p.minutes} min</span>

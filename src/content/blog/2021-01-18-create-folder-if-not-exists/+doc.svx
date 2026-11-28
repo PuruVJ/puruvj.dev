@@ -24,11 +24,11 @@ try {
 
 ## Explanation
 
-1. We import promise-based version of mkdir from `fs.promises`. Read my article about [Simple code with fs.promises and async await](../blog/fs-promises).
+1. We import promise-based version of mkdir from `fs.promises`. Read my article about [Simple code with fs.promises and async await](../writing/fs-promises).
 
 2. We actually create the folder with the `await mkdir('folderPath')`.
 
-> Note: We are using an await here, so it's necessary for this code to be in an async function, or you can also use the <mark>Top Level Await</mark> feature in NodeJS >= 14.8.0. Read my article about why [Top level Await is AWESOME!! 😍](../blog/top-level-await)
+> Note: We are using an await here, so it's necessary for this code to be in an async function, or you can also use the <mark>Top Level Await</mark> feature in NodeJS >= 14.8.0. Read my article about why [Top level Await is AWESOME!! 😍](../writing/top-level-await)
 
 ### Why wrap it in try-catch?
 

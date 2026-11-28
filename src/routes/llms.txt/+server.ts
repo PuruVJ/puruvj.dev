@@ -13,6 +13,6 @@ export const GET: typeof emit = async (event) => {
 	const text = await (await emit(event)).text();
 	const out = text
 		.replace(/\]\(\/([^)]*)\)/g, `](${SITE}/$1)`)
-		.replace(new RegExp(`\\]\\((${SITE}/blog/[^).]+)\\)`, 'g'), ']($1.md)');
+		.replace(new RegExp(`\\]\\((${SITE}/writing/[^).]+)\\)`, 'g'), ']($1.md)');
 	return new Response(out, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 };

@@ -13,25 +13,25 @@
 
 <svelte:head>
 	<meta property="og:type" content="article" />
-	<meta property="og:url" content="https://puruvj.dev/blog/{data.slug}" />
-	<meta property="og:image" content="https://puruvj.dev/og/blog/{data.slug}.png" />
+	<meta property="og:url" content="https://puruvj.dev/writing/{data.slug}" />
+	<meta property="og:image" content="https://puruvj.dev/og/writing/{data.slug}.png" />
 	<meta property="article:published_time" content={data.date} />
-	<link rel="canonical" href="https://puruvj.dev/blog/{data.slug}" />
+	<link rel="canonical" href="https://puruvj.dev/writing/{data.slug}" />
 </svelte:head>
 
 <Shell
-	here="/blog"
+	here="/writing"
 	title="{low(data.title)} · puru vijayvargia"
 	description={data.description}
-	md="/blog/{data.slug}.md"
+	md="/writing/{data.slug}.md"
 	reading
-	og="/og/blog/{data.slug}.png"
+	og="/og/writing/{data.slug}.png"
 >
 	<!-- hero: the title runs across columns 1 and 2, the facts sit in column 3 -->
 	<header class="b head">
 		<div class="h">
 			<span><span class="n">{pad(data.n)}</span>writing</span>
-			<a href="/blog">← all writing</a>
+			<a href="/writing">← all writing</a>
 		</div>
 		<h1>{low(data.title)}</h1>
 		<p class="lede">{data.description}</p>
@@ -42,7 +42,7 @@
 			<div><dt>published</dt><dd><time datetime={data.date}>{dotted(data.date)}</time></dd></div>
 			<div><dt>reading</dt><dd>{data.minutes} min</dd></div>
 			{#if data.series}<div><dt>series</dt><dd>{data.series.name}</dd></div>{/if}
-			<div><dt>also as</dt><dd><a class="ln" href="/blog/{data.slug}.md">markdown ↗</a></dd></div>
+			<div><dt>also as</dt><dd><a class="ln" href="/writing/{data.slug}.md">markdown ↗</a></dd></div>
 		</dl>
 	</aside>
 
@@ -79,7 +79,7 @@
 					{#each data.series.posts as p, i (p.slug)}
 						<li>
 							<span class="mono dim">{pad(i + 1)}</span>
-							{#if p.slug === data.slug}<b>{low(p.title)}</b>{:else}<a class="hov" href="/blog/{p.slug}">{low(p.title)}</a>{/if}
+							{#if p.slug === data.slug}<b>{low(p.title)}</b>{:else}<a class="hov" href="/writing/{p.slug}">{low(p.title)}</a>{/if}
 						</li>
 					{/each}
 				</ol>
@@ -90,7 +90,7 @@
 			{#if data.next}<a class="pnl" href={data.next.href}>{low(data.next.title)}</a>{:else}<span class="pnl dim">nothing newer yet. <a class="u" href="/rss.xml">follow the feed</a>.</span>{/if}
 			<div class="h"><span>elsewhere</span></div>
 			<div class="more mono">
-				<a class="ln" href="/blog">all writing</a>
+				<a class="ln" href="/writing">all writing</a>
 				<a class="ln" href={data.edit}>edit on github ↗</a>
 			</div>
 		</div>
@@ -108,7 +108,7 @@
 	</nav>
 	<div class="b pn all">
 		<div class="h"><span>everything</span></div>
-		<a href="/blog">all writing, by year →</a>
+		<a href="/writing">all writing, by year →</a>
 		<a class="edit ln mono" href={data.edit}>edit on github ↗</a>
 	</div>
 </Shell>

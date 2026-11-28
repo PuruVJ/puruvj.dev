@@ -24,7 +24,7 @@
 		description: string;
 		md?: string;
 		reading?: boolean;
-		/** the social card, e.g. /og/blog/some-post.png. defaults to this section's card */
+		/** the social card, e.g. /og/writing/some-post.png. defaults to this section's card */
 		og?: string;
 		children: Snippet;
 	} = $props();

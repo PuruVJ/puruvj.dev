@@ -117,7 +117,7 @@ export async function stations(): Promise<Station[]> {
 			title: x.title,
 			lines: x.lines,
 			label: x.slug === oldest ? 'first post' : undefined,
-			href: `/blog/${x.slug}`,
+			href: `/writing/${x.slug}`,
 		})),
 		...w.map((x) => ({ kind: 'work' as const, date: x.started, title: `${x.title}: ${x.tagline}`, lines: x.lines, label: x.title, href: x.url })),
 		...t.map((x) => ({ kind: x.kind, date: x.date, title: `${x.title} (${x.event})`, lines: x.lines, label: x.label, href: x.url })),
@@ -128,7 +128,7 @@ export async function stations(): Promise<Station[]> {
 import { site } from '@ogygia/content';
 
 /**
- * The site layer: the writing collection mounted at /blog, plus the plain pages as links.
+ * The site layer: the writing collection mounted at /writing, plus the plain pages as links.
  * It gives prev/next for posts, the rss feed, llms.txt, sitemap.xml and every post as raw markdown.
  */
 export const puru = site({
@@ -141,7 +141,7 @@ export const puru = site({
 			{ label: 'stats: npm downloads, github stars, lines of code', href: '/stats.md' },
 			{ label: 'life: cycling, treks, solo travel, films, hans zimmer, books, jaipur', href: '/life.md' },
 		] },
-		{ label: 'writing', base: 'blog', items: blog },
+		{ label: 'writing', base: 'writing', items: blog },
 	],
 	trail: 'group',
 	data: {
