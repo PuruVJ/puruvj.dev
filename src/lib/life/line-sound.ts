@@ -4,7 +4,7 @@
 // - clack: the wooden peg's jaws as you pick a print up
 // - tick: a small metal pulley rolling along the wire, one tk per ridge, so the faster it slides
 //   the closer they come; each has a soft low knock of the wheel under it
-// - creak: the wire straining as it is pulled down, only while the pull changes, higher the tighter
+// - creak: the wire straining as it is pulled up or down, only while the pull changes, higher the tighter
 // - thrum: the wire let go, a low plucked note that rings out, higher the harder it was pulled
 // - flap: a print that was swinging hard gives one soft paper flap as it settles
 //
@@ -181,7 +181,7 @@ export function line_sound(muted: () => boolean, calm: () => boolean) {
 		}
 	}
 
-	/** the wire's pull, px down, and how fast that is changing, px/s */
+	/** the wire's pull, px either way, and how fast that is changing, px/s */
 	function creak_at(depth: number, rate: number) {
 		if (!live() || calm()) return;
 		const t = ac!.currentTime;
