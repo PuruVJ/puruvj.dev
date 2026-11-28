@@ -54,13 +54,53 @@
 		radial-gradient(closest-side, #000, transparent) 22% 85% / 90px 40px no-repeat,
 		radial-gradient(closest-side, #000, transparent) 55% 10% / 60px 30px no-repeat;
 }
+/* the header is where the eye starts, so its paint is a pinch: two small, faint flecks per block
+   and a smaller corner */
+.top-meta {
+	--paint-a: 0.22;
+	--paint-mask: radial-gradient(farthest-side at 100% 0, #000, transparent 85%) 100% 0 / 120px 70% no-repeat;
+}
+.top-id {
+	--paint-a: 0.24;
+	--paint-mask:
+		radial-gradient(closest-side, #000, transparent) 88% 30% / 64px 20px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 62% 88% / 38px 14px no-repeat;
+}
+.top-nav {
+	--paint-a: 0.24;
+	--paint-mask:
+		radial-gradient(closest-side, #000, transparent) 94% 78% / 56px 18px no-repeat,
+		radial-gradient(closest-side, #000, transparent) 78% 14% / 34px 12px no-repeat;
+}
 /* spread the salt a little differently on each block, so it doesn't repeat in a row */
-.top-nav,
 .foot-note {
 	--paint-mask:
 		radial-gradient(closest-side, #000, transparent) 70% 80% / 120px 50px no-repeat,
 		radial-gradient(closest-side, #000, transparent) 12% 20% / 80px 36px no-repeat,
 		radial-gradient(closest-side, #000, transparent) 40% 95% / 64px 28px no-repeat;
+}
+
+/* phones: the same marks, smaller */
+@media (max-width: 760px) {
+	.foot-mail {
+		--paint-mask: radial-gradient(farthest-side at 0 100%, #000, transparent 85%) 0 100% / 160px 80% no-repeat;
+	}
+	.foot-links,
+	.foot-note {
+		--paint-a: 0.35;
+		--paint-mask:
+			radial-gradient(closest-side, #000, transparent) 80% 30% / 80px 30px no-repeat,
+			radial-gradient(closest-side, #000, transparent) 25% 85% / 56px 22px no-repeat;
+	}
+	.top-meta {
+		--paint-mask: radial-gradient(farthest-side at 100% 0, #000, transparent 85%) 100% 0 / 60px 60% no-repeat;
+	}
+	.top-id {
+		--paint-mask: radial-gradient(closest-side, #000, transparent) 92% 30% / 44px 14px no-repeat;
+	}
+	.top-nav {
+		--paint-mask: radial-gradient(closest-side, #000, transparent) 96% 80% / 40px 14px no-repeat;
+	}
 }
 
 /* which brush */
