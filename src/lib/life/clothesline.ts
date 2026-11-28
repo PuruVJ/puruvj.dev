@@ -8,9 +8,11 @@
 // - each print hangs from a peg that sits at a spot along the wire and rides it. the print is a
 //   pendulum on its string; it swings when its peg is shoved, slid or bounced. its weight sits on
 //   the wire, so the wire is heavier, and slower, where prints hang.
-// - grab a print: sideways slides its peg along the wire, down pulls the wire down to the hand,
-//   less far the nearer the nail. pegs keep their order with a gap, so a print slid into another
-//   shoves it along.
+// - grab a print: sideways slides its peg along the wire, down pulls the wire down to the hand and
+//   up pulls it up, less far the nearer the nail either way. pegs keep their order with a gap, so a
+//   print slid into another shoves it along.
+// - a grab always ends: let go anywhere (on the page or off it), lose the pointer to the browser,
+//   switch windows or tabs, and the print is dropped, the wire is let go and its creak stops.
 // - when the line first scrolls into view the prints are already swaying a little, as if a breeze
 //   had been at them, and settle.
 // - when nothing moves any more the loop stops.
@@ -55,7 +57,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 	const s0 = o.at.map((a) => a * N);
 	const fs = f64(n); // each peg's spot at the last frame, to hear how fast it slides
 	const hard: boolean[] = []; // is this print swinging hard (for the paper's flap as it settles)
-	let gap = 1, pull = 0, was = 0; // the pegs' gap, how far down the hand has the wire, and last frame
+	let gap = 1, pull = 0, was = 0; // the pegs' gap, how hard the hand pulls the wire (px, up or down), and last frame
 	const sound = line_sound(o.muted, () => calm.matches);
 	let moved = false; // has anything left its rest place since load
 	let z = 20;
@@ -143,7 +145,7 @@ export function clothesline(line: HTMLElement, o: Opts) {
 			// the wire gives a little, then holds: you can only pull it so far, and less near a nail
 			const r = rest_at(v)[1];
 			const near = Math.min(v, N - v) * h;
-			const deep = Math.min(240, 18 + near * 0.9), high = Math.min(30, 4 + near * 0.15);
+			const deep = Math.min(240, 18 + near * 0.9), high = Math.min(200, 16 + near * 0.75);
 			const d = gy - r;
 			const want = d > 0 ? deep * Math.tanh(d / deep) : high * Math.tanh(d / high);
 			// put the wire there, shared by the two points either side of the peg (the ends stay tied)
@@ -153,7 +155,8 @@ export function clothesline(line: HTMLElement, o: Opts) {
 			const fix = (want - now) / sum;
 			u[j] += fix * aj;
 			u[j + 1] += fix * aj1;
-			pull = Math.max(0, want);
+			// how taut it is, the same scale up or down, so a hard pull either way rings the same
+			pull = want > 0 ? want : (-want * deep) / high;
 		}
 
 		// pegs slide on, losing speed to their grip
@@ -280,18 +283,30 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		const b = line.getBoundingClientRect();
 		return [e.clientX - b.left, e.clientY - b.top];
 	}
+	// the grab. the peg follows one pointer, from its down to whatever ends it first: its up, a
+	// cancel, the li losing capture, a move with no button down (an up we never saw, let go outside
+	// the window), the window losing focus, the tab hidden. listeners on window catch what the li misses.
+	let holder: HTMLElement | null = null;
 	function down(e: PointerEvent) {
-		if (phone.matches || held >= 0 || (e.pointerType === 'mouse' && e.button !== 0)) return;
+		if (phone.matches || (e.pointerType === 'mouse' && e.button !== 0)) return;
+		// the same pointer coming down again means its last up never reached us: drop that grab first
+		if (held >= 0) {
+			if (e.pointerId !== pointer) return;
+			end(false);
+		}
 		const li = e.currentTarget as HTMLElement;
 		const i = lis.indexOf(li);
 		if (i < 0) return;
 		e.preventDefault();
-		li.setPointerCapture(e.pointerId);
+		try {
+			li.setPointerCapture(e.pointerId);
+		} catch {}
 		sound.unlock();
 		sound.clack();
 		pull = was = 0;
 		held = i;
 		pointer = e.pointerId;
+		holder = li;
 		moved = true;
 		const [px, py] = local(e);
 		const [qx0, qy0] = at(s[i]);
@@ -302,21 +317,55 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		gvx = 0;
 		li.style.zIndex = String(++z);
 		li.classList.add('held');
+		li.addEventListener('lostpointercapture', lost);
+		addEventListener('pointermove', move, true);
+		addEventListener('pointerup', up, true);
+		addEventListener('pointercancel', cancel, true);
+		addEventListener('blur', drop);
+		addEventListener('contextmenu', drop, true);
+		addEventListener('pagehide', drop);
+		document.addEventListener('visibilitychange', hidden);
 		wake();
 	}
 	function move(e: PointerEvent) {
 		if (e.pointerId !== pointer) return;
+		// no button down any more: the up happened somewhere we never heard it
+		if (e.pointerType !== 'touch' && e.buttons === 0) return end(true);
 		const [px, py] = local(e);
 		tx = Math.max(0, Math.min(W, px - ox));
 		ty = py - oy;
 	}
-	function up(e: PointerEvent) {
-		if (e.pointerId !== pointer) return;
+	const up = (e: PointerEvent) => e.pointerId === pointer && end(true);
+	const cancel = (e: PointerEvent) => e.pointerId === pointer && end(false);
+	// capture is let go after an up too, and that up has already ended the grab
+	const lost = (e: PointerEvent) => e.pointerId === pointer && end(false);
+	const drop = () => end(false);
+	const hidden = () => document.hidden && end(false);
+	/** end the grab. a real let go keeps the hand's speed (a flick slides it on) and the wire rings;
+	 *  a lost one just puts the print down and lets the wire go quietly */
+	function end(release: boolean) {
+		const li = holder;
+		holder = null;
+		if (li) {
+			li.removeEventListener('lostpointercapture', lost);
+			try {
+				if (li.hasPointerCapture(pointer)) li.releasePointerCapture(pointer);
+			} catch {}
+		}
+		removeEventListener('pointermove', move, true);
+		removeEventListener('pointerup', up, true);
+		removeEventListener('pointercancel', cancel, true);
+		removeEventListener('blur', drop);
+		removeEventListener('contextmenu', drop, true);
+		removeEventListener('pagehide', drop);
+		document.removeEventListener('visibilitychange', hidden);
+		if (held < 0) return;
 		lis[held]?.classList.remove('held');
-		// let go: it keeps the speed it had, so a flick slides it on
-		if (!calm.matches) sp[held] = s[held] - (gvx * DT * N) / W;
-		sound.let_go(pull);
-		pull = 0;
+		if (release && !calm.matches) sp[held] = s[held] - (gvx * DT * N) / W;
+		else sp[held] = s[held];
+		sound.let_go(release ? pull : 0);
+		pull = was = 0;
+		gvx = 0;
 		held = pointer = -1;
 		wake();
 	}
@@ -329,26 +378,19 @@ export function clothesline(line: HTMLElement, o: Opts) {
 		if (moved) draw();
 		for (const li of lis) {
 			li.addEventListener('pointerdown', down);
-			li.addEventListener('pointermove', move);
-			li.addEventListener('pointerup', up);
-			li.addEventListener('pointercancel', up);
 			li.addEventListener('dragstart', no_drag);
 		}
 	}
 	function off() {
+		end(false);
 		cancelAnimationFrame(raf);
 		raf = 0;
-		held = pointer = -1;
-		sound.let_go(0);
 		line.classList.remove('live');
 		path!.setAttribute('d', still);
 		for (const li of lis) {
 			li.style.translate = li.style.rotate = '';
 			li.classList.remove('held');
 			li.removeEventListener('pointerdown', down);
-			li.removeEventListener('pointermove', move);
-			li.removeEventListener('pointerup', up);
-			li.removeEventListener('pointercancel', up);
 			li.removeEventListener('dragstart', no_drag);
 		}
 	}
