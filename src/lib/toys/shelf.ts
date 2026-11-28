@@ -124,54 +124,69 @@ function sounds(muted: () => boolean) {
 		s.start(t);
 		s.stop(t + 0.08);
 	};
-	/** a rubber duck squeezed: air through its little reed, a pitch that rises then falls back,
-	 *  a breath of noise on top. hard is 0..1; a harder poke squeaks louder and higher */
+	/** a squeeze toy pressed: the soft squish of the rubber, then the little whistle of air forced
+	 *  through its squeaker. a clean, round tone (no buzz), a short rise as the air starts, a wobble
+	 *  as the rubber flexes, and a breath of air. hard is 0..1; a harder squeeze is louder and higher */
 	const squeak = (hard: number) => {
 		if (!ac || !noise || ac.state !== 'running' || muted()) return;
 		const t = ac.currentTime;
-		const f0 = rand(880, 1060) * (1 + 0.3 * hard);
-		const dur = rand(0.18, 0.24) + 0.02 * hard;
-		const amp = 0.05 + 0.07 * hard;
-		const mid = t + dur * 0.42;
+		const f0 = rand(1500, 1750) * (1 + 0.15 * hard);
+		const dur = rand(0.13, 0.17) + 0.03 * hard;
+		const amp = 0.03 + 0.04 * hard;
 		const g = ac.createGain();
 		g.connect(ac.destination);
-		// two parts: "squee" up, a small catch, "eak" back down
 		g.gain.setValueAtTime(0.0001, t);
-		g.gain.exponentialRampToValueAtTime(amp, t + 0.014);
-		g.gain.exponentialRampToValueAtTime(amp * 0.5, mid);
-		g.gain.exponentialRampToValueAtTime(amp * 0.85, mid + 0.025);
+		g.gain.exponentialRampToValueAtTime(amp, t + 0.02);
+		g.gain.setValueAtTime(amp * 0.9, t + dur * 0.6);
 		g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-		const o = ac.createOscillator();
-		o.type = 'sawtooth';
-		o.frequency.setValueAtTime(f0 * 0.78, t);
-		o.frequency.exponentialRampToValueAtTime(f0 * 1.22, mid);
-		o.frequency.exponentialRampToValueAtTime(f0 * rand(0.8, 0.9), t + dur);
-		// the rubber flutters the reed a little
+		// the whistle: a sine and a softer octave, sliding up as the air gets going, sagging at the end
+		const tone = (mult: number, level: number) => {
+			const o = ac!.createOscillator();
+			const og = ac!.createGain();
+			o.type = 'sine';
+			o.frequency.setValueAtTime(f0 * mult * 0.82, t);
+			o.frequency.exponentialRampToValueAtTime(f0 * mult, t + 0.035);
+			o.frequency.exponentialRampToValueAtTime(f0 * mult * 0.93, t + dur);
+			og.gain.value = level;
+			o.connect(og);
+			og.connect(g);
+			return o;
+		};
+		const o1 = tone(1, 1);
+		const o2 = tone(2, 0.18);
+		// the rubber flexing: a gentle, quick wobble
 		const lfo = ac.createOscillator();
 		const lg = ac.createGain();
-		lfo.frequency.value = rand(24, 32);
-		lg.gain.value = f0 * 0.035;
+		lfo.frequency.value = rand(11, 15);
+		lg.gain.value = f0 * 0.012;
 		lfo.connect(lg);
-		lg.connect(o.frequency);
-		const bp = ac.createBiquadFilter();
-		bp.type = 'bandpass';
-		bp.frequency.value = f0 * 2;
-		bp.Q.value = 1.2;
-		o.connect(bp);
-		bp.connect(g);
-		// the breathy part: noise around the squeak's own pitch
+		lg.connect(o1.frequency);
+		// air through the hole, soft and quiet
 		const s = ac.createBufferSource();
 		const nf = ac.createBiquadFilter();
 		const ng = ac.createGain();
 		s.buffer = noise;
 		nf.type = 'bandpass';
-		nf.frequency.value = f0 * 2.5;
-		nf.Q.value = 2;
-		ng.gain.value = 0.35;
+		nf.frequency.value = f0 * 1.4;
+		nf.Q.value = 3;
+		ng.gain.value = 0.12;
 		s.connect(nf);
 		nf.connect(ng);
 		ng.connect(g);
-		for (const n of [o, lfo, s]) {
+		// the squish: a low, dull press of the rubber body, just before the air
+		const sq = ac.createBufferSource();
+		const sf = ac.createBiquadFilter();
+		const sg = ac.createGain();
+		sq.buffer = noise;
+		sf.type = 'lowpass';
+		sf.frequency.value = 420;
+		sg.gain.setValueAtTime(0.0001, t);
+		sg.gain.exponentialRampToValueAtTime(amp * 1.4, t + 0.008);
+		sg.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+		sq.connect(sf);
+		sf.connect(sg);
+		sg.connect(ac.destination);
+		for (const n of [o1, o2, lfo, s, sq]) {
 			n.start(t);
 			n.stop(t + dur + 0.02);
 		}
