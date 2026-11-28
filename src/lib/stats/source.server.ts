@@ -1,4 +1,4 @@
-import { dev } from '$app/environment';
+import { dev } from '$app/env';
 import { content, type Source } from '@ogygia/content';
 import { get_stats } from './cache.ts';
 import type { Stats } from './compute.ts';

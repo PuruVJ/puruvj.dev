@@ -1,4 +1,4 @@
-import { puru, posts } from '$lib/content.server.ts';
+import { puru, posts } from '#lib/content.server.ts';
 
 export const prerender = true;
 

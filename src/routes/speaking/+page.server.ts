@@ -1,4 +1,4 @@
-import { talks } from '$lib/content.server.ts';
+import { talks } from '#lib/content.server.ts';
 
 export const load = async () => {
 	const all = await talks();

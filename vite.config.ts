@@ -1,5 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { content } from '@ogygia/content/vite';
+import { content, preprocess, extensions } from '@ogygia/content/vite';
+import adapter from '@sveltejs/adapter-vercel';
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { image } from '@ogygia/image/vite';
 import { ogygia } from 'ogygia/vite';
 import { defineConfig, type Plugin } from 'vite';
@@ -51,6 +53,15 @@ export default defineConfig({
 				rehype: [rehypeQuiet],
 			},
 		}),
-		sveltekit(),
+		// kit 3: the svelte and kit config lives here (there is no svelte.config.js)
+		sveltekit({
+			extensions: extensions(),
+			// style: false: vitePreprocess would otherwise compile `<style lang="scss">` found inside a code fence of a post
+			preprocess: [vitePreprocess({ style: false }), ...preprocess()],
+			compilerOptions: { experimental: { async: true } },
+			adapter: adapter(),
+			paths: { origin: 'https://puruvj.dev' },
+			prerender: { entries: ['*', '/404'] },
+		}),
 	],
 });

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { Region } from 'ogygia';
-	import Shell from '$lib/components/Shell.svelte';
-	import '$lib/styles/prose.css';
-	import { low } from '$lib/site.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import '#lib/styles/prose.css';
+	import { low } from '#lib/site.ts';
 
 	let { data } = $props();
 	const dotted = (d: string) => d.replaceAll('-', '.');

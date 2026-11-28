@@ -1,5 +1,5 @@
-import { puru } from '$lib/content.server.ts';
-import { SITE } from '$lib/site.ts';
+import { puru } from '#lib/content.server.ts';
+import { SITE } from '#lib/site.ts';
 
 export const prerender = true;
 

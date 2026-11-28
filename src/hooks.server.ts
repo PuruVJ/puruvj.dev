@@ -1,5 +1,5 @@
 import { sequence } from '@sveltejs/kit/hooks';
-import type { Handle } from '@sveltejs/kit';
+import type { Handle } from '@sveltejs/kit/hooks';
 import { handle as ogygiaHandle } from 'ogygia/server';
 
 const OWN = /^https?:\/\/(www\.)?puruvj\.dev(\/|$)/;

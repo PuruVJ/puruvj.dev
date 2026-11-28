@@ -1,5 +1,5 @@
-import { posts, projects, stations } from '$lib/content.server.ts';
-import { read_stats } from '$lib/stats/source.server.ts';
+import { posts, projects, stations } from '#lib/content.server.ts';
+import { read_stats } from '#lib/stats/source.server.ts';
 
 export const load = async () => {
 	const all = await posts();

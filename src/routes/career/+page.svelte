@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Shell from '$lib/components/Shell.svelte';
-	import { CAREER, span } from '$lib/career.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import { CAREER, span } from '#lib/career.ts';
 
 	// the axis under every row: 2021 to the end of this year
 	const now = new Date();

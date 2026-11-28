@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { ImageDescriptor } from '@ogygia/image';
-	import Shell from '$lib/components/Shell.svelte';
-	import Soon from '$lib/components/Soon.svelte';
-	import Photo from '$lib/life/Photo.svelte';
-	import Bookshelf from '$lib/life/Bookshelf.svelte';
-	import OilRange from '$lib/life/OilRange.svelte';
-	import Pizzas from '$lib/life/Pizzas.svelte' with { wake: 'visible' };
-	import HawaMahal from '$lib/life/HawaMahal.svelte';
-	import Bridge from '$lib/life/Bridge.svelte';
-	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
-	import * as L from '$lib/life.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import Soon from '#lib/components/Soon.svelte';
+	import Photo from '#lib/life/Photo.svelte';
+	import Bookshelf from '#lib/life/Bookshelf.svelte';
+	import OilRange from '#lib/life/OilRange.svelte';
+	import Pizzas from '#lib/life/Pizzas.svelte' with { wake: 'visible' };
+	import HawaMahal from '#lib/life/HawaMahal.svelte';
+	import Bridge from '#lib/life/Bridge.svelte';
+	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '#lib/life/trail.ts';
+	import * as L from '#lib/life.ts';
 
 	// the photos. each is a pencilled stand-in until its file is in: to put one in, drop the jpg in
 	// src/lib/life/ and swap its null for import.meta.og.image('../../lib/life/<name>.jpg')

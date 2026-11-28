@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import Shell from '$lib/components/Shell.svelte';
+	import Shell from '#lib/components/Shell.svelte';
 
 	let { status = page.status, path = page.url.pathname }: { status?: number; path?: string } = $props();
 	const name = $derived(

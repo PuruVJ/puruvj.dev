@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Soon from '$lib/components/Soon.svelte';
+	import Soon from '#lib/components/Soon.svelte';
 	import { Region } from 'ogygia';
-	import Shell from '$lib/components/Shell.svelte';
-	import { short } from '$lib/numbers.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import { short } from '#lib/numbers.ts';
 
 	let { data } = $props();
 	const host = (u: string) => u.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');

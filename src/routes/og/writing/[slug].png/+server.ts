@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
-import { render } from '$lib/og/card.ts';
-import { posts } from '$lib/content.server.ts';
+import { render } from '#lib/og/card.ts';
+import { posts } from '#lib/content.server.ts';
 
 export const prerender = true;
 export const entries = async () => (await posts()).map((p) => ({ slug: p.slug }));

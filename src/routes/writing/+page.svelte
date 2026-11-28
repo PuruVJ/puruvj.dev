@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Shell from '$lib/components/Shell.svelte';
-	import { low, md } from '$lib/site.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import { low, md } from '#lib/site.ts';
 
 	let { data } = $props();
 	const minutes = $derived(data.years.flatMap(([, ps]) => ps).reduce((n, p) => n + p.minutes, 0));

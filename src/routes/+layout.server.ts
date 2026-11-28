@@ -1,4 +1,4 @@
-import { SITE } from '$lib/site.ts';
+import { SITE } from '#lib/site.ts';
 
 /** where this copy of the site lives, for absolute links in meta tags (social cards need them).
  *  a cloudflare preview build points at its own preview address, not at the live site. */

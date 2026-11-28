@@ -1,8 +1,8 @@
 <script lang="ts">
-	import Soon from '$lib/components/Soon.svelte';
-	import Shell from '$lib/components/Shell.svelte';
-	import { short, full } from '$lib/numbers.ts';
-	import Graph from '$lib/stats/Graph.svelte' with { wake: 'visible' };
+	import Soon from '#lib/components/Soon.svelte';
+	import Shell from '#lib/components/Shell.svelte';
+	import { short, full } from '#lib/numbers.ts';
+	import Graph from '#lib/stats/Graph.svelte' with { wake: 'visible' };
 
 	let { data } = $props();
 	const s = $derived(data.stats);

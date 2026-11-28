@@ -1,15 +1,15 @@
 <script lang="ts">
-	import Clock from '$lib/components/Clock.svelte' with { wake: 'idle' };
-	import Mountain from '$lib/home/Mountain.svelte' with { wake: 'visible' };
-	import LineMap from '$lib/home/LineMap.svelte' with { wake: 'load' };
-	import ThemeSwitch from '$lib/components/ThemeSwitch.svelte';
-	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
-	import { CAREER, span } from '$lib/career.ts';
-	import Meta from '$lib/components/Meta.svelte';
-	import Soon from '$lib/components/Soon.svelte';
-	import { DESK, PHONE, rise, clip, line } from '$lib/home/ridge.ts';
-	import { DM, ELSEWHERE, ym, low } from '$lib/site.ts';
-	import { short } from '$lib/numbers.ts';
+	import Clock from '#lib/components/Clock.svelte' with { wake: 'idle' };
+	import Mountain from '#lib/home/Mountain.svelte' with { wake: 'visible' };
+	import LineMap from '#lib/home/LineMap.svelte' with { wake: 'load' };
+	import ThemeSwitch from '#lib/components/ThemeSwitch.svelte';
+	import Shelf from '#lib/toys/Shelf.svelte' with { wake: 'idle' };
+	import { CAREER, span } from '#lib/career.ts';
+	import Meta from '#lib/components/Meta.svelte';
+	import Soon from '#lib/components/Soon.svelte';
+	import { DESK, PHONE, rise, clip, line } from '#lib/home/ridge.ts';
+	import { DM, ELSEWHERE, ym, low } from '#lib/site.ts';
+	import { short } from '#lib/numbers.ts';
 	import { Img } from '@ogygia/image';
 
 	let { data } = $props();

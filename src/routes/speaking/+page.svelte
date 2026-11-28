@@ -1,6 +1,6 @@
 <script lang="ts">
-	import Shell from '$lib/components/Shell.svelte';
-	import { low } from '$lib/site.ts';
+	import Shell from '#lib/components/Shell.svelte';
+	import { low } from '#lib/site.ts';
 
 	let { data } = $props();
 	const dotted = (d: string) => d.slice(0, 7).replace('-', '.');

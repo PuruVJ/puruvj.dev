@@ -1,6 +1,6 @@
 <!-- one button: device → light → dark → device. the icon shows the mode in use: a screen while the
      page follows the device, a sun, a moon. no island: the click handler is a tiny inline script in
-     the layout (see $lib/site.ts), and css picks the icon from <html data-pref-theme>. -->
+     the layout (see #lib/site.ts), and css picks the icon from <html data-pref-theme>. -->
 <button type="button" class="theme" data-theme-toggle aria-label="theme: device, light or dark" title="theme: device, light, dark">
 	<svg class="sys" viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">
 		<rect x="1.5" y="2.5" width="13" height="8.5" rx="1" fill="none" stroke="currentColor" stroke-width="1.2" />

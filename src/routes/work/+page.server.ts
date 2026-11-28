@@ -1,6 +1,6 @@
-import { work, projects } from '$lib/content.server.ts';
-import { read_stats } from '$lib/stats/source.server.ts';
-import { project_numbers } from '$lib/project-stats.ts';
+import { work, projects } from '#lib/content.server.ts';
+import { read_stats } from '#lib/stats/source.server.ts';
+import { project_numbers } from '#lib/project-stats.ts';
 
 export const load = async () => {
 	const [list, stats] = await Promise.all([projects(), read_stats()]);

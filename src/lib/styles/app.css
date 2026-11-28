@@ -87,7 +87,7 @@
 	navigation: auto;
 }
 
-/* the theme switch crossfades the whole page too (see theme_toggle in $lib/site.ts) */
+/* the theme switch crossfades the whole page too (see theme_toggle in #lib/site.ts) */
 /* the old page holds still and the new one fades in over it, so text never shows twice */
 ::view-transition-old(root) {
 	animation: none;

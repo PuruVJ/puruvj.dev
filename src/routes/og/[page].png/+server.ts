@@ -1,10 +1,10 @@
 import { error } from '@sveltejs/kit';
-import { render, type Card } from '$lib/og/card.ts';
-import { posts, projects, talks } from '$lib/content.server.ts';
-import { read_stats } from '$lib/stats/source.server.ts';
-import { CAREER, span } from '$lib/career.ts';
-import { full } from '$lib/numbers.ts';
-import { LIFE_LEDE } from '$lib/life.ts';
+import { render, type Card } from '#lib/og/card.ts';
+import { posts, projects, talks } from '#lib/content.server.ts';
+import { read_stats } from '#lib/stats/source.server.ts';
+import { CAREER, span } from '#lib/career.ts';
+import { full } from '#lib/numbers.ts';
+import { LIFE_LEDE } from '#lib/life.ts';
 
 export const prerender = true;
 export const entries = () =>

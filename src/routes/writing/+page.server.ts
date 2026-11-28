@@ -1,5 +1,5 @@
-import { posts } from '$lib/content.server.ts';
-import { SERIES } from '$lib/series.ts';
+import { posts } from '#lib/content.server.ts';
+import { SERIES } from '#lib/series.ts';
 
 export const load = async () => {
 	const all = await posts();

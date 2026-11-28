@@ -2,8 +2,8 @@
 	import type { Snippet } from 'svelte';
 	import Clock from './Clock.svelte' with { wake: 'idle' };
 	import ThemeSwitch from './ThemeSwitch.svelte';
-	import Shelf from '$lib/toys/Shelf.svelte' with { wake: 'idle' };
-	import { NAV, ELSEWHERE, DM } from '$lib/site.ts';
+	import Shelf from '#lib/toys/Shelf.svelte' with { wake: 'idle' };
+	import { NAV, ELSEWHERE, DM } from '#lib/site.ts';
 	import Meta from './Meta.svelte';
 
 	let {

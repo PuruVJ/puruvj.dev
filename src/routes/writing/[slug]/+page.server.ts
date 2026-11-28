@@ -1,6 +1,6 @@
 import { error } from '@sveltejs/kit';
-import { puru, posts } from '$lib/content.server.ts';
-import { SERIES } from '$lib/series.ts';
+import { puru, posts } from '#lib/content.server.ts';
+import { SERIES } from '#lib/series.ts';
 
 export const load = async ({ params }) => {
 	const view = await puru.page<{ title: string; description: string; series?: keyof typeof SERIES }>(

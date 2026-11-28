@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { puru, posts } from '$lib/content.server.ts';
+import { puru, posts } from '#lib/content.server.ts';
 
 const raw = puru.emit.raw();
 
