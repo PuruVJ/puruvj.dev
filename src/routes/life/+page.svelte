@@ -969,7 +969,7 @@
 		max-width: 44ch;
 	}
 	.line-up {
-		grid-column: 2 / 13;
+		grid-column: 1 / 13;
 		margin-top: 40px;
 	}
 

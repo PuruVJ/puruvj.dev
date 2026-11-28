@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { Img, type ImageDescriptor } from '@ogygia/image';
 
-	// neapolitan pizzas, pinned to a line like prints drying in a darkroom: a wire sags across the
-	// page and each photo hangs off it on a wooden peg, a little crooked. more than four and a
-	// second line starts below. to add one, add a file to src/lib/life and a line to PIZZAS.
+	// neapolitan pizzas, pinned to one line like prints drying in a darkroom, hung in a hurry: a wire
+	// sags across the page and every photo hangs off it on a wooden peg, some on a longer string than
+	// others, different sizes, crooked, crowding and overlapping each other. to add one, add a file
+	// to src/lib/life and a line to PIZZAS.
 	const PIZZAS: { of: ImageDescriptor; alt: string }[] = [
 		{ of: import.meta.og.image('./pizza-1.jpg'), alt: 'a margherita in its box, leopard-spotted crust, basil on top' },
 		{ of: import.meta.og.image('./pizza-2.jpg'), alt: 'a pizza with rounds of goat cheese, at a café table' },
@@ -14,15 +15,22 @@
 		{ of: import.meta.og.image('./pizza-7.jpg'), alt: 'a pizza with mushrooms, olives and peppers' },
 	];
 
-	const PER = 4;
-	const rows = Array.from({ length: Math.ceil(PIZZAS.length / PER) }, (_, i) => PIZZAS.slice(i * PER, i * PER + PER));
-	// seeded tilt, so each print hangs crooked the same way every time
-	const tilt = (i: number) => +(Math.sin(i * 12.9898) * 3.2).toFixed(2);
+	// seeded mess, so it is the same mess every time
+	const rnd = (i: number, k: number) => {
+		const v = Math.sin(i * 12.9898 + k * 78.233) * 43758.5453;
+		return v - Math.floor(v);
+	};
+	const rows = [PIZZAS];
+	const PER = PIZZAS.length;
+	const tilt = (i: number) => +((rnd(i, 1) - 0.5) * 11).toFixed(2);
 	// where the wire is, 0..1 across: it sags in the middle, SAG px at its lowest
-	const SAG = 34;
+	const SAG = 46;
 	const sag = (x: number) => SAG * (1 - (2 * x - 1) ** 2);
-	// the prints sit evenly along the wire, away from its ends
-	const at = (i: number, n: number) => (n === 1 ? 0.5 : 0.12 + (i * 0.76) / (n - 1));
+	// spread along the wire, but bunched and uneven, not spaced out evenly
+	const at = (i: number, n: number) => 0.07 + ((i + (rnd(i, 2) - 0.5) * 0.7) * 0.86) / (n - 1);
+	// some hang on a longer string, some are bigger
+	const drop = (i: number) => Math.round(rnd(i, 3) * 54);
+	const size = (i: number) => +(12 + rnd(i, 4) * 6).toFixed(2);
 	const f = (n: number) => +n.toFixed(2);
 	const wire = 'M0 6' + Array.from({ length: 41 }, (_, i) => `L${f(i * 25)} ${f(6 + sag(i / 40))}`).join('');
 </script>
@@ -37,8 +45,9 @@
 		<ul>
 			{#each row as p, i (p.of)}
 				{@const x = at(i, row.length)}
-				<li style="left: {x * 100}%; top: {f(6 + sag(x))}px; --r: {tilt(r * PER + i)}deg">
+				<li style="left: {x * 100}%; top: {f(6 + sag(x))}px; --r: {tilt(r * PER + i)}deg; --drop: {drop(i)}px; --w: {size(i)}%; z-index: {1 + Math.round(rnd(i, 5) * 6)}">
 					<span class="peg" aria-hidden="true"></span>
+					<span class="string" aria-hidden="true"></span>
 					<div class="print"><Img of={p.of} alt={p.alt} aspect="3/4" width={300} layout="constrained" /></div>
 				</li>
 			{/each}
@@ -49,7 +58,7 @@
 <style>
 	.line {
 		position: relative;
-		height: 320px;
+		height: 400px;
 	}
 	.line + .line {
 		margin-top: 24px;
@@ -91,7 +100,7 @@
 	}
 	li {
 		position: absolute;
-		width: clamp(120px, 15%, 200px);
+		width: clamp(110px, var(--w), 210px);
 		translate: -50% 0;
 		/* it hangs from the peg, so it turns about the peg */
 		transform-origin: 50% 0;
@@ -123,8 +132,16 @@
 		border-radius: 2px;
 		background: var(--paper);
 	}
+	/* the string from the peg down to the print */
+	.string {
+		display: block;
+		width: 1px;
+		height: var(--drop);
+		margin: 0 auto;
+		background: var(--ink-3);
+	}
 	.print {
-		margin-top: 2px;
+		margin-top: 0;
 		padding: 7px 7px 22px;
 		background: var(--print, #fbfaf7);
 		box-shadow: var(--shadow, 0 10px 26px -10px rgba(30, 28, 20, 0.28));
