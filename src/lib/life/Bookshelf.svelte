@@ -131,8 +131,8 @@
 	/* hindi titles run sideways down the spine too, the way they are printed on real books */
 	.title.hi {
 		font-family: 'Hindi Words', 'Kohinoor Devanagari', 'Noto Serif Devanagari', serif;
-		font-size: 21px;
-		font-weight: 700;
+		font-size: 20px;
+		font-weight: 400;
 		letter-spacing: 0;
 		color: var(--ink);
 	}

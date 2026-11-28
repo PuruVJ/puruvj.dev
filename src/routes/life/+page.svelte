@@ -384,11 +384,11 @@
 		scroll-margin-top: calc(var(--top-h) + 24px);
 	}
 
-	/* hindi, beside the english: amita, a calligraphic devanagari, cut down to just the words on this page */
+	/* hindi, beside the english: gotu, a clean devanagari with a touch of the pen, cut down to just the words on this page */
 	@font-face {
 		font-family: 'Hindi Words';
 		src: url('/fonts/hindi-words.woff2') format('woff2');
-		font-weight: 700;
+		font-weight: 400;
 		font-display: swap;
 		unicode-range: U+0900-097F, U+200C-200D, U+25CC;
 	}
@@ -397,7 +397,7 @@
 		font-size: 2em;
 		line-height: 1;
 		letter-spacing: 0;
-		font-weight: 700;
+		font-weight: 400;
 		color: var(--ink-2);
 		margin-right: 0.35em;
 		vertical-align: -0.12em;
