@@ -32,6 +32,7 @@
 				<dd>github stars</dd>
 			</div>
 		</dl>
+		<i class="clay computer" aria-hidden="true"></i>
 	</aside>
 
 	<!-- the next thing, before it has a name -->
@@ -107,6 +108,13 @@
 		font-family: var(--mono);
 		font-size: 11px;
 		color: var(--ink-3);
+	}
+
+	.computer {
+		right: 30px;
+		bottom: 0;
+		width: 108px;
+		height: 81px;
 	}
 
 	.proj {
@@ -216,6 +224,11 @@
 		}
 		.totals {
 			min-height: 220px;
+		}
+		.computer {
+			right: 20px;
+			width: 88px;
+			height: 66px;
 		}
 		.proj {
 			min-height: 0;

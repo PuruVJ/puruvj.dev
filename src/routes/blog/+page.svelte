@@ -41,7 +41,7 @@
 		<section class="b year">
 			<div class="y">
 				<div class="h"><span><span class="n">{String(i + 3).padStart(2, '0')}</span>{list.length} {list.length === 1 ? 'post' : 'posts'}</span></div>
-				<h2>{year}</h2>
+				<h2>{year}{#if i === 0}<i class="clay duck" aria-hidden="true"></i>{/if}</h2>
 			</div>
 			<ol>
 				{#each list as p (p.slug)}
@@ -130,6 +130,17 @@
 		font-variation-settings: 'wdth' 80;
 		color: var(--ink);
 	}
+	/* someone left the duck sitting by the newest year, on its baseline */
+	.year h2:has(.duck) {
+		position: relative;
+		display: inline-block;
+	}
+	.duck {
+		left: calc(100% + 4px);
+		bottom: -7px;
+		width: 74px;
+		height: 52px;
+	}
 	.year .y {
 		position: sticky;
 		top: calc(var(--top-h) + 24px);
@@ -190,6 +201,11 @@
 		}
 		.year h2 {
 			font-size: 44px;
+		}
+		.duck {
+			width: 60px;
+			height: 42px;
+			bottom: -6px;
 		}
 		.year a {
 			grid-template-columns: 44px minmax(0, 1fr);
