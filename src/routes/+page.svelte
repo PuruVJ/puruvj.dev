@@ -220,6 +220,18 @@
 		font-size: 15px;
 		font-weight: 500;
 	}
+	/* where the window is narrow the mountain runs in behind the words: a soft halo of paper around
+	   each letter keeps them clear of the brush marks, and is invisible on bare paper */
+	.intro,
+	.nav a {
+		text-shadow:
+			0 0 2px var(--paper),
+			0 0 6px var(--paper),
+			0 0 12px var(--paper);
+	}
+	.nav a {
+		color: var(--ink);
+	}
 	.posts a:hover .t,
 	.mail:hover,
 	.list a:hover b {
