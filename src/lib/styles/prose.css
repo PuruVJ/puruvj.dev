@@ -7,6 +7,9 @@
 	color: var(--ink);
 	font-feature-settings: 'ss01', 'kern';
 	hanging-punctuation: first;
+	/* a run with no spaces in it, like `get`/`map`/`clone`, may break where it has to rather than
+	   push the page sideways on a phone */
+	overflow-wrap: break-word;
 }
 .prose > * + * {
 	margin-top: 1.1em;
@@ -150,6 +153,8 @@
 	background: var(--paper-2);
 	border: 1px solid var(--hair);
 	white-space: break-spaces;
+	/* breaks go where hooks.server.ts put soft break points; inside a name only as a last resort */
+	overflow-wrap: break-word;
 }
 
 /* code blocks: hairline box, mono, no colour. bleeds a little past the measure on wide screens. */
