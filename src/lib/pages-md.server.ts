@@ -122,6 +122,8 @@ ${L.BAGS}
 
 ${L.SOLO} hostels in ${L.CITIES.map((c) => `${c.name} (${c.country})`).join(', ')}.
 
+${L.PILATUS}
+
 ${L.GRINDELWALD[0]}: ${L.GRINDELWALD[1]}
 
 ## cinema

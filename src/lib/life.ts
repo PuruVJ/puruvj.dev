@@ -43,6 +43,9 @@ export const CITIES = [
 	{ name: 'salzburg', country: 'austria' },
 ];
 
+/** lucerne, from mt pilatus */
+export const PILATUS = 'from mt pilatus, above lucerne: a lone church on the mountain. so lonely, yet so powerful. the king of all churches. alone, yet mighty.';
+
 /** a trek in switzerland */
 export const GRINDELWALD = [
 	'grindelwald, switzerland',

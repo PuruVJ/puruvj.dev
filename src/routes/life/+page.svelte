@@ -16,7 +16,7 @@
 		brahmatal: import.meta.og.image('../../lib/life/brahmatal.jpg'),
 		'dayara bugyal': null,
 		interlaken: import.meta.og.image('../../lib/life/interlaken.jpg'),
-		lucerne: null,
+		lucerne: import.meta.og.image('../../lib/life/lucerne.jpg'),
 		salzburg: null,
 		grindelwald: import.meta.og.image('../../lib/life/grindelwald.jpg'),
 	};
@@ -46,8 +46,9 @@
 	// the hostels: three prints dropped on the table, overlapping a little
 	const PRINTS = [
 		{ name: 'interlaken', r: -2.2, style: 'left: 0%; top: 40px; width: 52%' },
-		{ name: 'lucerne', r: 1.6, style: 'left: 44%; top: 0; width: 40%' },
 		{ name: 'salzburg', r: -1, style: 'left: 60%; top: 290px; width: 38%' },
+		// on top: the chapel sits low in its frame, and must not be hidden under salzburg
+		{ name: 'lucerne', r: 1.6, style: 'left: 44%; top: 0; width: 40%' },
 	];
 
 	const phone = climb_phone();
@@ -182,11 +183,14 @@
 			<section class="leg solo" id="solo" aria-labelledby="solo-h">
 				{@render path(lane(1))}
 				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
-				<h2 id="solo-h" class="tag at" style="grid-column: 3 / 7">solo travel · europe</h2>
-				<p class="pull">{L.SOLO}</p>
-				<p class="say hostels">
-					hostels in {L.CITIES.map((c) => c.name).join(', ').replace(/, ([^,]*)$/, ' and $1')}.
-				</p>
+				<div class="solo-words">
+					<h2 id="solo-h" class="tag at">solo travel · europe</h2>
+					<p class="pull">{L.SOLO}</p>
+					<p class="say hostels">
+						hostels in {L.CITIES.map((c) => c.name).join(', ').replace(/, ([^,]*)$/, ' and $1')}.
+					</p>
+					<p class="say pilatus">{L.PILATUS}</p>
+				</div>
 				<ul class="table">
 					{#each PRINTS as p, i (p.name)}
 						{@const c = L.CITIES.find((x) => x.name === p.name)!}
@@ -830,8 +834,12 @@
 	}
 
 	/* ---------- solo ---------- */
-	.solo .pull {
+	/* the words stack in one column, so the tall table of prints beside them doesn't pull them apart */
+	.solo-words {
 		grid-column: 3 / 8;
+		grid-row: 1;
+	}
+	.solo .pull {
 		margin-top: 32px;
 		font-size: clamp(36px, 3.8vw, 56px);
 		line-height: 1;
@@ -840,12 +848,15 @@
 		font-variation-settings: 'wdth' 80;
 	}
 	.hostels {
-		grid-column: 3 / 7;
 		margin-top: 24px;
+	}
+	.pilatus {
+		margin-top: 18px;
+		max-width: 44ch;
 	}
 	.table {
 		grid-column: 8 / 13;
-		grid-row: 1 / 5;
+		grid-row: 1 / 3;
 		position: relative;
 		height: 600px;
 		margin-top: 20px;
