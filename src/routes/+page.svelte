@@ -15,7 +15,7 @@
 	let { data } = $props();
 	const jobs = CAREER.slice(0, 3);
 	// at most 0.74 of the 96px headline: files at 72 and 144px, not the 400px original
-	const me = import.meta.og.image('../lib/home/puru.jpg');
+	const me = import.meta.og.image('../lib/home/puru-film.jpg');
 </script>
 
 <svelte:head>
@@ -189,7 +189,7 @@
 		padding: 0;
 	}
 
-	/* the one photo on the site: in black and white like everything else, in colour when pointed at */
+	/* the photo, developed like the prints on /life: black and white, me in quiet colour, grain */
 	/* set into the headline like a word: a cap-height square after "puru" */
 	.b-id :global(.me) {
 		display: inline-block;
@@ -198,17 +198,8 @@
 		margin-left: 0.14em;
 		vertical-align: -0.02em;
 		object-fit: cover;
-		filter: grayscale(1) contrast(1.05);
 		outline: 1px solid var(--rule);
 		outline-offset: -1px;
-	}
-	.b-id :global(.me:hover) {
-		filter: none;
-	}
-	@media (prefers-reduced-motion: no-preference) {
-		.b-id :global(.me) {
-			transition: filter 0.4s ease;
-		}
 	}
 	.b-id h1 {
 		margin-top: auto;

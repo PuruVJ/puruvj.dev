@@ -22,6 +22,7 @@
 		salzburg: import.meta.og.image('../../lib/life/salzburg.jpg'),
 		grindelwald: import.meta.og.image('../../lib/life/grindelwald.jpg'),
 		dune: import.meta.og.image('../../lib/life/dune.jpg'),
+		me: import.meta.og.image('../../lib/home/puru-film.jpg'),
 	};
 
 	// this page is not a grid of blocks: it is one line, a trail, walked from annecy down to the
@@ -72,6 +73,11 @@
 			<p class="tag">away from the keyboard</p>
 			<h1 class="display">life {@render hi('life')}</h1>
 			<p class="lede">{L.LIFE_LEDE}</p>
+			<figure class="me">
+				<div class="print" style="--r: 2.2deg">
+					<Photo of={PHOTOS.me} name="me" alt="me, in a dark jacket, smiling, with mountains behind" aspect="1/1" width={320} />
+				</div>
+			</figure>
 			<nav class="route" aria-label="on this page">
 				<ol>
 					{#each ROUTE as x (x.id)}<li><a class="ln" href="#{x.id}">{x.name}</a></li>{/each}
@@ -645,6 +651,14 @@
 	}
 	.intro > * {
 		grid-column: 1 / 9;
+	}
+	/* me, a print tucked beside the title, between it and the start of the trail */
+	.intro > .me {
+		position: absolute;
+		top: 96px;
+		left: 54%;
+		width: 210px;
+		margin: 0;
 	}
 	.intro h1 {
 		margin-top: 18px;
@@ -1268,6 +1282,13 @@
 			display: block;
 			padding-top: 44px;
 			padding-bottom: 36px;
+		}
+		.intro > .me {
+			position: absolute;
+			right: 4px;
+			top: 60px;
+			width: 110px;
+			margin: 0;
 		}
 		.intro h1 {
 			font-size: clamp(104px, 30vw, 200px);
