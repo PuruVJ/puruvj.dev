@@ -3,6 +3,7 @@
 	import Shell from '$lib/components/Shell.svelte';
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
+	import Sandworm from '$lib/life/Sandworm.svelte';
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
 	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
@@ -221,6 +222,7 @@
 					<p class="tag">cinema</p>
 					<h2 id="cinema-h" class="giant">dune:<br />part two</h2>
 					<p class="lede">{L.DUNE}</p>
+					<div class="arrakis"><Sandworm /></div>
 				</div>
 				<div class="watch">
 					<p class="tag">how i watch</p>
@@ -351,6 +353,41 @@
 	}
 	[id] {
 		scroll-margin-top: calc(var(--top-h) + 24px);
+	}
+
+	/* the dusk doesn't stop at the page's edge: the margins round the sheet, the toy shelf and the
+	   footer are in it too. the bottom of the page is all the same evening colour, and the margins
+	   carry the same fade as the page, measured from the very bottom of the document (the shelf
+	   and footer, about --foot tall, sit below the page's own fade). */
+	:global(html:has(.life)) {
+		--dusk-hi: #e4e3e1;
+		--dusk-lo: #ebe3d8;
+		--foot: 340px;
+	}
+	@media (prefers-color-scheme: dark) {
+		:global(html:not([data-pref-theme='light']):has(.life)) {
+			--dusk-hi: #0a0b0d;
+			--dusk-lo: #211c16;
+		}
+	}
+	:global(html[data-pref-theme='dark']:has(.life)) {
+		--dusk-hi: #0a0b0d;
+		--dusk-lo: #211c16;
+	}
+	:global(body:has(.life)) {
+		background: linear-gradient(
+			to top,
+			var(--dusk-lo) 0,
+			var(--dusk-lo) calc(320px + var(--foot)),
+			var(--dusk-hi) calc(1300px + var(--foot)),
+			var(--paper) calc(2300px + var(--foot))
+		);
+	}
+	:global(.sheet:has(.life) > .shelf),
+	:global(.sheet:has(.life) > footer),
+	:global(.sheet:has(.life) > .foot-links),
+	:global(.sheet:has(.life) > .foot-note) {
+		background: var(--dusk-lo);
 	}
 
 	/* ---------- type ---------- */
@@ -916,6 +953,11 @@
 	.dune .lede {
 		margin-top: 24px;
 		max-width: 30ch;
+	}
+	/* arrakis, in line: a worm breaching the dunes, under the title */
+	.arrakis {
+		margin-top: 48px;
+		width: min(100%, 520px);
 	}
 	.watch {
 		grid-column: 9 / 13;
