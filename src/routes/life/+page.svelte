@@ -536,17 +536,18 @@
 		position: relative;
 		z-index: 1;
 	}
+	/* a crossing needs height to read as a path that turns, not a line ruled across the page */
 	.bend {
-		height: 180px;
+		height: 300px;
 	}
 	.bend.short {
 		height: 120px;
 	}
 	.bend.wide {
-		height: 260px;
+		height: 420px;
 	}
 	.bend.tall {
-		height: 300px;
+		height: 400px;
 	}
 	.trail {
 		position: absolute;

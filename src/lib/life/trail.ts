@@ -90,10 +90,7 @@ export const bend = (a: number, b: number) => {
 	const A = u(a);
 	const B = u(b);
 	// the old clean curve, as a function of t, for the walk to wander around
-	const base = (t: number) => {
-		const m = 1 - t;
-		return m * m * m * A + 3 * m * m * t * A + 3 * m * t * t * B + t * t * t * B;
-	};
+	const base = (t: number) => A + (B - A) * (0.5 - 0.5 * Math.cos(Math.PI * t));
 	return walk(base, 10, [], seed, 9);
 };
 
@@ -145,14 +142,14 @@ const nearest = (c: number, peaks: { x: number }[]) =>
 	peaks.reduce((a, p) => (Math.abs(p.x - c) < Math.abs(a - c) ? p.x : a), peaks[0].x);
 
 /** the solid line: down the left lane, over the three summits, out down the right lane */
-/** where the trail comes out of the tunnel at the foot of the oil range */
-export const TUNNEL = 0.85;
+/** where the trail comes out of the tunnel, at the left foot of the oil range's first peak */
+export const TUNNEL = 0.65;
 
-/** the mountains section: the trail comes down, drifts right, and walks into the mountain from
- *  behind its right shoulder (the range is painted over it). under the rock it crosses to the
- *  tunnel mouth, down and to the left of where it went in. */
+/** the mountains section: the trail comes down, swings right while it is still beside the words,
+ *  then runs straight down into the first peak's right flank. the range is painted over it, so it
+ *  disappears wherever the rock begins (that point shifts with the window, the look doesn't). */
 export const into_mountain = () =>
-	`M${u(1)} 0C${u(1.04)} 20 ${u(0.96)} 40 ${u(1)} 52C${u(0.98)} 62 ${u(1.5)} 70 ${u(1.6)} 80L${u(TUNNEL)} 100`;
+	`M${u(1)} 0C${u(1.04)} 14 ${u(0.97)} 26 ${u(1)} 34C${u(1.03)} 46 ${u(2.3)} 46 ${u(2.3)} 60L${u(2.3)} 100`;
 
 export const climb = () => {
 	const pts: string[] = [];
@@ -160,7 +157,7 @@ export const climb = () => {
 	return (
 		// out of the tunnel heading down and to the left, then it turns onto the valley floor and
 		// becomes the treks
-		`M${u(TUNNEL)} 0C${u(TUNNEL - 0.06)} ${BASE * 0.45} ${u(TUNNEL - 0.1)} ${BASE - 8} ${u(TUNNEL + 0.05)} ${BASE}` +
+		`M${u(TUNNEL)} 0C${u(TUNNEL - 0.12)} ${BASE * 0.4} ${u(TUNNEL - 0.2)} ${BASE - 12} ${u(TUNNEL + 0.1)} ${BASE}` +
 		`L${u(1.15)} ${BASE}` +
 		`L${pts.join('L')}` +
 		`C${u(11.35)} ${BASE} ${u(OUT)} ${BASE + 4} ${u(OUT)} ${PH}`

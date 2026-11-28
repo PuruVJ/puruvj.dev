@@ -92,7 +92,7 @@ export async function npm_packages(): Promise<string[]> {
 			`https://registry.npmjs.org/-/v1/search?text=maintainer:${NPM_USER}&size=250&from=${from}`,
 		);
 		const objs = r?.objects ?? [];
-		for (const o of objs) names.add(o.package.name);
+		for (const o of objs) if (!o.package.name.startsWith('@aibind/')) names.add(o.package.name);
 		if (objs.length < 250) break;
 	}
 	// predecessors that may not list the user as a maintainer any more

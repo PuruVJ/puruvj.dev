@@ -67,7 +67,7 @@ export const STORY: Record<number, string> = {
 	2023: 'joins the svelte team. rebuilds [svelte.dev].',
 	2024: '[neotraverse]. svelte in react, at react india.',
 	2025: 'rewrites neodrag from scratch.',
-	2026: 'neosanitize, aibind. [ogygia], then [heisenbench].',
+	2026: 'neosanitize. [ogygia], then [heisenbench].',
 };
 
 export type Part = { t: string; i?: number };
