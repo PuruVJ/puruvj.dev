@@ -155,7 +155,7 @@ ${L.BUILDING.join('\n\n')}
 
 ## jaipur
 
-${L.HOME.join(' ')}
+${L.HOME.join(' ')}\n\n## neapolitan pizza\n\n${L.PIZZA.join(' ')}
 
 ## what scares me
 

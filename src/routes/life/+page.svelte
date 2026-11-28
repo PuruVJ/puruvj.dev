@@ -4,6 +4,7 @@
 	import Soon from '$lib/components/Soon.svelte';
 	import Photo from '$lib/life/Photo.svelte';
 	import Sandworm from '$lib/life/Sandworm.svelte';
+	import Pizzas from '$lib/life/Pizzas.svelte';
 	import HawaMahal from '$lib/life/HawaMahal.svelte';
 	import Bridge from '$lib/life/Bridge.svelte';
 	import { W, PH, PEAKS, NEXT, lane, bend, stop, at, climb, pencil, climb_phone, plumb } from '$lib/life/trail.ts';
@@ -33,6 +34,7 @@
 		{ id: 'zimmer', name: 'hans zimmer' },
 		{ id: 'books', name: 'books' },
 		{ id: 'building', name: 'building' },
+		{ id: 'pizza', name: 'pizza' },
 		{ id: 'jaipur', name: 'jaipur' },
 	];
 
@@ -279,7 +281,21 @@
 				<div class="draw"><Bridge /></div>
 			</section>
 
-			<div class="bend tall dusk-in">{@render path(bend(11, 4.5))}</div>
+			<div class="bend">{@render path(bend(11, 1))}</div>
+
+			<!-- neapolitan pizza, on a line -->
+			<section class="leg pizza" id="pizza" aria-labelledby="pizza-h">
+				{@render path(lane(1))}
+				<span class="stop" style={stop(1, 2)} aria-hidden="true"></span>
+				<div class="pizza-words">
+					<h2 id="pizza-h" class="tag at">the favourite</h2>
+					<p class="pull">{L.PIZZA[0]}</p>
+					<p class="say">{L.PIZZA[1]}</p>
+				</div>
+				<div class="line-up"><Pizzas /></div>
+			</section>
+
+			<div class="bend tall dusk-in">{@render path(bend(1, 4.5))}</div>
 
 			<!-- home, at twilight -->
 			<section class="leg jaipur" id="jaipur" aria-labelledby="jaipur-h">
@@ -934,6 +950,27 @@
 	.city .mono {
 		font-size: 10.5px;
 		color: var(--ink-3);
+	}
+
+	/* ---------- pizza ---------- */
+	.pizza-words {
+		grid-column: 3 / 9;
+	}
+	.pizza .pull {
+		margin-top: 28px;
+		font-size: clamp(36px, 3.8vw, 56px);
+		line-height: 1;
+		letter-spacing: -0.04em;
+		font-weight: 600;
+		font-variation-settings: 'wdth' 80;
+	}
+	.pizza .say {
+		margin-top: 18px;
+		max-width: 44ch;
+	}
+	.line-up {
+		grid-column: 2 / 13;
+		margin-top: 40px;
 	}
 
 	/* ---------- cinema ---------- */

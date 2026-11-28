@@ -86,7 +86,12 @@ export const BUILDING = [
 
 export const HOME = [
 	'i live in jaipur. twilight is the time of day that feels like home.',
-	'a neapolitan pizza every week, from the same place. i had about 4 on the europe trip.',
+];
+
+/** neapolitan pizza, the favourite */
+export const PIZZA = [
+	'neapolitan pizza. my favourite food.',
+	'one every week, from the same place. i had about 4 on the europe trip alone.',
 ];
 
 export const SCARED = ['in the age of ai, what makes a human a human?'];
