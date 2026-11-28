@@ -44,6 +44,8 @@
 			{#if data.series}<div><dt>series</dt><dd>{data.series.name}</dd></div>{/if}
 			<div><dt>also as</dt><dd><a class="ln" href="/writing/{data.slug}.md">markdown ↗</a></dd></div>
 		</dl>
+		<!-- the papers sit in the margin of a short post; a long one has its contents there, so the mic waits here -->
+		{#if toc}<i class="clay mic" aria-hidden="true"></i>{/if}
 	</aside>
 
 	<!-- column 1: contents -->
@@ -138,6 +140,15 @@
 	.meta {
 		grid-column: 3;
 		padding-bottom: 40px;
+	}
+	.mic {
+		right: 30px;
+		bottom: 0;
+		width: 50px;
+		height: 70px;
+	}
+	.meta:has(.mic) .facts {
+		padding-right: 64px;
 	}
 	.facts {
 		margin-top: auto;

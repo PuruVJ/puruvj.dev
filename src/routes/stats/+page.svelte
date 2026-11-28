@@ -62,7 +62,7 @@
 	</section>
 	<section class="b cell">
 		<div class="h"><span><span class="n">05</span>commits</span></div>
-		<p class="mid num">{s?.code ? full(s.code.commits) : '–'}</p>
+		<p class="mid num perch">{s?.code ? full(s.code.commits) : '–'}<i class="clay dice" aria-hidden="true"></i></p>
 		<p class="sub mono">to my own repos</p>
 		{#if data.graphs.commits}<Graph g={data.graphs.commits} />{/if}
 	</section>
@@ -150,6 +150,16 @@
 
 	.cell {
 		min-height: 260px;
+	}
+	/* a pair of dice left on top of the commit count */
+	.perch {
+		align-self: flex-start;
+	}
+	.dice {
+		right: -14px;
+		bottom: calc(100% - 10px);
+		width: 70px;
+		height: 37px;
 	}
 	.mid {
 		margin-top: auto;
