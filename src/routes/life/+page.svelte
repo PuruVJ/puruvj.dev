@@ -13,7 +13,7 @@
 	const PHOTOS: Record<string, ImageDescriptor | null> = {
 		annecy: import.meta.og.image('../../lib/life/annecy.jpg'),
 		kedarkantha: import.meta.og.image('../../lib/life/kedarkantha.jpg'),
-		brahmatal: null,
+		brahmatal: import.meta.og.image('../../lib/life/brahmatal.jpg'),
 		'dayara bugyal': null,
 		interlaken: null,
 		lucerne: null,
