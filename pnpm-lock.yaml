@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@dimforge/rapier3d':
+        specifier: 0.19.3
+        version: 0.19.3
       '@fontsource-variable/instrument-sans':
         specifier: ^5.3.0
         version: 5.3.0
@@ -20,9 +23,6 @@ importers:
       '@ogygia/image':
         specifier: 0.16.0
         version: 0.16.0(cde8eb42bbd358b109ff6551b00c28f6)
-      cannon-es:
-        specifier: 0.20.0
-        version: 0.20.0
       ogygia:
         specifier: 0.16.0
         version: 0.16.0(@sveltejs/kit@2.70.4(@sveltejs/vite-plugin-svelte@7.3.2(svelte@5.59.2)(vite@8.4.0(@types/node@26.6.11)(esbuild@0.28.2)(yaml@2.9.0)))(svelte@5.59.2)(typescript@6.0.3)(vite@8.4.0(@types/node@26.6.11)(esbuild@0.28.2)(yaml@2.9.0)))(rolldown@1.3.4)(svelte@5.59.2)(vite@8.4.0(@types/node@26.6.11)(esbuild@0.28.2)(yaml@2.9.0))
@@ -74,6 +74,9 @@ importers:
         version: 8.4.0(@types/node@26.6.11)(esbuild@0.28.2)(yaml@2.9.0)
 
 packages:
+
+  '@dimforge/rapier3d@0.19.3':
+    resolution: {integrity: sha512-tkD1tvHTDML0W9s9rUYAsx0btO9LbVTnMBKJWVgOsas5haGFbYY+pzr5hbwYysv/IJmgmMrIFoVWIcsaCUE9ow==}
 
   '@emnapi/runtime@1.11.3':
     resolution: {integrity: sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA==}
@@ -996,9 +999,6 @@ packages:
   camelize@1.0.1:
     resolution: {integrity: sha512-dU+Tx2fsypxTgtLoE36npi3UqcjSSMNYfkqgmoEhtZrraP5VWq0K7FkWVTYa8eMPtnU/G2txVsfdCJTn9uzpuQ==}
 
-  cannon-es@0.20.0:
-    resolution: {integrity: sha512-eZhWTZIkFOnMAJOgfXJa9+b3kVlvG+FX4mdkpePev/w/rP5V8NRquGyEozcjPfEoXUlb+p7d9SUcmDSn14prOA==}
-
   ccount@2.0.1:
     resolution: {integrity: sha512-eyrF0jiFpY+3drT6383f1qhkbGsLSifNAjA61IUjZjmLCWjItY6LB9ft9YhoDgwfmclB2zhu51Lc7+95b8NRAg==}
 
@@ -1726,6 +1726,8 @@ packages:
 
 snapshots:
 
+  '@dimforge/rapier3d@0.19.3': {}
+
   '@emnapi/runtime@1.11.3':
     dependencies:
       tslib: 2.9.1
@@ -2432,8 +2434,6 @@ snapshots:
       balanced-match: 4.0.4
 
   camelize@1.0.1: {}
-
-  cannon-es@0.20.0: {}
 
   ccount@2.0.1: {}
 
