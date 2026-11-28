@@ -80,7 +80,4 @@ export const HOME = [
 	'a neapolitan pizza every week, from the same place. i had about 4 on the europe trip.',
 ];
 
-export const SCARED = [
-	'leaving the old me behind, to go to newer pastures, newer experiments.',
-	'and in the age of ai: what makes a human really human? what does that mean, day to day? what should a human aspire to be?',
-];
+export const SCARED = ['in the age of ai, what makes a human a human?'];
